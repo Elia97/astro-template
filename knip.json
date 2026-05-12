@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "entry": ["src/pages/**/*.{astro,ts,js}", "src/layouts/**/*.astro"],
+  "project": ["src/**/*.{astro,ts,js}"],
+  "ignoreDependencies": ["tailwindcss"]
+}
