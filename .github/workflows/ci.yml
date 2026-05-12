@@ -37,6 +37,10 @@ jobs:
     # già installati. Il tag deve matchare la versione di @playwright/test.
     container:
       image: mcr.microsoft.com/playwright:v1.60.0-noble
+    # GHA setta HOME=/github/home (owned da pwuser) ma il processo gira come
+    # root → Firefox rifiuta di partire. Forzare HOME=/root risolve.
+    env:
+      HOME: /root
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6

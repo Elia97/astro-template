@@ -112,6 +112,10 @@ Le PR mostrano lo stato della CI: `gh pr checks <N>` o `gh pr view <N>`.
   `package.json` — quando Dependabot bumpa Playwright, aggiornare anche
   `ci.yml`. Tag delle versioni Playwright:
   https://mcr.microsoft.com/en-us/product/playwright/tags.
+- **Firefox + container + GHA**: GitHub Actions setta `HOME=/github/home` (owned
+  da `pwuser`) ma il processo gira come root, e Firefox rifiuta di partire per
+  via dell'ownership mismatch. Workaround documentato: forzare
+  `env: HOME: /root` a livello di job. Già configurato in `ci.yml`.
 - **Knip non blocca**: è in `continue-on-error: true` di proposito, per non
   fallire la CI su falsi positivi. Verificare l'output nel log durante i
   cleanup.
