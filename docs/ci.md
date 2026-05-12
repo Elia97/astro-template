@@ -34,22 +34,22 @@ Esegue il quality gate completo sul codice:
 
 ### Job `e2e`
 
-Esegue i test end-to-end Playwright:
+Esegue i test end-to-end Playwright dentro l'**image ufficiale Microsoft**
+`mcr.microsoft.com/playwright:v<version>-noble`, che contiene già Chromium,
+Firefox, WebKit e tutte le system deps (font, codec, GTK libs). Niente più
+`apt install` da fare.
 
-1. Setup identico al job `quality`.
-2. Estrazione della versione installata di Playwright (letta da
-   `@playwright/test/package.json`) per usarla come cache key.
-3. `actions/cache` su `~/.cache/ms-playwright` — directory in cui Playwright
-   scarica i binari dei browser. Chiave:
-   `${{ runner.os }}-playwright-<versione-esatta>`.
-4. `pnpm exec playwright install chromium firefox` — eseguito **solo se cache
-   miss**. Risparmia ~30-60s su ogni run con cache hit.
-5. `pnpm exec playwright install-deps chromium firefox` — system deps (apt),
-   eseguite **sempre** perché non agevolmente cachabili. Veloce (~5s) su
-   `ubuntu-latest` perché la maggior parte dei pacchetti è già presente.
-6. `pnpm test:e2e` — esegue gli spec in `e2e/`.
-7. Upload del report Playwright come artifact (`playwright-report/`), retention
+1. `container: image: mcr.microsoft.com/playwright:v1.60.0-noble` → il job gira
+   dentro l'image preconfigurata.
+2. `actions/checkout` + `pnpm/action-setup` + `actions/setup-node` (con
+   `cache: pnpm`) → setup standard Node/pnpm.
+3. `pnpm install --frozen-lockfile`.
+4. `pnpm test:e2e` — esegue gli spec in `e2e/`.
+5. Upload del report Playwright come artifact (`playwright-report/`), retention
    7 giorni, anche su failure (`if: always()`).
+
+Tempo job tipico: ~45-60s (vs ~5 min senza image, dominati dal
+`playwright install-deps`).
 
 Per scaricare il report dopo una run fallita:
 
@@ -106,12 +106,16 @@ Le PR mostrano lo stato della CI: `gh pr checks <N>` o `gh pr view <N>`.
 - **Cache di pnpm**: `setup-node` con `cache: pnpm` cache-a lo store di pnpm. Se
   servono installazioni pulite, fare una run con cache invalidata (cambia
   versione Node o cache key).
-- **Playwright in CI**: i binari dei browser sono cachati in
-  `~/.cache/ms-playwright` con chiave basata sulla **versione esatta** di
-  Playwright (non sul lockfile). La cache si invalida solo quando Playwright si
-  aggiorna: il primo run dopo un bump è più lento, i successivi recuperano dal
-  cache. Le system deps (apt) sono installate a ogni run perché non sono
-  agevolmente cachabili.
+- **Playwright in CI**: il job gira dentro l'image
+  `mcr.microsoft.com/playwright:v<version>-noble`, che include browser e system
+  deps. **Il tag dell'image deve matchare la versione di `@playwright/test`** in
+  `package.json` — quando Dependabot bumpa Playwright, aggiornare anche
+  `ci.yml`. Tag delle versioni Playwright:
+  https://mcr.microsoft.com/en-us/product/playwright/tags.
+- **Firefox + container + GHA**: GitHub Actions setta `HOME=/github/home` (owned
+  da `pwuser`) ma il processo gira come root, e Firefox rifiuta di partire per
+  via dell'ownership mismatch. Workaround documentato: forzare
+  `env: HOME: /root` a livello di job. Già configurato in `ci.yml`.
 - **Knip non blocca**: è in `continue-on-error: true` di proposito, per non
   fallire la CI su falsi positivi. Verificare l'output nel log durante i
   cleanup.
