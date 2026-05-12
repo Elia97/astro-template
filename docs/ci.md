@@ -37,10 +37,18 @@ Esegue il quality gate completo sul codice:
 Esegue i test end-to-end Playwright:
 
 1. Setup identico al job `quality`.
-2. `pnpm exec playwright install --with-deps chromium firefox` — scarica i
-   browser usati dai test.
-3. `pnpm test:e2e` — esegue gli spec in `e2e/`.
-4. Upload del report Playwright come artifact (`playwright-report/`), retention
+2. Estrazione della versione installata di Playwright (letta da
+   `@playwright/test/package.json`) per usarla come cache key.
+3. `actions/cache` su `~/.cache/ms-playwright` — directory in cui Playwright
+   scarica i binari dei browser. Chiave:
+   `${{ runner.os }}-playwright-<versione-esatta>`.
+4. `pnpm exec playwright install chromium firefox` — eseguito **solo se cache
+   miss**. Risparmia ~30-60s su ogni run con cache hit.
+5. `pnpm exec playwright install-deps chromium firefox` — system deps (apt),
+   eseguite **sempre** perché non agevolmente cachabili. Veloce (~5s) su
+   `ubuntu-latest` perché la maggior parte dei pacchetti è già presente.
+6. `pnpm test:e2e` — esegue gli spec in `e2e/`.
+7. Upload del report Playwright come artifact (`playwright-report/`), retention
    7 giorni, anche su failure (`if: always()`).
 
 Per scaricare il report dopo una run fallita:
@@ -98,9 +106,12 @@ Le PR mostrano lo stato della CI: `gh pr checks <N>` o `gh pr view <N>`.
 - **Cache di pnpm**: `setup-node` con `cache: pnpm` cache-a lo store di pnpm. Se
   servono installazioni pulite, fare una run con cache invalidata (cambia
   versione Node o cache key).
-- **Playwright in CI**: i browser devono essere installati a ogni run a meno di
-  cacharli; il workflow attuale fa l'install esplicito a ogni run per
-  affidabilità.
+- **Playwright in CI**: i binari dei browser sono cachati in
+  `~/.cache/ms-playwright` con chiave basata sulla **versione esatta** di
+  Playwright (non sul lockfile). La cache si invalida solo quando Playwright si
+  aggiorna: il primo run dopo un bump è più lento, i successivi recuperano dal
+  cache. Le system deps (apt) sono installate a ogni run perché non sono
+  agevolmente cachabili.
 - **Knip non blocca**: è in `continue-on-error: true` di proposito, per non
   fallire la CI su falsi positivi. Verificare l'output nel log durante i
   cleanup.
