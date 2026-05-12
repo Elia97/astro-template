@@ -77,12 +77,33 @@ i casi normali.
 
 ## Gotcha
 
+- **Permessi GitHub Actions sulla repo (setup one-time)**: di default le repo
+  GitHub appena create non permettono ai workflow di aprire PR. Senza
+  intervento, la prima esecuzione di release-please fallisce con
+  `GitHub Actions is not permitted to create or approve pull requests`.
+  Soluzione, una volta sola per ogni nuova repo:
+  - `Settings → Actions → General → Workflow permissions`
+  - selezionare **Read and write permissions**
+  - spuntare **Allow GitHub Actions to create and approve pull requests**
+  - salvare; eventualmente rilanciare la run fallita con `gh run rerun <id>`.
+
 - **Commit non-Conventional**: vengono ignorati. Se nessun commit rispetta la
   spec, nessuna Release PR viene aperta.
+
 - **Squash merge**: assicurarsi che il messaggio di squash usato nel merge sia
   esso stesso Conventional. La maggior parte delle UI di GitHub propone come
   default il titolo della PR, che è già Conventional se la PR è stata nominata
   correttamente.
-- **Tag e versione iniziale**: la prima release parte da `1.0.0` se non si
-  configura diversamente; per partire da `0.x` impostare `release-as: 0.1.0`
-  nella prima Release PR.
+
+- **Versione iniziale**: a seconda della configurazione dell'action, la prima
+  release può partire da `1.0.0` di default. Per garantire una prima release
+  `0.x.y` (tipico per progetti in early stage), aggiungere il footer
+  `Release-As: 0.1.0` al messaggio del commit di squash della prima PR `feat:`.
+  Con `gh`:
+
+  ```bash
+  gh pr merge <N> --squash --delete-branch --body $'Release-As: 0.1.0'
+  ```
+
+  Da quel momento in poi il bump è automatico (`feat:` → minor, `fix:` → patch):
+  il footer serve solo per la prima release.
