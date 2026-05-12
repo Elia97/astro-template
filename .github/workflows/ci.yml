@@ -33,6 +33,10 @@ jobs:
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
+    # Image ufficiale Microsoft con Chromium + Firefox + WebKit + system deps
+    # già installati. Il tag deve matchare la versione di @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -41,20 +45,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Get Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> $GITHUB_OUTPUT
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium firefox
-      - name: Install Playwright system dependencies
-        run: pnpm exec playwright install-deps chromium firefox
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v7
         if: always()
