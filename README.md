@@ -82,16 +82,18 @@ milestone è una PR `feat:` (o più, raggruppate per scope coerente).
 
 ### v0.2.0 — Design system & theming
 
-> Tutto ciò che è "look & feel" derivabile da `.env` + design tokens, senza
-> toccare il CSS.
+> Design tokens stile shadcn in `src/styles/theme.css` + env-driven per
+> tipografia (provider + name + local) e feature flag.
 
-- [ ] Design tokens (colori, spacing, radius) in `@theme` legati a variabili CSS
-- [ ] Tipografia configurabile via env (`PUBLIC_FONT_HEADING`,
-      `PUBLIC_FONT_BODY`)
-- [ ] Palette brand via env (`PUBLIC_BRAND_PRIMARY`, `PUBLIC_BRAND_ACCENT`, ...)
-- [ ] Dark mode opt-in (`PUBLIC_ENABLE_DARK_MODE`)
-- [ ] View Transitions di Astro abilitate di default
-- [ ] `.env.example` annotato con tutti i token disponibili
+- [x] Design tokens shadcn-inspired in
+      [`src/styles/theme.css`](./src/styles/theme.css) (light + dark)
+- [x] `@theme inline` di Tailwind v4 che aggancia i tokens del tema alle utility
+      (`bg-background`, `text-foreground`, `rounded-md`, …)
+- [x] Tipografia env-driven con `astro:font` (3 ruoli sans/serif/mono, provider
+      google/fontsource/local)
+- [x] Dark mode opt-in via `PUBLIC_ENABLE_DARK_MODE` con script anti-FOUC
+- [x] View Transitions opt-in via `PUBLIC_ENABLE_VIEW_TRANSITIONS`
+- [x] `.env.example` annotato + parser `.env` minimale in `src/lib/env.ts`
 
 ### v0.3.0 — Component library
 

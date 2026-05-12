@@ -7,8 +7,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['src/**/*.{ts,js,astro}'],
-      exclude: ['src/**/*.{test,spec}.{ts,js}', 'src/pages/**'],
+      include: ['src/**/*.{ts,js}'],
+      exclude: ['src/**/*.{test,spec}.{ts,js}', 'src/pages/**', 'src/**/*.astro'],
     },
   },
 })
