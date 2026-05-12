@@ -1,0 +1,447 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="Design System"
+  description="Anteprima del tema configurato in src/styles/theme.css + env"
+  noindex
+>
+  <main class="min-h-svh bg-background text-foreground">
+    <header class="border-b border-border">
+      <div class="mx-auto max-w-6xl px-6 py-12">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="font-sans text-5xl font-bold tracking-tight">Design System</h1>
+            <p class="mt-3 max-w-2xl font-sans text-lg text-muted-foreground">
+              Anteprima del tema corrente. Modifica
+              <code class="font-mono">src/styles/theme.css</code> per i colori, o le
+              <code class="font-mono">PUBLIC_FONT_*</code> in <code class="font-mono">.env</code>
+              per la tipografia.
+            </p>
+          </div>
+          <button
+            id="theme-toggle"
+            class="shrink-0 rounded-md border border-border bg-secondary px-4 py-2 font-sans text-sm text-secondary-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            Toggle theme
+          </button>
+        </div>
+        <nav class="mt-6 font-sans text-sm">
+          <a class="text-muted-foreground hover:text-foreground" href="/">← Home</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-6xl space-y-24 px-6 py-16">
+      <section>
+        <h2 class="mb-2 font-sans text-3xl font-bold">Tipografia</h2>
+        <p class="mb-10 font-sans text-muted-foreground">
+          Tre ruoli configurabili via <code class="font-mono">.env</code>:
+          <code class="font-mono">--font-sans</code>, <code class="font-mono">--font-serif</code>,
+          <code class="font-mono">--font-mono</code>.
+        </p>
+
+        <div class="grid gap-12 lg:grid-cols-2">
+          <div>
+            <div class="mb-4 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+              Headings · font-serif
+            </div>
+            <div class="space-y-3 font-serif">
+              <h1 class="text-5xl leading-tight font-bold">Heading 1</h1>
+              <h2 class="text-4xl leading-tight font-bold">Heading 2</h2>
+              <h3 class="text-3xl leading-snug font-semibold">Heading 3</h3>
+              <h4 class="text-2xl leading-snug font-semibold">Heading 4</h4>
+              <h5 class="text-xl font-medium">Heading 5</h5>
+              <h6 class="text-lg font-medium">Heading 6</h6>
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-4 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+              Headings · font-sans
+            </div>
+            <div class="space-y-3 font-sans">
+              <h1 class="text-5xl leading-tight font-bold">Heading 1</h1>
+              <h2 class="text-4xl leading-tight font-bold">Heading 2</h2>
+              <h3 class="text-3xl leading-snug font-semibold">Heading 3</h3>
+              <h4 class="text-2xl leading-snug font-semibold">Heading 4</h4>
+              <h5 class="text-xl font-medium">Heading 5</h5>
+              <h6 class="text-lg font-medium">Heading 6</h6>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 grid gap-12 lg:grid-cols-2">
+          <div>
+            <div class="mb-3 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+              Body · font-sans
+            </div>
+            <p class="max-w-prose font-sans leading-relaxed">
+              Paragrafo in sans serif. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+              do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              <em>Italico</em> e <strong>grassetto</strong> per enfasi.
+            </p>
+          </div>
+          <div>
+            <div class="mb-3 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+              Body · font-serif
+            </div>
+            <p class="max-w-prose font-serif leading-relaxed">
+              Paragrafo in serif. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              <em>Italico</em> e <strong>grassetto</strong> per enfasi.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <div class="mb-3 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+            Code · font-mono
+          </div>
+          <pre
+            class="overflow-x-auto rounded-md border border-border bg-card p-4 font-mono text-sm text-card-foreground">
+const greet = (name: string): string =&gt;
+  &apos;Ciao, &apos; + name + &apos;! Benvenuto nel design system.&apos;
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <div class="mb-2 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+          Esempio · Hero
+        </div>
+        <h2 class="mb-8 font-sans text-3xl font-bold">Landing hero</h2>
+
+        <div class="rounded-xl border border-border bg-card p-10 shadow-sm sm:p-16">
+          <div class="mx-auto max-w-3xl space-y-6 text-center">
+            <span
+              class="inline-flex items-center rounded-full border border-border bg-accent px-3 py-1 font-mono text-xs text-accent-foreground"
+            >
+              v0.2.0 · design system
+            </span>
+            <h1 class="font-serif text-5xl leading-[1.1] font-bold sm:text-6xl">
+              Build a marketing site, <span class="text-primary">in minutes</span>.
+            </h1>
+            <p class="mx-auto max-w-2xl font-sans text-lg text-muted-foreground sm:text-xl">
+              Un template Astro v6 forkabile, con design tokens shadcn-style, tipografia env-driven
+              e tutto il quality gate già pronto. Compila <code class="font-mono text-sm">.env</code
+              > e fai deploy.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 pt-2">
+              <a
+                href="#"
+                class="rounded-md bg-primary px-6 py-2.5 font-sans font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              >
+                Forka il template
+              </a>
+              <a
+                href="#"
+                class="rounded-md border border-border bg-secondary px-6 py-2.5 font-sans font-medium text-secondary-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                Leggi i docs
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="mb-2 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+          Esempio · Article
+        </div>
+        <h2 class="mb-8 font-sans text-3xl font-bold">Long-form content</h2>
+
+        <article class="mx-auto max-w-prose">
+          <div class="mb-2 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+            12 marzo 2026 · 8 min lettura
+          </div>
+          <h1 class="mb-4 font-serif text-4xl leading-tight font-bold">
+            L'arte di scegliere una palette
+          </h1>
+          <p class="mb-8 font-sans text-lg leading-relaxed text-muted-foreground">
+            Tre principi per evitare i colori "da template" e dare al tuo sito un'identità
+            riconoscibile fin dal primo sguardo.
+          </p>
+
+          <p class="mb-4 font-sans leading-relaxed">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+
+          <h2 class="mt-10 mb-3 font-serif text-2xl font-bold">Un neutral tinted vale dieci</h2>
+          <p class="mb-4 font-sans leading-relaxed">
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+            nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+            officia deserunt mollit anim id est laborum.
+          </p>
+
+          <blockquote
+            class="my-8 border-l-4 border-primary pl-6 font-serif text-xl leading-relaxed text-foreground italic"
+          >
+            "Un grigio puro è una rinuncia. Un grigio tinted è una scelta."
+          </blockquote>
+
+          <h3 class="mt-8 mb-2 font-sans text-xl font-semibold">Una piccola checklist</h3>
+          <ul class="mb-6 list-inside list-disc space-y-1 font-sans leading-relaxed">
+            <li>Parti dal neutral, non dal primary.</li>
+            <li>Verifica i contrasti AA su tutti i ruoli.</li>
+            <li>Lascia spazio per il <code class="font-mono text-sm">--accent</code>.</li>
+          </ul>
+
+          <p class="font-sans leading-relaxed">
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+            laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.
+          </p>
+        </article>
+      </section>
+
+      <section>
+        <div class="mb-2 font-mono text-xs tracking-wide text-muted-foreground uppercase">
+          Esempio · Feature grid
+        </div>
+        <h2 class="mb-8 font-sans text-3xl font-bold">Cosa offre il template</h2>
+
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            [
+              {
+                label: '01',
+                title: 'Quality gates inclusi',
+                body: 'TypeScript strict, ESLint v10 type-aware, Prettier, Vitest, Playwright e Knip già configurati e in CI.',
+              },
+              {
+                label: '02',
+                title: 'Theming env-driven',
+                body: 'Pochi token in .env per font, dark mode, view transitions. I colori in src/styles/theme.css, shadcn-style.',
+              },
+              {
+                label: '03',
+                title: 'Release automatizzate',
+                body: 'release-please bumpa la versione e scrive il CHANGELOG dai Conventional Commits. Dependabot tiene tutto fresco.',
+              },
+            ].map(({ label, title, body }) => (
+              <div class="group cursor-pointer rounded-lg border border-border bg-card p-6 shadow-sm transition-colors hover:border-primary hover:bg-accent">
+                <div class="mb-4 inline-flex size-10 items-center justify-center rounded-md bg-accent font-mono text-sm text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  {label}
+                </div>
+                <h3 class="mb-2 font-sans text-lg font-semibold text-card-foreground">{title}</h3>
+                <p class="font-sans text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section>
+        <div class="mb-2 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+          Esempio · Editorial display
+        </div>
+        <h2 class="mb-8 font-sans text-3xl font-bold">Tipografia stravagante</h2>
+
+        <div class="rounded-xl border border-border bg-card p-8 shadow-sm sm:p-16">
+          <div class="mb-10 flex items-center gap-6">
+            <div class="font-mono text-7xl leading-none font-bold text-primary sm:text-8xl">01</div>
+            <div class="flex flex-col gap-1">
+              <div class="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+                Capitolo uno
+              </div>
+              <div class="font-sans text-sm text-muted-foreground">Lettura · 4 min</div>
+            </div>
+          </div>
+
+          <h1
+            class="mb-10 font-serif text-5xl leading-[0.95] font-bold tracking-tight sm:text-7xl md:text-8xl"
+          >
+            Tipografia <em class="font-light text-primary italic">audace</em>,<br />
+            contenuti precisi.
+          </h1>
+
+          <p
+            class="mb-12 font-serif text-xl leading-relaxed first-letter:float-left first-letter:mr-3 first-letter:font-serif first-letter:text-7xl first-letter:leading-[0.85] first-letter:font-bold first-letter:text-primary"
+          >
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+
+          <figure class="my-12 border-l-8 border-primary pl-6 sm:my-16">
+            <blockquote
+              class="font-serif text-3xl leading-[1.05] font-medium text-foreground italic sm:text-5xl"
+            >
+              "Less is not more. Better is more."
+            </blockquote>
+            <figcaption
+              class="mt-6 font-mono text-xs tracking-widest text-muted-foreground uppercase"
+            >
+              — Dieter Rams (probabilmente)
+            </figcaption>
+          </figure>
+
+          <div class="grid gap-8 font-sans leading-relaxed sm:grid-cols-2">
+            <p>
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+              nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+              officia deserunt mollit anim id est laborum.
+            </p>
+            <p>
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+              laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
+              architecto beatae vitae dicta sunt explicabo.
+            </p>
+          </div>
+
+          <div class="mt-14 grid grid-cols-3 gap-4 border-t border-border pt-8">
+            <div>
+              <div class="font-mono text-4xl font-bold text-foreground sm:text-5xl">22</div>
+              <div class="mt-1 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+                palette
+              </div>
+            </div>
+            <div>
+              <div class="font-mono text-4xl font-bold text-foreground sm:text-5xl">3×3</div>
+              <div class="mt-1 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+                font roles
+              </div>
+            </div>
+            <div>
+              <div class="font-mono text-4xl font-bold text-foreground sm:text-5xl">100%</div>
+              <div class="mt-1 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+                test coverage
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="mb-2 font-sans text-3xl font-bold">Colori</h2>
+        <p class="mb-8 font-sans text-muted-foreground">
+          Token semantici stile shadcn. Definiti in
+          <code class="font-mono">src/styles/theme.css</code>, agganciati a utility Tailwind via
+          <code class="font-mono">@theme inline</code>.
+        </p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-md border border-border bg-background p-6">
+            <div class="font-mono text-sm font-medium text-foreground">--background</div>
+            <div class="font-mono text-xs text-muted-foreground">--foreground</div>
+          </div>
+          <div class="rounded-md border border-border bg-card p-6">
+            <div class="font-mono text-sm font-medium text-card-foreground">--card</div>
+            <div class="font-mono text-xs text-muted-foreground">--card-foreground</div>
+          </div>
+          <div class="rounded-md border border-border bg-popover p-6">
+            <div class="font-mono text-sm font-medium text-popover-foreground">--popover</div>
+            <div class="font-mono text-xs text-muted-foreground">--popover-foreground</div>
+          </div>
+          <div class="rounded-md bg-primary p-6">
+            <div class="font-mono text-sm font-medium text-primary-foreground">--primary</div>
+            <div class="font-mono text-xs text-primary-foreground/70">--primary-foreground</div>
+          </div>
+          <div class="rounded-md bg-secondary p-6">
+            <div class="font-mono text-sm font-medium text-secondary-foreground">--secondary</div>
+            <div class="font-mono text-xs text-secondary-foreground/70">--secondary-foreground</div>
+          </div>
+          <div class="rounded-md bg-muted p-6">
+            <div class="font-mono text-sm font-medium text-foreground">--muted</div>
+            <div class="font-mono text-xs text-muted-foreground">--muted-foreground</div>
+          </div>
+          <div class="rounded-md bg-accent p-6">
+            <div class="font-mono text-sm font-medium text-accent-foreground">--accent</div>
+            <div class="font-mono text-xs text-accent-foreground/70">--accent-foreground</div>
+          </div>
+          <div class="rounded-md bg-destructive p-6">
+            <div class="font-mono text-sm font-medium text-destructive-foreground">
+              --destructive
+            </div>
+            <div class="font-mono text-xs text-destructive-foreground/70">
+              --destructive-foreground
+            </div>
+          </div>
+          <div class="space-y-2 rounded-md border border-border p-6">
+            <div class="font-mono text-xs text-muted-foreground">--border / --input / --ring</div>
+            <div class="h-px bg-border"></div>
+            <div class="h-px bg-input"></div>
+            <div class="h-px bg-ring"></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="mb-2 font-sans text-3xl font-bold">Border radius</h2>
+        <p class="mb-8 font-sans text-muted-foreground">
+          Tutte derivate via <code class="font-mono">calc()</code> dal token base
+          <code class="font-mono">--radius</code>.
+        </p>
+
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div class="rounded-sm bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-sm</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-md</div>
+          </div>
+          <div class="rounded-lg bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-lg</div>
+          </div>
+          <div class="rounded-xl bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-xl</div>
+          </div>
+          <div class="rounded-2xl bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-2xl</div>
+          </div>
+          <div class="rounded-3xl bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-3xl</div>
+          </div>
+          <div class="rounded-4xl bg-card p-8 text-center">
+            <div class="font-mono text-xs text-card-foreground">rounded-4xl</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="mb-2 font-sans text-3xl font-bold">Shadow</h2>
+        <p class="mb-8 font-sans text-muted-foreground">
+          Scala fissa di shadow. Su tema dark le shadow sono volutamente sottili (sfondi scuri
+          riducono il contrasto naturale).
+        </p>
+
+        <div class="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div class="rounded-md bg-card p-8 text-center shadow-2xs">
+            <div class="font-mono text-xs text-card-foreground">shadow-2xs</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-xs">
+            <div class="font-mono text-xs text-card-foreground">shadow-xs</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-sm">
+            <div class="font-mono text-xs text-card-foreground">shadow-sm</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow">
+            <div class="font-mono text-xs text-card-foreground">shadow</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-md">
+            <div class="font-mono text-xs text-card-foreground">shadow-md</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-lg">
+            <div class="font-mono text-xs text-card-foreground">shadow-lg</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-xl">
+            <div class="font-mono text-xs text-card-foreground">shadow-xl</div>
+          </div>
+          <div class="rounded-md bg-card p-8 text-center shadow-2xl">
+            <div class="font-mono text-xs text-card-foreground">shadow-2xl</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark')
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
+  })
+</script>

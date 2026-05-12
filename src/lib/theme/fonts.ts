@@ -56,6 +56,12 @@ export function scanLocalDir(dir: string, role: FontRole): FontVariant[] {
   return variants
 }
 
+const FALLBACKS_BY_ROLE: Record<FontRole, string[]> = {
+  sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+  serif: ['ui-serif', 'Georgia', 'serif'],
+  mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+}
+
 export function buildFontConfig(role: FontRole, envSource: Record<string, string> = env) {
   const defaults = FONT_DEFAULTS[role]
   const upper = role.toUpperCase()
@@ -63,12 +69,14 @@ export function buildFontConfig(role: FontRole, envSource: Record<string, string
   const name = envSource[`PUBLIC_FONT_${upper}_NAME`] ?? defaults.name
   const localDir = envSource[`PUBLIC_FONT_${upper}_LOCAL_DIR`] ?? defaults.localDir
   const cssVariable = `--font-${role}`
+  const fallbacks = FALLBACKS_BY_ROLE[role]
 
   if (provider === 'local') {
     return {
       provider: fontProviders.local(),
       name,
       cssVariable,
+      fallbacks,
       options: { variants: scanLocalDir(localDir, role) },
     }
   }
@@ -77,5 +85,6 @@ export function buildFontConfig(role: FontRole, envSource: Record<string, string
     provider: fontProviders[provider](),
     name,
     cssVariable,
+    fallbacks,
   }
 }
