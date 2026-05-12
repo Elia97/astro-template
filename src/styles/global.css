@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+
+@theme {
+  /* override / extend design tokens here, e.g.:
+     --color-brand-500: oklch(0.7 0.18 250);
+     --font-sans: 'Inter', system-ui, sans-serif;
+  */
+}

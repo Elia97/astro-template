@@ -1,17 +1,13 @@
 ---
-
+import BaseLayout from '../layouts/BaseLayout.astro'
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Astro Template" description="Minimal Astro starter">
+  <main class="grid min-h-svh place-items-center bg-neutral-950 px-6 text-neutral-50">
+    <h1
+      class="bg-linear-to-br from-fuchsia-400 via-violet-400 to-sky-400 bg-clip-text text-7xl font-black tracking-tight text-transparent sm:text-9xl"
+    >
+      Astro
+    </h1>
+  </main>
+</BaseLayout>
