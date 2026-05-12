@@ -6,7 +6,13 @@ import prettier from 'eslint-config-prettier'
 import globals from 'globals'
 
 export default defineConfig([
-  globalIgnores(['dist/**', 'node_modules/**', '.astro/**', '*.config.{js,mjs,cjs}']),
+  globalIgnores([
+    'dist/**',
+    'node_modules/**',
+    '.astro/**',
+    'coverage/**',
+    '*.config.{js,mjs,cjs}',
+  ]),
   {
     languageOptions: {
       globals: {
