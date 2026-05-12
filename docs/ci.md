@@ -104,3 +104,8 @@ Le PR mostrano lo stato della CI: `gh pr checks <N>` o `gh pr view <N>`.
 - **Knip non blocca**: è in `continue-on-error: true` di proposito, per non
   fallire la CI su falsi positivi. Verificare l'output nel log durante i
   cleanup.
+- **`CHANGELOG.md` autogenerato vs Prettier**: il `CHANGELOG.md` prodotto da
+  release-please usa bullet `*` e doppie newline, formato che Prettier non
+  accetta. Senza intervento, il primo commit di rilascio rompe la CI su
+  `format:check`. Soluzione: aggiungere `CHANGELOG.md` a `.prettierignore`. È un
+  file autogenerato, non ha senso formattarlo a mano.
