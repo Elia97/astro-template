@@ -1,43 +1,41 @@
-# Astro Starter Kit: Minimal
+# astro-template
+
+Reusable [Astro](https://astro.build) template for personal/freelance projects — Node 24, pnpm, Biome, strict TypeScript, and a Vercel deployment already wired up.
+
+## Stack
+
+- **Node** 24 (pinned in `.nvmrc`), **pnpm** via corepack (pinned in `package.json#packageManager`)
+- **Biome** — sole formatter/linter (no ESLint/Prettier)
+- **TypeScript** — `astro/tsconfigs/strictest`
+- **Rendering** — `output: "server"` (SSR by default), static pages opt in via `export const prerender = true`
+- **Deploy** — Vercel, via `@astrojs/vercel`; production ships only from a release tag, not from every push (see `scripts/vercel-ignore-build.sh`)
+- **Commits** — Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook
+
+## Getting started
 
 ```sh
-pnpm create astro@latest -- --template minimal
+corepack enable
+pnpm install
+pnpm dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+`pnpm install` also installs the git hooks (lefthook) automatically.
 
-## 🚀 Project Structure
+## Scripts
 
-Inside of your Astro project, you'll see the following folders and files:
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Start the dev server |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview the production build locally |
+| `pnpm format` | Format the codebase with Biome (writes) |
+| `pnpm lint` | Lint with Biome (report only) |
+| `pnpm check` | Format + lint + organize imports with Biome (writes) |
+| `pnpm typecheck` | Run `astro check` |
+| `pnpm ci` | Non-mutating check used in CI: `biome ci` + typecheck |
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## Planning and vertical agents
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Work is planned in `docs/ROADMAP.md` (one milestone = one PR = one release) and tracked with `docs/DECISIONS.md` for open questions. Use `/milestone <N>[.<x>]` to implement a milestone — it runs plan mode and coordinates domain-specific vertical agents (`.claude/agents/`: content, UI, SEO, forms, rendering/performance, ops) in parallel, each following the matching guide in `docs/guides/` when one exists.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+See `CLAUDE.md` for the full set of project conventions.
