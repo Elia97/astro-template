@@ -6,6 +6,8 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
+    cooldown:
+      default-days: 2
     groups:
       astro:
         patterns:
