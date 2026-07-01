@@ -1,3 +1,4 @@
+pmOnFail: error
 allowBuilds:
   esbuild: true
   lefthook: true
