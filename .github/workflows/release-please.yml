@@ -8,13 +8,21 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      # Falls back to GITHUB_TOKEN until RELEASE_PLEASE_TOKEN is set (see HOW_TO_USE.md) —
+      # note that with GITHUB_TOKEN, CI won't run on release-please's own release PR
+      # (GitHub Actions anti-recursion safeguard), so set the PAT before relying on that check.
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
@@ -42,15 +50,23 @@ jobs:
           fi
 
   deploy:
+    name: Deploy to Vercel production
     needs: [release-please, check-vercel-secrets]
     if: ${{ needs.release-please.outputs.release_created == 'true' && needs.check-vercel-secrets.outputs.configured == 'true' }}
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
+      # Checks out the exact released tag, not whatever HEAD of main happens to be at
+      # deploy time — avoids deploying a commit that landed on main after the release.
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
 
       - run: corepack enable
 
@@ -65,4 +81,9 @@ jobs:
 
       - run: pnpm dlx vercel build --prod
 
-      - run: pnpm dlx vercel deploy --prebuilt --prod
+      - name: Deploy to Vercel production
+        id: deploy
+        run: |
+          url=$(pnpm dlx vercel deploy --prebuilt --prod)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $url"

@@ -2,6 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "bootstrap-sha": "53145ecc033a2d5cd9be9ccc7fd7da35e27e02b0",
   "include-v-in-tag": true,
+  "release-search-depth": 100,
+  "commit-search-depth": 500,
   "packages": {
     ".": {
       "release-type": "node",
