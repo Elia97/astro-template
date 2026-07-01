@@ -1,39 +1,45 @@
-Template Astro riutilizzabile (uso personale/freelance). Le regole sotto `[HARD]` non sono negoziabili — non aggirarle per comodità, anche se sembrano bloccare un task.
+Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-negotiable — don't work around them for convenience, even if they seem to block a task.
 
-## Stack e convenzioni
+## Stack and conventions
 
-- **Package manager**: solo pnpm via corepack — versione pinnata in `packageManager` (`package.json`). Non usare npm/yarn, non installare pacchetti globalmente.
-- **Node**: versione pinnata in `.nvmrc` — rispettala, non assumere una versione diversa.
-- **Formatter/linter**: solo Biome (`biome.json`) — niente ESLint/Prettier. Stile: 2 spazi, apici singoli, niente `;`, virgole finali.
-- **TypeScript**: `astro/tsconfigs/strictest`. Se `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` segnalano un errore, risolvilo nel codice — non allentare la config per farlo sparire.
-- **Rendering**: `output: "server"` — le pagine sono SSR di default. Le pagine che devono restare statiche hanno `export const prerender = true` esplicito nel frontmatter.
-- **Deploy**: Vercel, tramite `@astrojs/vercel`.
+- **Package manager**: pnpm via corepack only — version pinned in `packageManager` (`package.json`). No npm/yarn, no global installs.
+- **Node**: version pinned in `.nvmrc` — respect it, don't assume a different version.
+- **Formatter/linter**: Biome only (`biome.json`) — no ESLint/Prettier. Style: 2 spaces, single quotes, no semicolons, trailing commas.
+- **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
+- **Rendering**: `output: "server"` — pages are SSR by default. Pages that must stay static have `export const prerender = true` explicit in the frontmatter.
+- **Deploy**: Vercel, via `@astrojs/vercel`.
 
 ## Workflow [HARD]
 
-- Commit: Conventional Commits, validati da commitlint sull'hook `commit-msg` di lefthook (`type(scope): subject`). Un commit che non rispetta il formato viene rifiutato dall'hook — non aggirarlo con `--no-verify`.
-- Prima di considerare un task concluso, esegui `pnpm run ci` (Biome check + type-check, non modifica file) — deve passare pulito.
-- L'hook `pre-commit` formatta automaticamente i file staged con Biome: è normale che i file vengano riscritti al commit, non è un errore.
+- Commits: Conventional Commits, validated by commitlint on lefthook's `commit-msg` hook (`type(scope): subject`). A commit that doesn't match the format is rejected by the hook — don't bypass it with `--no-verify`.
+- Before considering a task done, run `pnpm run ci` (Biome check + type-check, doesn't modify files) — it must pass clean.
+- The `pre-commit` hook auto-formats staged files with Biome: it's normal for files to be rewritten at commit time, that's not an error.
 
-## Sviluppo
+## Planning and vertical agents
 
-Avvia il dev server in background:
+- Work is planned in `docs/ROADMAP.md` (milestone = PR = release) and `docs/DECISIONS.md` (open decisions, informational — doesn't block starting a milestone).
+- To implement a milestone/sub-task use `/milestone <N>[.<x>]` — plan mode + vertical agents in parallel, never commits/pushes/opens a PR on its own.
+- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`. Each reads the matching guide in `docs/guides/*.md` if it exists (authoritative source for this project's conventions); if the guide doesn't exist yet, it applies standard best practices and flags that they're worth codifying into the guide. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
+
+## Development
+
+Start the dev server in background mode:
 
 ```
 astro dev --background
 ```
 
-Gestiscilo con `astro dev stop`, `astro dev status`, `astro dev logs`.
+Manage it with `astro dev stop`, `astro dev status`, `astro dev logs`.
 
-## Documentazione
+## Documentation
 
-Documentazione completa di Astro: https://docs.astro.build
+Full Astro documentation: https://docs.astro.build
 
-Consultala prima di lavorare su:
+Consult it before working on:
 
-- [Routing, pagine dinamiche, middleware](https://docs.astro.build/en/guides/routing/)
-- [Componenti Astro](https://docs.astro.build/en/basics/astro-components/)
-- [Componenti React/Vue/Svelte/altri framework](https://docs.astro.build/en/guides/framework-components/)
-- [Contenuti e content collections](https://docs.astro.build/en/guides/content-collections/)
-- [Stili e Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Internazionalizzazione](https://docs.astro.build/en/guides/internationalization/)
+- [Routing, dynamic pages, middleware](https://docs.astro.build/en/guides/routing/)
+- [Astro components](https://docs.astro.build/en/basics/astro-components/)
+- [React/Vue/Svelte/other framework components](https://docs.astro.build/en/guides/framework-components/)
+- [Content and content collections](https://docs.astro.build/en/guides/content-collections/)
+- [Styling and Tailwind](https://docs.astro.build/en/guides/styling/)
+- [Internationalization](https://docs.astro.build/en/guides/internationalization/)
