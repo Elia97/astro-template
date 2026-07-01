@@ -54,7 +54,7 @@ Iterate over the sub-tasks in scope one at a time, in ROADMAP order.
 
 1. Read the sub-task's section in the plan file (already approved).
 2. For each vertical agent in the breakdown: spawn in parallel (single message, N `Agent` invocations). Each prompt includes: exclusive scope-path, **explicit role ("implement")**, the work spec, a reference to `CLAUDE.md` and to the plan file. Instruction: "don't commit, don't run `git`."
-3. Wait for all of them to finish. Check for overlap with `git status`.
+3. Wait for all of them to finish. Check for overlap with `git status`: if two agents modified the same file despite exclusive scope-paths, **stop this step** — don't attempt an automatic merge. Overlap usually means the plan's scope split wasn't actually exclusive, which is worth understanding rather than papering over. Show the user the overlapping file(s) with a diff from each agent's intended change, and use `AskUserQuestion` to decide: (a) the user resolves it manually and you re-run the quality gate, or (b) spawn one dedicated agent to reconcile the two sets of changes coherently, then re-run from step 3.
 4. **Light review** (optional but recommended for non-trivial sub-tasks): re-spawn the same vertical agents involved with **role "review"** on the produced diff, prompt: "don't modify files, only check and report issues." If issues come up, spawn an agent to fix them and repeat the quality gate.
 5. Sequential quality gate: `pnpm run ci` then `pnpm run build`. If it fails, spawn a dedicated agent to fix it and re-run (max 2 attempts, then stop).
 6. Update `docs/ROADMAP.md`: mark the sub-task as done. Don't commit — it becomes part of the sub-task's commit.
