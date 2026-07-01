@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - '@astrojs/vercel@11.0.1'
