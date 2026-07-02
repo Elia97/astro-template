@@ -82,6 +82,14 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
 - New primitives follow the same recipe; keep variant strings on semantic
   tokens only (never raw palette values) and `focus-visible:outline-hidden`
   (see the idioms above).
+- Layout lives in two primitives, never hand-written: `Container` (Tailwind's
+  `container` utility — breakpoint-snapped width so every section aligns
+  vertically; auto centering + responsive gutter are added once via
+  `@utility container` in globals.css) and `Section` (vertical rhythm,
+  `spacing` compact/default/spacious, semantic `<section>`). Page sections
+  compose `<Section><Container>…</Container></Section>`; generator templates
+  must emit this shape. Rare narrower blocks nest an inner
+  `mx-auto max-w-*` wrapper inside Container instead of changing its width.
 
 No React in the base scaffold. If a fork needs a genuinely stateful component
 (Dialog, Calendar, …), see the islands gotchas in `ARCHITECTURE.md`.

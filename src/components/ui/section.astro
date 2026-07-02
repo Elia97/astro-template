@@ -1,0 +1,28 @@
+---
+// Layout primitive: vertical rhythm of page sections. The single place where
+// section `py-*` spacing lives — compose with Container for the inner width:
+// <Section><Container>…</Container></Section>
+import type { HTMLAttributes } from 'astro/types'
+import { cva, type VariantProps } from 'class-variance-authority'
+
+import { cn } from '@/lib/utils'
+
+export const sectionVariants = cva('w-full', {
+  variants: {
+    spacing: {
+      compact: 'py-12 sm:py-16',
+      default: 'py-16 sm:py-24',
+      spacious: 'py-24 sm:py-32',
+    },
+  },
+  defaultVariants: { spacing: 'default' },
+})
+
+interface Props
+  extends HTMLAttributes<'section'>,
+    VariantProps<typeof sectionVariants> {}
+
+const { spacing, class: className, ...rest } = Astro.props
+---
+
+<section class={cn(sectionVariants({ spacing }), className)} {...rest}><slot /></section>
