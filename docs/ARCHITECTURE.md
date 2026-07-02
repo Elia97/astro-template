@@ -13,14 +13,32 @@
 ```text
 src/
   pages/       # file-based routing
-public/        # static assets, served as-is
+  layouts/     # document shells (main.astro: lang, head, chrome)
+  components/  # .astro components; layout/ holds the page chrome (header, footer, skip-link)
+  lib/         # logic without markup: site.ts (SSoT), motion/ — leaf layers
+  styles/      # design tokens (3 tiers) + globals orchestrator
+public/        # static assets, served as-is (favicons, og-default.png placeholder)
 docs/          # planning + architecture docs for whichever project is built from this template
   guides/      # domain-specific pattern references, consulted by the vertical agents (see below)
-scripts/       # one-off setup scripts (GitHub bootstrap, Vercel ignored-build-step)
+scripts/       # operational tooling (GitHub bootstrap, Vercel ignored-build-step) — never imported by src/
 .claude/
   agents/      # vertical subagent definitions
   commands/    # /milestone orchestration command
 ```
+
+## Source layering
+
+`src/` is the boundary for everything the app build bundles — runtime code never
+lives outside it, tooling never lives inside it. Within `src/`, dependencies
+flow one way:
+
+- `lib/` — leaf layers: no imports from the rendering tree (no `.astro`, no
+  layouts/pages). `site.ts` is the single source of truth for site metadata and
+  chrome content; `motion/` owns the client-side motion lifecycle.
+- `components/` consume `lib/`. `components/layout/` is the page chrome, driven
+  entirely by `SITE` (nav/CTA/legal/microcopy — no hardcoded content).
+- `layouts/` compose components into the document shell; `pages/` talk to
+  layouts, never to `head.astro` directly.
 
 ## Commit and release workflow
 
