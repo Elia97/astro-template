@@ -1,12 +1,13 @@
 ---
 import Button from '@/components/ui/button.astro'
+import Container from '@/components/ui/container.astro'
 import { SITE } from '@/lib/site'
 ---
 
 <header
   class="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60"
 >
-  <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+  <Container class="flex h-16 items-center justify-between">
     <a href="/" class="text-lg font-semibold tracking-tight text-foreground">
       {SITE.name}
     </a>
@@ -40,5 +41,5 @@ import { SITE } from '@/lib/site'
       </Button>
       <Button as="a" href={SITE.cta.href} size="sm">{SITE.cta.label}</Button>
     </div>
-  </div>
+  </Container>
 </header>
