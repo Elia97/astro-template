@@ -57,10 +57,31 @@ legal links, UI microcopy (`SITE.strings`). No hardcoded labels in components.
 - Icon glyphs are `aria-hidden` with the label on the control; text-presentation
   variation selector (`&#xFE0E;`) on codepoints WebKit would render as emoji.
 
-## Upcoming (not yet landed)
+## UI primitives (`src/components/ui/`)
 
-UI primitives (button, badge, alert, card, input, textarea) will live in
-`src/components/ui/` as native `.astro` files using `cva` variants + `cn()`
-(`clsx` + `tailwind-merge`) — shadcn's API shape without the React/Radix
-runtime. No React in the base scaffold; if a fork needs a genuinely stateful
-component, see the islands gotchas in `ARCHITECTURE.md` once documented.
+Native `.astro` files using `cva` variants + `cn()` (`src/lib/utils.ts`,
+clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
+
+- Variants are exported from the component's frontmatter
+  (`import Button, { buttonVariants } from '@/components/ui/button.astro'`)
+  for the rare case where only the classes are needed.
+- Polymorphism replaces Radix `asChild`: `<Button as="a" href=...>`. The `as`
+  union is explicit (`'button' | 'a'`) rather than Astro's generic
+  `Polymorphic` helper — `astro check` (0.9.x) doesn't resolve generic Props
+  at call sites; don't switch back without verifying that's fixed.
+- Compound families live in a folder with a barrel
+  (`ui/card/{card,header,…}.astro` + `index.ts`), so consumption is a
+  shadcn-shaped one-liner: `import { Card, CardHeader } from '@/components/ui/card'`.
+  Props typing survives the `.ts` re-export (verified against `astro check`).
+  Simple primitives stay flat files.
+- Compound primitives (unopinionated LEGO, caller owns structure) vs named
+  slots (fixed layout, component owns structure): primitives use the former;
+  opinionated page sections are where named slots belong.
+- Every primitive accepts a `class` override, merged last through `cn()` —
+  callers can restyle without forking the primitive.
+- New primitives follow the same recipe; keep variant strings on semantic
+  tokens only (never raw palette values) and `focus-visible:outline-hidden`
+  (see the idioms above).
+
+No React in the base scaffold. If a fork needs a genuinely stateful component
+(Dialog, Calendar, …), see the islands gotchas in `ARCHITECTURE.md`.

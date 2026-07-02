@@ -40,6 +40,26 @@ flow one way:
 - `layouts/` compose components into the document shell; `pages/` talk to
   layouts, never to `head.astro` directly.
 
+## UI primitives — no React/Radix in the base scaffold
+
+`src/components/ui/` holds native `.astro` primitives (button, badge, alert,
+card, input, textarea) using `cva` variants + `cn()` — shadcn's API shape with
+zero client runtime. This is deliberate: across real projects the friction with
+shadcn-on-Astro came specifically from *stateful, portal-based* Radix
+components inside islands, not from the presentational layer.
+
+If a fork genuinely needs a stateful component (Dialog, Calendar, Accordion),
+bringing in React + Radix **for that specific island** is fine — with these
+known failure modes in mind (hit in production, don't rediscover them):
+
+- Use `client:idle`, not `client:visible`, for portal content that is zero-size
+  while closed — a closed Dialog never intersects, so `client:visible` never
+  hydrates it.
+- Astro's CSP needs `unsafe-inline` in `style-src` (or the `styleDirective`
+  escape hatch) for Radix's runtime-injected styles.
+- Islands don't share state: bridge static markup ↔ island through `data-*`
+  attributes explicitly.
+
 ## Commit and release workflow
 
 - Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook.
