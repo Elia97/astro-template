@@ -1,0 +1,18 @@
+/* ─── Brand primitives (NEUTRAL PLACEHOLDERS — replace values per project) ───
+   Raw palette + radius, theme-agnostic. `light.css`/`dark.css` map semantic
+   roles onto these steps: this is THE file to touch when rebranding a fork. */
+:root {
+  --neutral-50: oklch(0.985 0 0);
+  --neutral-100: oklch(0.97 0 0);
+  --neutral-200: oklch(0.922 0 0);
+  --neutral-500: oklch(0.556 0 0);
+  --neutral-700: oklch(0.371 0 0);
+  --neutral-800: oklch(0.269 0 0);
+  --neutral-900: oklch(0.205 0 0);
+  --neutral-950: oklch(0.145 0 0);
+
+  /* Non-neutral status color (destructive red) */
+  --red-600: oklch(0.577 0.245 27.325);
+
+  --radius: 0.625rem;
+}
