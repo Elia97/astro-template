@@ -1,0 +1,55 @@
+---
+// Anti-FOUC: runs inline in the <head> BEFORE first paint, otherwise the page
+// flashes from light to dark. Idempotent and re-runnable on `astro:after-swap`
+// (view transitions don't re-execute inline scripts).
+---
+
+<script is:inline>
+  function syncThemeToggles() {
+    const dark = document.documentElement.classList.contains('dark')
+    const toggles = document.querySelectorAll('[data-theme-toggle]')
+    for (const toggle of toggles) {
+      toggle.setAttribute('aria-pressed', dark ? 'true' : 'false')
+    }
+  }
+
+  function applyTheme() {
+    let stored = null
+    try {
+      stored = localStorage.getItem('theme')
+    } catch {
+      /* localStorage not accessible: fall back to the system preference */
+    }
+    const dark = stored
+      ? stored === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches
+    const root = document.documentElement
+    root.classList.add('js')
+    root.classList.toggle('dark', dark)
+    syncThemeToggles()
+  }
+
+  applyTheme()
+
+  if (!window.__themeInit) {
+    window.__themeInit = true
+    // On first load this script runs in <head>, before any [data-theme-toggle]
+    // exists — re-sync aria-pressed once the DOM is there.
+    document.addEventListener('DOMContentLoaded', syncThemeToggles)
+    document.addEventListener('astro:after-swap', applyTheme)
+    // Delegated toggle on the document: survives island re-renders and view
+    // transitions. Persists the choice in localStorage.
+    document.addEventListener('click', function (event) {
+      const target = event.target
+      const toggle = target && target.closest && target.closest('[data-theme-toggle]')
+      if (!toggle) return
+      const isDark = document.documentElement.classList.toggle('dark')
+      syncThemeToggles()
+      try {
+        localStorage.setItem('theme', isDark ? 'dark' : 'light')
+      } catch {
+        /* private mode / blocked cookies: ignore */
+      }
+    })
+  }
+</script>

@@ -2,6 +2,9 @@
    Do NOT rename these keys: components and utilities assume them.
    To rebrand, change `tokens.css` instead. */
 :root {
+  /* Native UI (form controls, scrollbars) follows the theme */
+  color-scheme: light;
+
   --background: var(--neutral-50);
   --foreground: var(--neutral-950);
   --card: var(--neutral-50);
