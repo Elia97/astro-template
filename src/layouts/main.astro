@@ -25,7 +25,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 ---
 
 <!doctype html>
-<html lang={lang}>
+{/* scroll-pt-20: anchor jumps land clear of the 64px sticky header */}
+<html lang={lang} class="scroll-pt-20">
   <head>
     {/* charset/viewport first: the encoding declaration must sit within the
         first 1024 bytes of the document — the inline theme script would push
@@ -36,10 +37,11 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
     <Head {title} {description} {canonicalPath} {ogImage} {jsonLd} />
     <ClientRouter />
   </head>
-  <body class="flex min-h-screen flex-col">
+  <body class="flex min-h-svh flex-col">
     <SkipLink />
     <Header />
-    <main id="main-content" class="flex-1">
+    {/* tabindex=-1: the skip-link must move real focus, not just the tab start point */}
+    <main id="main-content" class="flex-1" tabindex="-1">
       <slot />
     </main>
     <Footer />
