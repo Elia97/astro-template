@@ -45,3 +45,19 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 }
+
+/* ─── Reveal-on-scroll ([data-reveal], see components/reveal.astro) ───
+   Initial hidden state is double-gated: `html.js` (JS off → content stays
+   visible) and `prefers-reduced-motion: no-preference` (reduced → static). */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0s);
+  }
+  html.js [data-reveal]:not([data-reveal-ready]) {
+    opacity: 0;
+    transform: translateY(var(--reveal-y, 24px));
+  }
+}

@@ -1,0 +1,106 @@
+---
+// Centralized head: single place for title/meta/canonical/OG/Twitter/JSON-LD.
+// The layout (`@/layouts/main.astro`) forwards SEO props here; pages talk to
+// the layout, never to this component directly.
+import { i18n } from 'astro:config/client'
+import { getAbsoluteLocaleUrl } from 'astro:i18n'
+
+import { localeTag, SITE } from '@/lib/site'
+
+// `| undefined` is explicit so the layout can forward its own optional props
+// under `exactOptionalPropertyTypes`.
+interface Props {
+  title: string
+  description?: string | undefined
+  canonicalPath?: string | undefined
+  ogImage?: string | undefined
+  jsonLd?: Record<string, unknown>[] | undefined
+}
+
+const { title, description, canonicalPath, ogImage, jsonLd } = Astro.props
+
+// Locale entries normalized to Astro's two shapes: URL segment (path) + BCP 47
+// code. Astro's i18n APIs and Astro.currentLocale speak codes; URLs carry paths.
+const localeEntries = (i18n?.locales ?? []).map((l) =>
+  typeof l === 'string'
+    ? { path: l, code: l }
+    : { path: l.path, code: l.codes[0] ?? l.path },
+)
+const defaultLocale = i18n?.defaultLocale ?? 'it'
+const currentLocale = Astro.currentLocale ?? defaultLocale
+
+// Locale-agnostic path: strip the current locale's URL prefix (non-default
+// locales only) so getAbsoluteLocaleUrl doesn't double it, then normalize the
+// trailing slash to the `trailingSlash: 'never'` policy in astro.config.mjs.
+const rawPath = canonicalPath ?? Astro.url.pathname
+const currentEntry = localeEntries.find((e) => e.code === currentLocale)
+const prefix =
+  currentEntry &&
+  currentEntry.code !== defaultLocale &&
+  currentEntry.path !== defaultLocale
+    ? `/${currentEntry.path}`
+    : ''
+const unprefixed =
+  prefix && (rawPath === prefix || rawPath.startsWith(`${prefix}/`))
+    ? rawPath.slice(prefix.length)
+    : rawPath
+const path =
+  unprefixed.length > 1
+    ? unprefixed.replace(/\/+$/, '') || '/'
+    : unprefixed || '/'
+
+// Canonical and OG image ALWAYS absolute: social crawlers don't resolve relative
+// paths. The canonical goes through getAbsoluteLocaleUrl so it agrees with the
+// hreflang alternates on locale prefix and trailing slash.
+const canonical = getAbsoluteLocaleUrl(currentLocale, path)
+const ogImageUrl = new URL(ogImage ?? SITE.defaultOgImage, SITE.url).href
+// Escape `<` (unicode escape) so content can't close the JSON-LD script element early.
+const jsonLdItems = (jsonLd ?? []).map((item) =>
+  JSON.stringify(item).replace(/</g, '\\u003c'),
+)
+
+const currentTag = localeTag(currentLocale)
+const localeAlternates = localeEntries.map((e) => ({
+  tag: localeTag(e.code),
+  href: getAbsoluteLocaleUrl(e.code, path),
+}))
+---
+
+{/* charset/viewport live in the layout: they must precede the inline theme script */}
+<meta name="generator" content={Astro.generator} />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+
+<title>{title}</title>
+{description ? <meta name="description" content={description} /> : null}
+<link rel="canonical" href={canonical} />
+{localeAlternates.map((alt) => <link rel="alternate" hreflang={alt.tag} href={alt.href} />)}
+<link
+  rel="alternate"
+  hreflang="x-default"
+  href={getAbsoluteLocaleUrl(defaultLocale, path)}
+/>
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={title} />
+{description ? <meta property="og:description" content={description} /> : null}
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content={currentTag.replace('-', '_')} />
+{
+  localeAlternates
+    .filter((alt) => alt.tag !== currentTag)
+    .map((alt) => <meta property="og:locale:alternate" content={alt.tag.replace('-', '_')} />)
+}
+<meta property="og:image" content={ogImageUrl} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+{description ? <meta name="twitter:description" content={description} /> : null}
+<meta name="twitter:image" content={ogImageUrl} />
+
+{
+  jsonLdItems.map((item) => (
+    <script is:inline type="application/ld+json" set:html={item} />
+  ))
+}
