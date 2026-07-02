@@ -28,6 +28,8 @@
     "@biomejs/biome": "2.5.1",
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
-    "lefthook": "^2.1.9"
+    "@tailwindcss/vite": "^4.3.2",
+    "lefthook": "^2.1.9",
+    "tailwindcss": "^4.3.2"
   }
 }

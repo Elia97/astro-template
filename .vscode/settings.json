@@ -9,5 +9,6 @@
   },
   "[markdown]": {
     "editor.defaultFormatter": "yzhang.markdown-all-in-one"
-  }
+  },
+  "css.lint.unknownAtRules": "ignore"
 }
