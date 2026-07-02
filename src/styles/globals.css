@@ -3,8 +3,8 @@
 @import "./light.css";
 @import "./dark.css";
 
-/* dark variant: `dark:` prefixes resolve under `.dark` (not built-in in v4 with this strategy) */
-@custom-variant dark (&:is(.dark *));
+/* dark variant: `dark:` prefixes resolve on `.dark` and its subtree (official v4 class strategy) */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ─── @theme inline: remaps custom props to Tailwind utilities (--color-… → bg-… / text-… / border-…) ─── */
 @theme inline {
