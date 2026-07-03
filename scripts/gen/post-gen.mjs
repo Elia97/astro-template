@@ -6,14 +6,17 @@
 // swallowed — same contract as lefthook and CI.
 import { execSync } from 'node:child_process'
 
-export function postGenAction(root) {
+export function postGenAction(root, recoveryHint) {
   return () => {
     try {
       execSync('pnpm exec astro sync', { cwd: root, stdio: 'inherit' })
       execSync('pnpm run check', { cwd: root, stdio: 'inherit' })
     } catch (error) {
       throw new Error(
-        'Post-generation checks failed. The generated files were left on disk — inspect, then fix or delete them before re-running (a re-run against leftovers fails with "File already exists").',
+        `Post-generation checks failed. ${
+          recoveryHint ??
+          'The generated files were left on disk — inspect, then fix or delete them before re-running (a re-run against leftovers fails with "File already exists").'
+        }`,
         { cause: error },
       )
     }

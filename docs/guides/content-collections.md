@@ -73,10 +73,15 @@ by the generators:
   pre-flight check, before any file is written. The INJECTION POINT comment
   lives INSIDE the literal — statements injected above the declaration would
   detach a leading comment.
-- `src/lib/schemas/homepage/index.ts` — the `z.discriminatedUnion` call (`gen:section`)
-- `src/lib/homepage.ts` — `getHomepageSections`'s return object literal (`gen:section`)
-- `src/pages/index.astro` — `// @gen:home-imports` and `{/* @gen:home-sections */}`
-  markers (`gen:section`). **Insertion side is part of the contract: insert
-  ABOVE the marker.** Verified: inserting below `@gen:home-imports` makes
-  Biome's `organizeImports` adopt the marker as leading trivia of the new
-  import and relocate it into the sorted import block.
+- `gen:section` (shipped) asserts three hook points in a pre-flight (before
+  any file is written), throwing descriptive errors on each:
+  1. `src/lib/schemas/homepage/index.ts` — the `z.discriminatedUnion` call
+     inside `homepageCollectionSchema`
+  2. `src/lib/homepage.ts` — `getHomepageSections`'s return object literal
+  3. `src/pages/index.astro` — the `// @gen:home-imports` and
+     `{/* @gen:home-sections */}` markers. **Insertion side is part of the
+     contract: insert ABOVE the marker.** Verified: inserting below
+     `@gen:home-imports` makes Biome's `organizeImports` adopt the marker as
+     leading trivia of the new import and relocate it into the sorted block.
+  No `image()` option yet — no real image section exists to derive it from;
+  add it (schema function gains a `SchemaContext` param) when one does.
