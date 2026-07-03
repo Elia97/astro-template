@@ -1,0 +1,15 @@
+import { z } from 'astro/zod'
+
+import { ctaSchema } from '../common'
+
+// "{{dashCase name}}" section. Neutral placeholder fields: adapt per project.
+export function {{camelCase name}}SectionSchema() {
+  return z.object({
+    section: z.literal('{{camelCase name}}'), // union discriminant
+    title: z.string().min(1),
+    body: z.string().optional(),
+    buttons: z.array(ctaSchema).default([]),
+  })
+}
+
+export type {{pascalCase name}}Section = z.infer<ReturnType<typeof {{camelCase name}}SectionSchema>>
