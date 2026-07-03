@@ -1,0 +1,22 @@
+---
+import Container from '@/components/ui/container.astro'
+import Section from '@/components/ui/section.astro'
+import MainLayout from '@/layouts/main.astro'
+
+export const prerender = true
+
+export function getStaticPaths() {
+  // TODO: derive paths from a collection (see docs/guides/content-collections.md).
+  return [{ params: { slug: 'example' } }]
+}
+
+const { slug } = Astro.params
+---
+
+<MainLayout title={slug ?? '{{pageTitle}}'}>
+  <Section>
+    <Container>
+      <h1 class="text-4xl font-bold tracking-tight text-foreground">{slug}</h1>
+    </Container>
+  </Section>
+</MainLayout>
