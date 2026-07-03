@@ -15,6 +15,9 @@
     "check": "biome check --write .",
     "typecheck": "astro check",
     "ci": "biome ci . && pnpm run typecheck",
+    "gen": "plop",
+    "gen:page": "plop page",
+    "gen:component": "plop component",
     "prepare": "lefthook install || true"
   },
   "dependencies": {
@@ -33,6 +36,8 @@
     "@commitlint/config-conventional": "^21.2.0",
     "@tailwindcss/vite": "^4.3.2",
     "lefthook": "^2.1.9",
-    "tailwindcss": "^4.3.2"
+    "plop": "^4.0.5",
+    "tailwindcss": "^4.3.2",
+    "ts-morph": "^28.0.0"
   }
 }
