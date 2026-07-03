@@ -16,6 +16,7 @@
     "typecheck": "astro check",
     "ci": "biome ci . && pnpm run typecheck",
     "gen": "plop",
+    "gen:section": "plop section",
     "gen:page": "plop page",
     "gen:component": "plop component",
     "gen:collection": "plop collection",

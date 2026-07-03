@@ -1,0 +1,28 @@
+---
+import Button from '@/components/ui/button.astro'
+import Container from '@/components/ui/container.astro'
+import Section from '@/components/ui/section.astro'
+import type { HomepageSections } from '@/lib/homepage'
+
+type Props = HomepageSections['{{camelCase name}}']
+
+const { title, body, buttons } = Astro.props
+---
+
+<Section class="border-b border-border bg-background">
+  <Container>
+    <h2 class="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
+    {body && <p class="mt-4 max-w-2xl text-pretty text-muted-foreground">{body}</p>}
+    {
+      buttons.length > 0 && (
+        <div class="mt-8 flex flex-wrap gap-4">
+          {buttons.map((button, index) => (
+            <Button as="a" href={button.url} variant={index === 0 ? 'default' : 'outline'}>
+              {button.label}
+            </Button>
+          ))}
+        </div>
+      )
+    }
+  </Container>
+</Section>
