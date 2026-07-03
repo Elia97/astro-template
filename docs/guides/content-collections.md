@@ -61,12 +61,18 @@ Zod → Props chain stays intact. Don't bake a CMS into the template.
   fork (both first-party Astro SDKs; Storyblok's visual editor needs SSR,
   which this template already runs).
 
-## Generator injection points (for `pnpm gen:*`, upcoming)
+## Generator injection points
 
 Marked with `INJECTION POINT` comments, asserted (throw, never silent no-op)
 by the generators:
 
-- `src/content.config.ts` — `collections` object literal (`gen:collection`)
+- `src/content.config.ts` — `gen:collection` (shipped). The contract:
+  `export const collections = { … }` — **exported** (Astro silently ignores a
+  non-exported object) and initialized with an object literal. Duplicates and
+  identifier collisions (imports/variables) throw descriptive errors in a
+  pre-flight check, before any file is written. The INJECTION POINT comment
+  lives INSIDE the literal — statements injected above the declaration would
+  detach a leading comment.
 - `src/lib/schemas/homepage/index.ts` — the `z.discriminatedUnion` call (`gen:section`)
 - `src/lib/homepage.ts` — `getHomepageSections`'s return object literal (`gen:section`)
 - `src/pages/index.astro` — `// @gen:home-imports` and `{/* @gen:home-sections */}`

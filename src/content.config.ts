@@ -20,8 +20,10 @@ const homepage = defineCollection({
   schema: homepageCollectionSchema,
 })
 
-// INJECTION POINT for `pnpm gen:collection` (ts-morph): new collections
-// register in this object literal — the generator asserts on it.
 export const collections = {
+  // INJECTION POINT for `pnpm gen:collection` (ts-morph): new collections
+  // register in this object literal — the generator asserts on it. The
+  // comment lives INSIDE the literal so injected statements above the
+  // declaration can't detach it.
   homepage,
 }

@@ -18,6 +18,7 @@
     "gen": "plop",
     "gen:page": "plop page",
     "gen:component": "plop component",
+    "gen:collection": "plop collection",
     "prepare": "lefthook install || true"
   },
   "dependencies": {
