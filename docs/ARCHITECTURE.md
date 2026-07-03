@@ -20,7 +20,10 @@ src/
 public/        # static assets, served as-is (favicons, og-default.png placeholder)
 docs/          # planning + architecture docs for whichever project is built from this template
   guides/      # domain-specific pattern references, consulted by the vertical agents (see below)
-scripts/       # operational tooling (GitHub bootstrap, Vercel ignored-build-step) — never imported by src/
+scripts/       # operational tooling — never imported by src/
+  gen/         # plop generators (page/component/collection/section) + ts-morph injection
+  templates/   # .hbs templates the generators render
+plopfile.mjs   # CLI harness: `pnpm gen` / `pnpm gen:<name>`
 .claude/
   agents/      # vertical subagent definitions
   commands/    # /milestone orchestration command
