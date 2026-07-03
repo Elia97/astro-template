@@ -1,0 +1,13 @@
+import { z } from 'astro/zod'
+
+// Schema for the "{{dashCase name}}" collection. Types are inferred, never
+// hand-written.
+export const {{camelCase name}}Schema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  {{#if document}}
+  pubDate: z.coerce.date(),
+  draft: z.boolean().default(false),
+  {{/if}}
+})
+export type {{pascalCase name}}Entry = z.infer<typeof {{camelCase name}}Schema>
