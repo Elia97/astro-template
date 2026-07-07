@@ -23,6 +23,7 @@ export const SITE = {
   cta: { key: 'nav.cta', href: '/contatti' },
   // Legal links (universal for EU sites).
   legal: [
+    { key: 'legal.terms', href: '/termini' },
     { key: 'legal.privacy', href: '/privacy' },
     { key: 'legal.cookies', href: '/cookie-policy' },
   ],

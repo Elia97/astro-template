@@ -1,0 +1,35 @@
+---
+// GDPR "data controller" section, built from COMPANY (src/lib/company.ts) so
+// legal pages never duplicate registry data. Copy arrives via props — the
+// page owns its language, this component owns the assembly.
+import LegalSection from '@/components/legal/legal-section.astro'
+
+import { COMPANY } from '@/lib/company'
+
+interface Props {
+  heading: string
+  intro: string
+  addressIntro: string
+  contactIntro: string
+  italyLabel: string
+}
+
+const { heading, intro, addressIntro, contactIntro, italyLabel } = Astro.props
+
+const addressLine = [
+  COMPANY.address.streetAddress,
+  [COMPANY.address.postalCode, COMPANY.address.addressLocality, COMPANY.address.addressRegion]
+    .filter(Boolean)
+    .join(' '),
+  COMPANY.address.addressCountry === 'IT' ? italyLabel : COMPANY.address.addressCountry,
+]
+  .filter(Boolean)
+  .join(', ')
+---
+
+<LegalSection heading={heading}>
+  {intro} <strong class="text-foreground">{COMPANY.legalName}</strong>, {addressIntro} {addressLine}. {contactIntro}
+  <a href={`mailto:${COMPANY.email}`} class="text-foreground underline underline-offset-4">
+    {COMPANY.email}
+  </a>.
+</LegalSection>

@@ -15,6 +15,13 @@ export const it = {
 
   'legal.privacy': 'Privacy',
   'legal.cookies': 'Cookie Policy',
+  'legal.terms': 'Termini e Condizioni',
+
+  'error.404title': 'Pagina non trovata',
+  'error.404description': 'La pagina che cerchi non esiste o è stata spostata.',
+  'error.500title': 'Errore del server',
+  'error.500description': 'Si è verificato un problema imprevisto. Riprova tra poco.',
+  'error.backHome': 'Torna alla home',
 
   'contact.pageTitle': 'Contatti',
   'contact.pageDescription': 'Raccontaci il tuo progetto: ti rispondiamo al più presto.',

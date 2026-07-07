@@ -44,7 +44,7 @@ export default defineConfig({
     schema: {
       // Contact-form stack (src/actions + src/lib/vendor/brevo.ts). The API
       // key is optional on purpose: without it the vendor no-ops in dev and
-      // refuses in production (see docs/guides/forms.md). Defaults below are
+      // refuses in production (see docs/guides/forms-email.md). Defaults below are
       // placeholders — set real values in .env / the deploy provider.
       BREVO_API_KEY: envField.string({
         context: 'server',

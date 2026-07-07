@@ -2,7 +2,7 @@
 
 Domain-specific pattern references for this project, consulted by the vertical agents in `.claude/agents/` (and by anyone implementing a milestone by hand).
 
-This directory starts empty on purpose. Guides aren't written speculatively — they're extracted from real work: when a vertical agent applies a pattern that isn't documented yet, it flags that in its report. Once a pattern proves durable, capture it here. Expected filenames match the vertical agents (see `CLAUDE.md`):
+Guides aren't written speculatively — they're extracted from real work: when a vertical agent applies a pattern that isn't documented yet, it flags that in its report, and once the pattern proves durable it gets captured here (the current set was distilled from the template's first real project). Filenames match the vertical agents (see `CLAUDE.md`):
 
 - `content-collections.md` — content-agent
 - `ui-components.md` — ui-agent

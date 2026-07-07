@@ -1,0 +1,61 @@
+---
+// Placeholder privacy policy: structurally complete and aligned with what
+// the template actually ships (contact form → Brevo), but it MUST get a
+// legal review per project before go-live. Content is default-locale copy
+// owned by this page — not i18n dictionary material.
+import LegalControllerSection from '@/components/legal/legal-controller-section.astro'
+import LegalPage from '@/components/legal/legal-page.astro'
+import LegalSectionList from '@/components/legal/legal-section-list.astro'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+export const prerender = true
+
+const title = 'Privacy'
+const description = 'Informativa sul trattamento dei dati personali ai sensi del Regolamento UE 2016/679 (GDPR).'
+
+const sections = [
+  {
+    heading: 'Dati raccolti',
+    body: "Il sito raccoglie i dati personali forniti volontariamente tramite il form di contatto: nome, cognome, indirizzo email e il contenuto del messaggio. L'invio richiede il consenso esplicito espresso tramite l'apposita casella.",
+  },
+  {
+    heading: 'Finalità e base giuridica',
+    body: "I dati sono trattati per rispondere alle richieste inviate tramite il form e per dar seguito a eventuali rapporti precontrattuali. La base giuridica è il consenso dell'interessato (art. 6, par. 1, lett. a, GDPR) e l'esecuzione di misure precontrattuali adottate su sua richiesta (art. 6, par. 1, lett. b, GDPR).",
+  },
+  {
+    heading: 'Modalità del trattamento e destinatari',
+    body: 'I dati inviati tramite il form sono trasmessi via email al Titolare e registrati nella rubrica contatti tramite la piattaforma Brevo (Sendinblue GmbH), che opera come responsabile del trattamento. Il sito è ospitato su infrastruttura Vercel Inc. I dati non sono diffusi né ceduti a terzi per finalità di marketing.',
+  },
+  {
+    heading: 'Conservazione dei dati',
+    body: 'I dati sono conservati per il tempo strettamente necessario a evadere la richiesta e a gestire l’eventuale rapporto successivo, salvi termini di conservazione più lunghi previsti da obblighi di legge.',
+  },
+  {
+    heading: "Diritti dell'interessato",
+    body: "In qualità di interessato hai diritto di ottenere, nei limiti e alle condizioni previste dagli artt. 15-22 del GDPR: accesso ai tuoi dati, rettifica o cancellazione, limitazione del trattamento, portabilità e opposizione, oltre al diritto di proporre reclamo al Garante per la protezione dei dati personali. Puoi esercitare questi diritti scrivendo al Titolare all'indirizzo email indicato sopra.",
+  },
+  {
+    heading: "Aggiornamenti dell'informativa",
+    body: 'Questa informativa può essere aggiornata; la versione in vigore è sempre quella pubblicata su questa pagina.',
+  },
+]
+---
+
+<LegalPage {title} {description}>
+  <Alert variant="muted" class="mt-6">
+    <AlertDescription>
+      Questa informativa è una bozza segnaposto, strutturalmente completa ma non ancora sottoposta a revisione legale:
+      va rivista e adattata al progetto prima della pubblicazione definitiva del sito.
+    </AlertDescription>
+  </Alert>
+
+  <LegalSectionList sections={sections}>
+    <LegalControllerSection
+      heading="Titolare del trattamento"
+      intro="Il Titolare del trattamento dei dati personali raccolti tramite questo sito è"
+      addressIntro="con sede in"
+      contactIntro="Per qualsiasi richiesta relativa al trattamento dei dati personali è possibile contattare il Titolare all'indirizzo email"
+      italyLabel="Italia"
+    />
+  </LegalSectionList>
+</LegalPage>

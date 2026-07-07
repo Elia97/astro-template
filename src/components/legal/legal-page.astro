@@ -1,0 +1,30 @@
+---
+// Shell of a legal page: layout + centered column + title. Body content
+// comes from the page via <slot /> (see legal-section-list.astro for the
+// data-driven pattern).
+import Container from '@/components/ui/container.astro'
+import Section from '@/components/ui/section.astro'
+
+import MainLayout from '@/layouts/main.astro'
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+---
+
+<MainLayout {title} {description}>
+  <Section>
+    <Container>
+      <div class="mx-auto max-w-3xl">
+        <h1 class="font-bold text-4xl text-foreground tracking-tight">
+          {title}
+        </h1>
+
+        <slot />
+      </div>
+    </Container>
+  </Section>
+</MainLayout>

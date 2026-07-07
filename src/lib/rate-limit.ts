@@ -1,6 +1,6 @@
 // In-memory sliding-window rate limiter. Per-instance state: it resets on
 // cold starts and isn't shared across serverless instances — fine as a
-// base anti-abuse layer, not a hard quota (docs/guides/forms.md).
+// base anti-abuse layer, not a hard quota (docs/guides/forms-email.md).
 const WINDOW_MS = 60_000
 const MAX_HITS = 5
 const hits = new Map<string, number[]>()
