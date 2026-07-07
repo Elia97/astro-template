@@ -19,17 +19,13 @@ function isNameTaken(cfg, name) {
     .getImportDeclarations()
     .some(
       (d) =>
-        d
-          .getNamedImports()
-          .some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
+        d.getNamedImports().some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
         d.getDefaultImport()?.getText() === name,
     )
 }
 
 function locateContract(cfg, { camel, kebab }) {
-  const statement = cfg.getVariableStatement((s) =>
-    s.getDeclarations().some((d) => d.getName() === 'collections'),
-  )
+  const statement = cfg.getVariableStatement((s) => s.getDeclarations().some((d) => d.getName() === 'collections'))
   if (!statement) {
     throw new Error(
       `gen:collection injection failed: no \`collections\` variable in ${CONFIG_PATH}. ` +
@@ -79,11 +75,7 @@ export function injectCollection({ root, camel, kebab, document }) {
   const cfg = loadConfig(root)
   const { statement, object } = locateContract(cfg, { camel, kebab })
 
-  if (
-    !cfg.getImportDeclaration(
-      (d) => d.getModuleSpecifierValue() === `@/lib/schemas/${kebab}`,
-    )
-  ) {
+  if (!cfg.getImportDeclaration((d) => d.getModuleSpecifierValue() === `@/lib/schemas/${kebab}`)) {
     cfg.addImportDeclaration({
       moduleSpecifier: `@/lib/schemas/${kebab}`,
       namedImports: [`${camel}Schema`],

@@ -17,8 +17,7 @@ export default function pageGenerator(plop) {
   const root = process.cwd()
   const tpl = 'scripts/templates/page'
   plop.setGenerator('page', {
-    description:
-      'New Astro page (static, or dynamic [slug] with getStaticPaths)',
+    description: 'New Astro page (static, or dynamic [slug] with getStaticPaths)',
     prompts: [
       {
         type: 'input',
@@ -27,8 +26,7 @@ export default function pageGenerator(plop) {
         // Validate the TRANSFORMED value: change-case strips punctuation, so
         // raw input like '...' is non-empty yet dash-cases to ''.
         validate: (value) =>
-          pathSegments(plop, value).length > 0 ||
-          'Page path must contain at least one letter or digit',
+          pathSegments(plop, value).length > 0 || 'Page path must contain at least one letter or digit',
       },
       {
         type: 'confirm',
@@ -45,12 +43,8 @@ export default function pageGenerator(plop) {
       return [
         {
           type: 'add',
-          path: answers.dynamic
-            ? `src/pages/${pagePath}/[slug].astro`
-            : `src/pages/${pagePath}.astro`,
-          templateFile: answers.dynamic
-            ? `${tpl}/dynamic.astro.hbs`
-            : `${tpl}/static.astro.hbs`,
+          path: answers.dynamic ? `src/pages/${pagePath}/[slug].astro` : `src/pages/${pagePath}.astro`,
+          templateFile: answers.dynamic ? `${tpl}/dynamic.astro.hbs` : `${tpl}/static.astro.hbs`,
         },
         postGenAction(root),
       ]

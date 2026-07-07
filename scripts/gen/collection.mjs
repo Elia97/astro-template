@@ -108,9 +108,7 @@ export default function collectionGenerator(plop) {
         path: answers.document
           ? 'src/content/{{dashCase name}}/example.md'
           : 'src/content/{{dashCase name}}/example.yml',
-        templateFile: answers.document
-          ? `${tpl}/doc.md.hbs`
-          : `${tpl}/data.yml.hbs`,
+        templateFile: answers.document ? `${tpl}/doc.md.hbs` : `${tpl}/data.yml.hbs`,
       },
       (a, _config, api) => {
         injectCollection({

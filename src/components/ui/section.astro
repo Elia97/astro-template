@@ -18,9 +18,7 @@ export const sectionVariants = cva('w-full', {
   defaultVariants: { spacing: 'default' },
 })
 
-interface Props
-  extends HTMLAttributes<'section'>,
-    VariantProps<typeof sectionVariants> {}
+interface Props extends HTMLAttributes<'section'>, VariantProps<typeof sectionVariants> {}
 
 const { spacing, class: className, ...rest } = Astro.props
 ---

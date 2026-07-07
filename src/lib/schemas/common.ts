@@ -10,12 +10,8 @@ export const ctaSchema = z.object({
   url: z
     .string()
     .min(1)
-    .refine(
-      (value) =>
-        value.startsWith('/') || value.startsWith('#') || URL.canParse(value),
-      {
-        message: 'url must be a relative path (/…, #…) or an absolute URL',
-      },
-    ),
+    .refine((value) => value.startsWith('/') || value.startsWith('#') || URL.canParse(value), {
+      message: 'url must be a relative path (/…, #…) or an absolute URL',
+    }),
 })
 export type Cta = z.infer<typeof ctaSchema>

@@ -17,18 +17,14 @@ const DEFAULT_LOCALE = i18n?.defaultLocale ?? 'it'
  * live in a subfolder (`en/hero.yml` → id "en/hero") — adding a locale later
  * is purely additive, never a restructure.
  */
-export async function getHomepageSections(
-  locale?: string,
-): Promise<HomepageSections> {
+export async function getHomepageSections(locale?: string): Promise<HomepageSections> {
   const resolved = locale ?? DEFAULT_LOCALE
   const isDefault = resolved === DEFAULT_LOCALE
   const entries = await getCollection('homepage')
 
   // Default-locale content must be flat; a `<defaultLocale>/` folder would be
   // loaded, validated and then silently shadowed by the flat copy.
-  const misplaced = entries.find((entry) =>
-    entry.id.startsWith(`${DEFAULT_LOCALE}/`),
-  )
+  const misplaced = entries.find((entry) => entry.id.startsWith(`${DEFAULT_LOCALE}/`))
   if (misplaced) {
     throw new Error(
       `Default-locale homepage content must live flat in src/content/homepage/ — ` +
@@ -39,9 +35,7 @@ export async function getHomepageSections(
   const bySection = new Map<SectionId, Section>()
   const sourceIds = new Map<SectionId, string>()
   for (const entry of entries) {
-    const inLocale = isDefault
-      ? !entry.id.includes('/')
-      : entry.id.startsWith(`${resolved}/`)
+    const inLocale = isDefault ? !entry.id.includes('/') : entry.id.startsWith(`${resolved}/`)
     if (!inLocale) continue
     // Two files declaring the same section would silently last-win with an
     // arbitrary (alphabetical) winner — the inverse of the fail-loud contract.
@@ -61,9 +55,7 @@ export async function getHomepageSections(
   const pick = <S extends SectionId>(section: S): SectionData<S> => {
     const data = bySection.get(section)
     if (!data) {
-      const where = isDefault
-        ? 'src/content/homepage/'
-        : `src/content/homepage/${resolved}/`
+      const where = isDefault ? 'src/content/homepage/' : `src/content/homepage/${resolved}/`
       throw new Error(`Homepage section "${section}" not found in ${where}`)
     }
     return data as SectionData<S>

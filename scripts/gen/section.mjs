@@ -61,8 +61,7 @@ export default function sectionGenerator(plop) {
   const root = process.cwd()
   const tpl = 'scripts/templates/section'
   plop.setGenerator('section', {
-    description:
-      'New homepage section (Zod schema + YAML + component + injection)',
+    description: 'New homepage section (Zod schema + YAML + component + injection)',
     prompts: [
       {
         type: 'input',
