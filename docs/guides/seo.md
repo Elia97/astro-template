@@ -8,6 +8,10 @@ Conventions established by the centralized head (`src/components/head.astro`).
   JSON-LD/hreflang. Pages pass SEO props to the **layout**
   (`src/layouts/main.astro`), which forwards them — pages never render
   `head.astro` directly.
+- Internally it's a thin orchestrator: URL/meta resolution is a pure function
+  (`head-seo.ts` → `resolveHeadSeoMeta`, unit-tested in `head-seo.test.ts`);
+  rendering is split per concern (`head-{alternates,og,twitter,json-ld}.astro`).
+  Extend by adding meta to the right subcomponent — don't grow the orchestrator.
 - `<meta charset>` and `<meta viewport>` live in the **layout**, before the
   inline theme script: the encoding declaration must sit within the first
   1024 bytes of the document. Don't move them into `head.astro`.
@@ -18,20 +22,24 @@ Conventions established by the centralized head (`src/components/head.astro`).
   Vercel adapter turns it into a platform-level 308 (`/(.*)/$ → /$1`) — don't
   add manual redirects.
 - Canonical **and** hreflang alternates are both built via `getAbsoluteLocaleUrl`
-  on a locale-agnostic path (current locale prefix stripped, trailing slash
-  normalized). Never hand-build a canonical from raw `Astro.url.pathname`: raw
-  paths and `astro:i18n` URLs disagree on slashes and locale prefixes, and
-  Google ignores hreflang that doesn't point at the canonical.
+  on a locale-agnostic path (`localeAgnosticPath` in `src/i18n/path.ts`:
+  current locale prefix stripped, localized segments canonicalized, trailing
+  slash normalized), then re-localized per locale (`translatePath`). Never
+  hand-build a canonical from raw `Astro.url.pathname`: raw paths and
+  `astro:i18n` URLs disagree on slashes and locale prefixes, and Google
+  ignores hreflang that doesn't point at the canonical.
 - `SITE.localeTags` maps locale **codes** (for object locale entries that's
   `codes[0]`, not `path`) to BCP 47 tags used for `lang`, `hreflang` and
   `og:locale` (underscore form). `x-default` points at the default locale.
 
 ## JSON-LD
 
-Pass structured data as objects via the layout's `jsonLd` prop. `head.astro`
-escapes `<` (as the `<` unicode escape) before `set:html` — content can't
-close the script element early. Never `set:html` raw `JSON.stringify` output
-anywhere else.
+Pass structured data as objects via the layout's `jsonLd` prop.
+`head-json-ld.astro` escapes `<` (as the unicode escape) before `set:html` —
+content can't close the script element early. Never `set:html` raw
+`JSON.stringify` output anywhere else. Sitewide schemas (Organization from
+`src/lib/company.ts` + WebSite) live on the homepage only; inner pages build
+their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo.ts`.
 
 ## OG / social
 
@@ -40,8 +48,20 @@ anywhere else.
   per fork**, and keep `SITE.defaultOgImage` pointing at a file that exists
   (a dead og:image fails social card validators).
 
-## Not yet in place
+## Sitemap & robots
 
-No sitemap integration — `head.astro` deliberately has no
-`<link rel="sitemap">`. Add both together when `@astrojs/sitemap` (or
-equivalent) lands.
+- `@astrojs/sitemap` (astro.config.mjs) emits `sitemap-index.xml` at build
+  time — dev never serves it. Its locale map mirrors `SITE.localeTags`.
+- With `output: 'server'` only **prerendered** routes end up in the sitemap:
+  keep indexable pages `prerender = true` (the norm here), or list SSR-only
+  URLs via the integration's `customPages`.
+- `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
+  allows everything: per-response indexing control does NOT belong there.
+- Excluding a page from search takes BOTH sides: `filter` in the sitemap
+  config AND the path in `NOINDEX_PATHS` (`src/middleware.ts`).
+
+## Preview deploys
+
+`src/middleware.ts` sets `X-Robots-Tag: noindex, nofollow` whenever the host
+ends in `.vercel.app` — preview/branch deploys must never compete with the
+production domain in search indexes. Nothing to configure per fork.

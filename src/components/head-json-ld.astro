@@ -1,0 +1,17 @@
+---
+// JSON-LD emitter. The left angle bracket is escaped (unicode form) so
+// content can't close the script element early — never `set:html` raw
+// JSON.stringify output.
+interface Props {
+  items?: Record<string, unknown>[] | undefined
+}
+
+const { items } = Astro.props
+const jsonLdItems = (items ?? []).map((item) => JSON.stringify(item).replace(/</g, '\\u003c'))
+---
+
+{
+  jsonLdItems.map((item) => (
+    <script is:inline type="application/ld+json" set:html={item} />
+  ))
+}

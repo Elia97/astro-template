@@ -9,15 +9,13 @@
     // The motion barrel is the layer's stable public import point (internals
     // import leaf modules directly, so the barrel has no consumer until an
     // interactive component lands).
-    "src/lib/motion/index.ts",
-    // Consumed by the head/SEO layer (canonical + hreflang) — wired up when
-    // the modular head lands; keep until then.
-    "src/i18n/path.ts"
+    "src/lib/motion/index.ts"
   ],
   "ignoreDependencies": [
     // Only imported from astro.config.mjs — fallow doesn't count config-file
-    // imports as production usage, so it's misclassified as test-only.
+    // imports as production usage, so they're misclassified as test-only.
     "@astrojs/vercel",
+    "@astrojs/sitemap",
     // Pulled in by globals.css via `@import "tailwindcss"` at build time —
     // a build tool, correctly a devDependency despite the production import.
     "tailwindcss"
@@ -33,6 +31,7 @@
     // indirectly through the aliases, fallow can't trace through them.
     { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
+    { "file": "test/stubs/astro-i18n.ts", "exports": ["getPathByLocale", "getAbsoluteLocaleUrl"] },
     // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }

@@ -1,5 +1,6 @@
 // @ts-check
 
+import sitemap from '@astrojs/sitemap'
 import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
@@ -24,6 +25,18 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+  integrations: [
+    // Emits sitemap-index.xml at build time; src/pages/robots.txt.ts points
+    // crawlers at it. To exclude pages add `filter: (page) => …` here AND
+    // mirror the path in NOINDEX_PATHS (src/middleware.ts). The locale map
+    // mirrors SITE.localeTags so hreflang in the sitemap matches the head.
+    sitemap({
+      i18n: {
+        defaultLocale: 'it',
+        locales: { ...SITE.localeTags },
+      },
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

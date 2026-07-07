@@ -1,0 +1,12 @@
+---
+// hreflang alternates (one per configured locale) + x-default → default locale.
+interface Props {
+  localeAlternates: { tag: string; href: string }[]
+  defaultHref: string
+}
+
+const { localeAlternates, defaultHref } = Astro.props
+---
+
+{localeAlternates.map((alt) => <link rel="alternate" hreflang={alt.tag} href={alt.href} />)}
+<link rel="alternate" hreflang="x-default" href={defaultHref} />
