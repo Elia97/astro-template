@@ -14,10 +14,7 @@
  * - `astro:page-load` → `setup` re-applies the effect on the new DOM after the swap.
  * - `astro:before-swap` → `cleanup` tears down BEFORE the swap: this prevents the leak.
  */
-export function createMotionBinding(
-  setup: () => void,
-  cleanup: () => void,
-): () => void {
+export function createMotionBinding(setup: () => void, cleanup: () => void): () => void {
   let bound = false
   return (): void => {
     setup()

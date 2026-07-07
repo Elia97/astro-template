@@ -24,6 +24,9 @@ pnpm-debug.log*
 .idea/
 .vercel
 
+# fallow (dead-code analyzer) local state
+.fallow/
+
 # claude code local state
 .claude/settings.local.json
 .claude/scheduled_tasks.lock

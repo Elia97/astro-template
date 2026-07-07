@@ -22,9 +22,7 @@ const { title, description, canonicalPath, ogImage, jsonLd } = Astro.props
 // Locale entries normalized to Astro's two shapes: URL segment (path) + BCP 47
 // code. Astro's i18n APIs and Astro.currentLocale speak codes; URLs carry paths.
 const localeEntries = (i18n?.locales ?? []).map((l) =>
-  typeof l === 'string'
-    ? { path: l, code: l }
-    : { path: l.path, code: l.codes[0] ?? l.path },
+  typeof l === 'string' ? { path: l, code: l } : { path: l.path, code: l.codes[0] ?? l.path },
 )
 const defaultLocale = i18n?.defaultLocale ?? 'it'
 const currentLocale = Astro.currentLocale ?? defaultLocale
@@ -35,19 +33,12 @@ const currentLocale = Astro.currentLocale ?? defaultLocale
 const rawPath = canonicalPath ?? Astro.url.pathname
 const currentEntry = localeEntries.find((e) => e.code === currentLocale)
 const prefix =
-  currentEntry &&
-  currentEntry.code !== defaultLocale &&
-  currentEntry.path !== defaultLocale
+  currentEntry && currentEntry.code !== defaultLocale && currentEntry.path !== defaultLocale
     ? `/${currentEntry.path}`
     : ''
 const unprefixed =
-  prefix && (rawPath === prefix || rawPath.startsWith(`${prefix}/`))
-    ? rawPath.slice(prefix.length)
-    : rawPath
-const path =
-  unprefixed.length > 1
-    ? unprefixed.replace(/\/+$/, '') || '/'
-    : unprefixed || '/'
+  prefix && (rawPath === prefix || rawPath.startsWith(`${prefix}/`)) ? rawPath.slice(prefix.length) : rawPath
+const path = unprefixed.length > 1 ? unprefixed.replace(/\/+$/, '') || '/' : unprefixed || '/'
 
 // Canonical and OG image ALWAYS absolute: social crawlers don't resolve relative
 // paths. The canonical goes through getAbsoluteLocaleUrl so it agrees with the
@@ -55,9 +46,7 @@ const path =
 const canonical = getAbsoluteLocaleUrl(currentLocale, path)
 const ogImageUrl = new URL(ogImage ?? SITE.defaultOgImage, SITE.url).href
 // Escape `<` (unicode escape) so content can't close the JSON-LD script element early.
-const jsonLdItems = (jsonLd ?? []).map((item) =>
-  JSON.stringify(item).replace(/</g, '\\u003c'),
-)
+const jsonLdItems = (jsonLd ?? []).map((item) => JSON.stringify(item).replace(/</g, '\\u003c'))
 
 const currentTag = localeTag(currentLocale)
 const localeAlternates = localeEntries.map((e) => ({

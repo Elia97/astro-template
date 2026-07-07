@@ -21,36 +21,25 @@ const SECTIONS_MARKER = '{/* @gen:home-sections */}'
 const GUIDE = 'docs/guides/content-collections.md'
 
 function fail(where, problem) {
-  throw new Error(
-    `gen:section injection failed in ${where}: ${problem} (contract: ${GUIDE})`,
-  )
+  throw new Error(`gen:section injection failed in ${where}: ${problem} (contract: ${GUIDE})`)
 }
 
 function locateUnionArray(project, root) {
   const barrel = project.addSourceFileAtPath(`${root}/${SCHEMA_BARREL}`)
   const fn = barrel.getFunction('homepageCollectionSchema')
   if (!fn) {
-    fail(
-      SCHEMA_BARREL,
-      'no `homepageCollectionSchema` function — was it renamed?',
-    )
+    fail(SCHEMA_BARREL, 'no `homepageCollectionSchema` function — was it renamed?')
   }
   const call = fn
     .getDescendantsOfKind(SyntaxKind.CallExpression)
     .find((c) => c.getExpression().getText() === 'z.discriminatedUnion')
   if (!call) {
-    fail(
-      SCHEMA_BARREL,
-      'no `z.discriminatedUnion(…)` call inside homepageCollectionSchema',
-    )
+    fail(SCHEMA_BARREL, 'no `z.discriminatedUnion(…)` call inside homepageCollectionSchema')
   }
   const arrayArg = call.getArguments()[1]
   const union = arrayArg?.asKind(SyntaxKind.ArrayLiteralExpression)
   if (!union) {
-    fail(
-      SCHEMA_BARREL,
-      'the second argument of z.discriminatedUnion is not an array literal',
-    )
+    fail(SCHEMA_BARREL, 'the second argument of z.discriminatedUnion is not an array literal')
   }
   return { barrel, union }
 }
@@ -69,10 +58,7 @@ function locateReturnObject(project, root) {
     .findLast((s) => s.isKind(SyntaxKind.ReturnStatement))
   const obj = ret?.getExpression()?.asKind(SyntaxKind.ObjectLiteralExpression)
   if (!obj) {
-    fail(
-      DATA_LAYER,
-      'getHomepageSections has no top-level `return { … }` object literal to register the pick() in',
-    )
+    fail(DATA_LAYER, 'getHomepageSections has no top-level `return { … }` object literal to register the pick() in')
   }
   return obj
 }
@@ -80,30 +66,21 @@ function locateReturnObject(project, root) {
 function readIndexPage(root) {
   const src = readFileSync(`${root}/${INDEX_PAGE}`, 'utf8')
   if (!src.includes(IMPORTS_MARKER)) {
-    fail(
-      INDEX_PAGE,
-      `the \`${IMPORTS_MARKER}\` marker is missing — the import has no anchor`,
-    )
+    fail(INDEX_PAGE, `the \`${IMPORTS_MARKER}\` marker is missing — the import has no anchor`)
   }
   if (!src.includes(SECTIONS_MARKER)) {
-    fail(
-      INDEX_PAGE,
-      `the \`${SECTIONS_MARKER}\` marker is missing — the component has no anchor`,
-    )
+    fail(INDEX_PAGE, `the \`${SECTIONS_MARKER}\` marker is missing — the component has no anchor`)
   }
   return src
 }
 
 function isNameTakenInTs(sourceFile, name) {
-  if (sourceFile.getVariableDeclaration(name) || sourceFile.getFunction(name))
-    return true
+  if (sourceFile.getVariableDeclaration(name) || sourceFile.getFunction(name)) return true
   return sourceFile
     .getImportDeclarations()
     .some(
       (d) =>
-        d
-          .getNamedImports()
-          .some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
+        d.getNamedImports().some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
         d.getDefaultImport()?.getText() === name,
     )
 }
@@ -116,13 +93,8 @@ function isNameTakenInTs(sourceFile, name) {
 export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   const project = new Project()
   const { barrel, union } = locateUnionArray(project, root)
-  if (
-    union.getElements().some((e) => e.getText() === `${camel}SectionSchema()`)
-  ) {
-    fail(
-      SCHEMA_BARREL,
-      `section "${camel}" is already in the union — pick another name`,
-    )
+  if (union.getElements().some((e) => e.getText() === `${camel}SectionSchema()`)) {
+    fail(SCHEMA_BARREL, `section "${camel}" is already in the union — pick another name`)
   }
   if (isNameTakenInTs(barrel, `${camel}SectionSchema`)) {
     fail(
@@ -132,10 +104,7 @@ export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   }
   const obj = locateReturnObject(project, root)
   if (obj.getProperty(camel)) {
-    fail(
-      DATA_LAYER,
-      `section "${camel}" is already picked in getHomepageSections`,
-    )
+    fail(DATA_LAYER, `section "${camel}" is already picked in getHomepageSections`)
   }
   const src = readIndexPage(root)
   // The component import binds `pascal` in the frontmatter — assert it's free
@@ -154,10 +123,7 @@ export function assertSectionInjectable({ root, camel, kebab, pascal }) {
     `src/components/home/${kebab}.astro`,
   ]) {
     if (existsSync(`${root}/${target}`)) {
-      fail(
-        target,
-        'the file already exists — remove it first or pick another name',
-      )
+      fail(target, 'the file already exists — remove it first or pick another name')
     }
   }
 }
@@ -166,11 +132,7 @@ export function injectSection({ root, camel, kebab, pascal }) {
   const project = new Project()
 
   const { barrel, union } = locateUnionArray(project, root)
-  if (
-    !barrel.getImportDeclaration(
-      (d) => d.getModuleSpecifierValue() === `./${kebab}`,
-    )
-  ) {
+  if (!barrel.getImportDeclaration((d) => d.getModuleSpecifierValue() === `./${kebab}`)) {
     barrel.addImportDeclaration({
       moduleSpecifier: `./${kebab}`,
       namedImports: [`${camel}SectionSchema`],
