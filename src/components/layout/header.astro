@@ -3,24 +3,27 @@ import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
 
 import { SITE } from '@/lib/site'
+
+import { localizedHref } from '@/i18n/href'
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+const href = (path: string) => localizedHref(Astro.currentLocale, path)
 ---
 
 <header
-  class="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60"
+  class="sticky top-0 z-50 border-border/60 border-b bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60"
 >
   <Container class="flex h-16 items-center justify-between">
-    <a href="/" class="text-lg font-semibold tracking-tight text-foreground">
+    <a href={href('/')} class="font-semibold text-foreground text-lg tracking-tight">
       {SITE.name}
     </a>
 
-    <nav aria-label={SITE.strings.primaryNav} class="hidden items-center gap-6 md:flex">
+    <nav aria-label={t('a11y.primaryNav')} class="hidden items-center gap-6 md:flex">
       {
         SITE.nav.map((link) => (
-          <a
-            href={link.href}
-            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {link.label}
+          <a href={href(link.href)} class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground">
+            {t(link.key)}
           </a>
         ))
       }
@@ -30,9 +33,9 @@ import { SITE } from '@/lib/site'
       <Button
         type="button"
         variant="ghost"
-        size="icon"
+        size="icon-md"
         data-theme-toggle
-        aria-label={SITE.strings.toggleTheme}
+        aria-label={t('a11y.toggleTheme')}
         aria-pressed="false"
         class="text-muted-foreground hover:text-foreground"
       >
@@ -40,7 +43,7 @@ import { SITE } from '@/lib/site'
         <span class="hidden dark:inline" aria-hidden="true">☀&#xFE0E;</span>
         <span class="inline dark:hidden" aria-hidden="true">☾</span>
       </Button>
-      <Button as="a" href={SITE.cta.href} size="sm">{SITE.cta.label}</Button>
+      <Button as="a" href={href(SITE.cta.href)} size="sm">{t(SITE.cta.key)}</Button>
     </div>
   </Container>
 </header>

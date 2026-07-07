@@ -1,0 +1,14 @@
+---
+interface Props {
+  title: string
+  description?: string | undefined
+  ogImageUrl: string
+}
+
+const { title, description, ogImageUrl } = Astro.props
+---
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+{description ? <meta name="twitter:description" content={description} /> : null}
+<meta name="twitter:image" content={ogImageUrl} />

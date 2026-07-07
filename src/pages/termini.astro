@@ -1,0 +1,47 @@
+---
+// Placeholder terms & conditions — generic brochure-site scope. Anything
+// transactional (e-commerce, subscriptions, bookings) needs a proper legal
+// draft per project. Legal review before go-live.
+import LegalPage from '@/components/legal/legal-page.astro'
+import LegalSectionList from '@/components/legal/legal-section-list.astro'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+export const prerender = true
+
+const title = 'Termini e Condizioni'
+const description = 'Termini e condizioni di utilizzo di questo sito.'
+
+const sections = [
+  {
+    heading: 'Oggetto',
+    body: "Questi termini regolano l'accesso e l'utilizzo del sito e dei suoi contenuti. Navigando il sito l'utente li accetta integralmente.",
+  },
+  {
+    heading: 'Proprietà intellettuale',
+    body: 'Contenuti, testi, immagini, loghi e marchi presenti sul sito appartengono ai rispettivi titolari e non possono essere riprodotti o riutilizzati senza autorizzazione.',
+  },
+  {
+    heading: 'Limitazione di responsabilità',
+    body: "Le informazioni pubblicate hanno finalità informative e non costituiscono offerta contrattuale. Il titolare non risponde di eventuali inesattezze o di danni derivanti dall'uso del sito o da contenuti di siti terzi raggiungibili tramite link.",
+  },
+  {
+    heading: 'Legge applicabile e foro competente',
+    body: 'I presenti termini sono regolati dalla legge italiana. Per ogni controversia è competente il foro previsto dalla normativa applicabile.',
+  },
+  {
+    heading: 'Modifiche',
+    body: 'I termini possono essere aggiornati; la versione in vigore è quella pubblicata su questa pagina.',
+  },
+]
+---
+
+<LegalPage {title} {description}>
+  <Alert variant="muted" class="mt-6">
+    <AlertDescription>
+      Questo documento è una bozza segnaposto: va adattato al progetto e sottoposto a revisione legale prima della
+      pubblicazione definitiva del sito.
+    </AlertDescription>
+  </Alert>
+
+  <LegalSectionList sections={sections} />
+</LegalPage>

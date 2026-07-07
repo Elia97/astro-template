@@ -1,0 +1,17 @@
+---
+// Data-driven legal body: the page declares a `sections` array (its own
+// default-locale copy) and this renders it. The slot hosts sections that
+// need markup beyond plain text (e.g. legal-controller-section.astro).
+import LegalSection from '@/components/legal/legal-section.astro'
+
+interface Props {
+  sections: { heading: string; body: string }[]
+}
+
+const { sections } = Astro.props
+---
+
+<div class="mt-10 space-y-10 text-foreground">
+  <slot />
+  {sections.map(({ heading, body }) => <LegalSection heading={heading}>{body}</LegalSection>)}
+</div>

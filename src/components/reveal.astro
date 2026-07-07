@@ -1,12 +1,15 @@
 ---
-// Attribute-driven reveal-on-scroll wrapper. No animation library: an
-// IntersectionObserver marks `[data-reveal]` with `data-reveal-ready` on
-// viewport entry; the transition is pure CSS (initial state gated on `html.js`
-// + `@media (prefers-reduced-motion: no-preference)`, see globals.css).
+// Attribute-driven reveal-on-scroll wrapper. No animation library: the setup
+// lives in lib/motion/reveal.ts, the transition is pure CSS (initial state
+// gated on `html.js` + `prefers-reduced-motion: no-preference`, globals.css).
 //
 // Static fallback: under `prefers-reduced-motion` the binding is a no-op and,
 // without the `js` class on <html>, the CSS initial state never applies →
 // content stays visible.
+//
+// Cascade variant (no wrapper needed): put `data-reveal-stagger` on any
+// container and `style="--i: {index}"` on each child — children transition
+// in sequence, `--reveal-stagger` overrides the 0.08s step.
 interface Props {
   /** Initial vertical offset in px (default 24). */
   y?: number
@@ -25,51 +28,7 @@ const style = `--reveal-y: ${String(y)}px; --reveal-delay: ${String(delay)}s;`
 </div>
 
 <script>
-  import { createMotionBinding, prefersReducedMotion } from '@/lib/motion'
+  import { bindReveals } from '@/lib/motion/reveal'
 
-  let primary: IntersectionObserver | null = null
-  let fallback: IntersectionObserver | null = null
-
-  function onIntersect(entries: IntersectionObserverEntry[], self: IntersectionObserver): void {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue
-      entry.target.setAttribute('data-reveal-ready', '')
-      self.unobserve(entry.target)
-    }
-  }
-
-  function setupReveals(): void {
-    if (prefersReducedMotion()) return
-    const els = document.querySelectorAll<HTMLElement>('[data-reveal]:not([data-reveal-ready])')
-    if (els.length === 0) return
-    // The primary observer reveals slightly before the element's natural entry
-    // point. Elements that can never cross the shrunk boundary (sitting in the
-    // bottom ~15% of the page at max scroll) go to the no-margin fallback,
-    // otherwise they would stay hidden forever.
-    primary ??= new IntersectionObserver(onIntersect, { rootMargin: '0px 0px -15% 0px' })
-    fallback ??= new IntersectionObserver(onIntersect)
-    const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
-    const revealLine = window.innerHeight * 0.85
-    for (const el of els) {
-      const absoluteTop = el.getBoundingClientRect().top + window.scrollY
-      if (absoluteTop - maxScrollY > revealLine) fallback.observe(el)
-      else primary.observe(el)
-    }
-  }
-
-  function cleanupReveals(): void {
-    primary?.disconnect()
-    fallback?.disconnect()
-    primary = null
-    fallback = null
-  }
-
-  const bindReveals = createMotionBinding(setupReveals, cleanupReveals)
   bindReveals()
-
-  // Re-arm if the user turns reduced-motion OFF mid-session: the CSS gate
-  // starts hiding [data-reveal] elements and something must reveal them again.
-  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => {
-    if (!event.matches) setupReveals()
-  })
 </script>

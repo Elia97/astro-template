@@ -1,0 +1,28 @@
+---
+// Server-error page: Astro renders it when SSR throws. Static and
+// dependency-free on purpose — it must work when everything else doesn't.
+import Button from '@/components/ui/button.astro'
+import Container from '@/components/ui/container.astro'
+import Section from '@/components/ui/section.astro'
+
+import MainLayout from '@/layouts/main.astro'
+
+import { useTranslations } from '@/i18n/translate'
+
+export const prerender = true
+
+const t = useTranslations(Astro.currentLocale)
+---
+
+<MainLayout title={`500 — ${t('error.500title')}`} description={t('error.500description')}>
+  <Section>
+    <Container>
+      <div class="mx-auto flex min-h-[50svh] max-w-2xl flex-col items-center justify-center gap-6 text-center">
+        <p class="font-display font-semibold text-7xl text-foreground">500</p>
+        <h1 class="text-foreground text-lg">{t('error.500title')}</h1>
+        <p class="text-muted-foreground text-sm leading-relaxed">{t('error.500description')}</p>
+        <Button as="a" href="/" variant="outline" size="lg">{t('error.backHome')}</Button>
+      </div>
+    </Container>
+  </Section>
+</MainLayout>

@@ -3,6 +3,7 @@ import Hero from '@/components/home/hero.astro'
 
 import MainLayout from '@/layouts/main.astro'
 
+import { COMPANY } from '@/lib/company'
 import { getHomepageSections } from '@/lib/homepage'
 import { SITE } from '@/lib/site'
 // @gen:home-imports (generators insert new imports ABOVE this line)
@@ -10,9 +11,28 @@ import { SITE } from '@/lib/site'
 export const prerender = true
 
 const content = await getHomepageSections(Astro.currentLocale)
+
+// Sitewide structured data lives on the homepage only; inner pages pass their
+// own specific schemas (breadcrumb/list builders in @/lib/seo).
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: COMPANY.legalName,
+  url: SITE.url,
+  telephone: COMPANY.phone,
+  email: COMPANY.email,
+  address: { '@type': 'PostalAddress', ...COMPANY.address },
+}
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.url,
+}
 ---
 
-<MainLayout title={SITE.name} description={SITE.description}>
+<MainLayout title={SITE.name} description={SITE.description} jsonLd={[organizationSchema, websiteSchema]}>
   <Hero {...content.hero} />
   {/* @gen:home-sections */}
 </MainLayout>

@@ -1,8 +1,9 @@
 // @ts-check
 
+import sitemap from '@astrojs/sitemap'
 import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
-import { defineConfig } from 'astro/config'
+import { defineConfig, envField } from 'astro/config'
 
 import { SITE } from './src/lib/site'
 
@@ -24,7 +25,47 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+  integrations: [
+    // Emits sitemap-index.xml at build time; src/pages/robots.txt.ts points
+    // crawlers at it. To exclude pages add `filter: (page) => …` here AND
+    // mirror the path in NOINDEX_PATHS (src/middleware.ts). The locale map
+    // mirrors SITE.localeTags so hreflang in the sitemap matches the head.
+    sitemap({
+      i18n: {
+        defaultLocale: 'it',
+        locales: { ...SITE.localeTags },
+      },
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
+  },
+  env: {
+    schema: {
+      // Contact-form stack (src/actions + src/lib/vendor/brevo.ts). The API
+      // key is optional on purpose: without it the vendor no-ops in dev and
+      // refuses in production (see docs/guides/forms-email.md). Defaults below are
+      // placeholders — set real values in .env / the deploy provider.
+      BREVO_API_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      CONTACT_FROM_EMAIL: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'no-reply@example.com',
+      }),
+      CONTACT_FROM_NAME: envField.string({
+        context: 'server',
+        access: 'public',
+        default: '<PROJECT_NAME>',
+      }),
+      CONTACT_TO_EMAIL: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'info@example.com',
+      }),
+    },
   },
 })

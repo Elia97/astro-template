@@ -1,0 +1,44 @@
+---
+// Placeholder cookie policy, honest about the template's baseline: no
+// profiling/analytics cookies, only the theme preference in localStorage.
+// Adding analytics per project means updating this page (and adding a
+// consent banner if the tool requires it) — legal review before go-live.
+import LegalPage from '@/components/legal/legal-page.astro'
+import LegalSectionList from '@/components/legal/legal-section-list.astro'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+export const prerender = true
+
+const title = 'Cookie Policy'
+const description = 'Informativa sull’uso di cookie e tecnologie di memorizzazione locale su questo sito.'
+
+const sections = [
+  {
+    heading: 'Cookie utilizzati',
+    body: 'Questo sito non utilizza cookie di profilazione né strumenti di analisi di terze parti. Non è quindi richiesto alcun banner di consenso.',
+  },
+  {
+    heading: 'Memorizzazione tecnica locale',
+    body: "Il sito salva nel localStorage del browser la sola preferenza del tema (chiaro/scuro). Si tratta di una memorizzazione tecnica, strettamente funzionale all'esperienza di navigazione, che non raccoglie dati personali e non richiede consenso.",
+  },
+  {
+    heading: 'Cookie tecnici di infrastruttura',
+    body: "L'infrastruttura di hosting (Vercel Inc.) può impostare cookie tecnici strettamente necessari all'erogazione del servizio, privi di finalità di tracciamento.",
+  },
+  {
+    heading: 'Aggiornamenti',
+    body: 'Se in futuro verranno introdotti strumenti di analisi o marketing, questa pagina sarà aggiornata prima della loro attivazione e, ove necessario, verrà richiesto il consenso tramite apposito banner.',
+  },
+]
+---
+
+<LegalPage {title} {description}>
+  <Alert variant="muted" class="mt-6">
+    <AlertDescription>
+      Questa informativa è una bozza segnaposto allineata alla dotazione di base del sito: va rivista quando si
+      aggiungono strumenti di analisi o marketing, e comunque prima della pubblicazione definitiva.
+    </AlertDescription>
+  </Alert>
+
+  <LegalSectionList sections={sections} />
+</LegalPage>

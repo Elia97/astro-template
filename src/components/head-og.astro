@@ -1,0 +1,28 @@
+---
+// Open Graph meta. og:locale uses the underscore form of the BCP 47 tag.
+import { SITE } from '@/lib/site'
+
+interface Props {
+  title: string
+  description?: string | undefined
+  canonical: string
+  currentTag: string
+  localeAlternates: { tag: string; href: string }[]
+  ogImageUrl: string
+}
+
+const { title, description, canonical, currentTag, localeAlternates, ogImageUrl } = Astro.props
+---
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={title} />
+{description ? <meta property="og:description" content={description} /> : null}
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content={currentTag.replace('-', '_')} />
+{
+  localeAlternates
+    .filter((alt) => alt.tag !== currentTag)
+    .map((alt) => <meta property="og:locale:alternate" content={alt.tag.replace('-', '_')} />)
+}
+<meta property="og:image" content={ogImageUrl} />

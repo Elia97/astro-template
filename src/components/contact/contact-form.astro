@@ -1,0 +1,50 @@
+---
+// Contact form shell: Card + submit lifecycle. Fields live in
+// contact-form-fields.astro, client behavior in contact-form-behavior.ts
+// (Astro Actions submit — no action/method fallback, JS is required; the
+// action itself still validates everything server-side).
+import Button from '@/components/ui/button.astro'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { useTranslations } from '@/i18n/translate'
+
+import ContactFormFields from './contact-form-fields.astro'
+
+const t = useTranslations(Astro.currentLocale)
+---
+
+<Card class="p-6 sm:p-8">
+  <CardHeader>
+    <CardTitle as="h2" class="text-2xl">{t('contact.formTitle')}</CardTitle>
+    <CardDescription as="p">{t('contact.formIntro')}</CardDescription>
+  </CardHeader>
+
+  {/* Pending/error copy travels on data attributes: the behavior module stays copy-free. */}
+  <form
+    data-contact-form
+    data-i18n-sending={t('contact.sending')}
+    data-i18n-submit={t('contact.submit')}
+    data-i18n-generic-error={t('contact.genericFieldError')}
+  >
+    <CardContent class="flex flex-col gap-4 pt-6">
+      <ContactFormFields />
+    </CardContent>
+
+    <CardFooter class="flex flex-col gap-3 pt-2">
+      <p data-contact-success role="status" class="hidden w-full font-medium text-foreground text-sm">
+        {t('contact.success')}
+      </p>
+      <p data-contact-error role="alert" class="hidden w-full font-medium text-destructive text-sm">
+        {t('contact.error')}
+      </p>
+
+      <Button type="submit" class="w-full">{t('contact.submit')}</Button>
+    </CardFooter>
+  </form>
+</Card>
+
+<script>
+  import { bindContactForm } from './contact-form-behavior'
+
+  bindContactForm()
+</script>

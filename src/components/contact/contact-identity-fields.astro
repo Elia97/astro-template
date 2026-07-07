@@ -1,0 +1,24 @@
+---
+import { Field, FieldLabel } from '@/components/ui/field'
+import Input from '@/components/ui/input.astro'
+
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+---
+
+<div class="grid gap-4 sm:grid-cols-2">
+  <Field>
+    <FieldLabel for="firstName">{t('contact.firstName')}</FieldLabel>
+    <Input id="firstName" type="text" name="firstName" autocomplete="given-name" maxlength="100" required />
+  </Field>
+  <Field>
+    <FieldLabel for="lastName">{t('contact.lastName')}</FieldLabel>
+    <Input id="lastName" type="text" name="lastName" autocomplete="family-name" maxlength="100" required />
+  </Field>
+</div>
+
+<Field>
+  <FieldLabel for="email">{t('contact.email')}</FieldLabel>
+  <Input id="email" type="email" name="email" autocomplete="email" maxlength="254" required />
+</Field>

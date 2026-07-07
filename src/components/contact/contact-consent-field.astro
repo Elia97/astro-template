@@ -1,0 +1,25 @@
+---
+// GDPR consent: required checkbox (the schema wants a literal `true`) with
+// the privacy-policy link inside the label.
+import { Field, FieldContent, FieldLabel } from '@/components/ui/field'
+
+import { localizedHref } from '@/i18n/href'
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+---
+
+<Field orientation="horizontal">
+  <input id="consent" type="checkbox" name="consent" required class="mt-0.5 size-4 shrink-0 accent-primary" />
+  <FieldContent>
+    <FieldLabel for="consent" class="font-normal text-muted-foreground text-xs leading-relaxed">
+      {t('contact.consent')}
+      <a
+        href={localizedHref(Astro.currentLocale, '/privacy')}
+        class="focus-ring text-foreground underline underline-offset-4"
+      >
+        {t('contact.privacyPolicy')}
+      </a>.
+    </FieldLabel>
+  </FieldContent>
+</Field>

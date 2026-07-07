@@ -31,8 +31,12 @@ Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
 
 ## Chrome content
 
-Header/footer/skip-link content comes from `src/lib/site.ts` (`SITE`): nav, CTA,
-legal links, UI microcopy (`SITE.strings`). No hardcoded labels in components.
+Header/footer/skip-link structure comes from `src/lib/site.ts` (`SITE`): nav,
+CTA, legal links, socials. Copy is NOT there — entries carry i18n dictionary
+keys resolved via `useTranslations(Astro.currentLocale)`
+(`src/i18n/strings/<locale>.ts`). No hardcoded labels in components; internal
+links go through `localizedHref()` so they localize with the site
+(HOW_TO_USE.md → "Adding a locale").
 
 ## Tailwind v4 idioms adopted (don't regress to v3 habits)
 
@@ -56,6 +60,12 @@ legal links, UI microcopy (`SITE.strings`). No hardcoded labels in components.
 - `<html>` carries `scroll-pt-20` so anchor jumps clear the 64px sticky header.
 - Icon glyphs are `aria-hidden` with the label on the control; text-presentation
   variation selector (`&#xFE0E;`) on codepoints WebKit would render as emoji.
+- Overlay building blocks (for menus/dialogs a fork adds): `lib/trap-focus.ts`
+  (`cycleFocus` — call from the container's keydown, Tab wraps at both ends)
+  and `lib/scroll-lock.ts` (reference-counted `lockScroll`/`unlockScroll`;
+  `resetScrollLock()` on `astro:after-swap` so locks never leak across view
+  transitions). `.focus-ring` utility for custom focusables outside the
+  ring-based form controls.
 
 ## UI primitives (`src/components/ui/`)
 
@@ -86,10 +96,27 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
   `container` utility — breakpoint-snapped width so every section aligns
   vertically; auto centering + responsive gutter are added once via
   `@utility container` in globals.css) and `Section` (vertical rhythm,
-  `spacing` compact/default/spacious, semantic `<section>`). Page sections
+  `spacing` none/compact/default/spacious, semantic `<section>`). Page sections
   compose `<Section><Container>…</Container></Section>`; generator templates
   must emit this shape. Rare narrower blocks nest an inner
   `mx-auto max-w-*` wrapper inside Container instead of changing its width.
+- Button sizes are one t-shirt scale, `sm/md/lg/xl` plus square `icon-*`
+  twins (`md` is the default — no `default` size key; variant names DO keep
+  shadcn's `default`).
+- Form fields compose the `Field` compound (`ui/field/`: `Field` +
+  `FieldLabel` + `FieldContent`, vertical/horizontal orientation) around the
+  flat controls (`input.astro`, `textarea.astro`, `select.astro`).
+- `Select` is the reference progressive-enhancement primitive: the native
+  `<select>` renders first and stays the form-facing source of truth; the
+  script layer (`select-behavior.ts`) swaps in a styled trigger + listbox
+  (roving focus, `aria-expanded`/`aria-selected`, Escape/Tab/outside-click)
+  and re-dispatches `change` on the native element. New stateful primitives
+  follow this shape: no-JS baseline first, behavior in a sibling
+  `*-behavior.ts` bound via `createMotionBinding`
+  (see `rendering-performance.md`).
+- Icons come from `@lucide/astro` (build-time SVG, zero client JS): default
+  `stroke-width={1}`, size via Tailwind (`size-4`/`size-5`), `aria-hidden` by
+  default with the accessible label on the control.
 
 No React in the base scaffold. If a fork needs a genuinely stateful component
 (Dialog, Calendar, …), see the islands gotchas in `ARCHITECTURE.md`.
