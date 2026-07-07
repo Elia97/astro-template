@@ -41,8 +41,10 @@
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --font-display: ui-sans-serif, system-ui, sans-serif;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  /* max() keeps the derived steps valid for any brand --radius: with small
+     values (or 0 for sharp corners) the plain calc() would go negative. */
+  --radius-sm: max(0px, calc(var(--radius) - 4px));
+  --radius-md: max(0px, calc(var(--radius) - 2px));
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
@@ -53,6 +55,25 @@
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  /* Scroll lock (lib/scroll-lock.ts toggles the attribute). scrollbar-gutter
+     keeps the layout from shifting when the scrollbar disappears. */
+  html[data-scroll-locked] {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+}
+
+@layer utilities {
+  /* Consistent focus outline for custom interactive elements. The transparent
+     resting outline keeps forced-colors mode working (it gets a color there). */
+  .focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .focus-ring:focus-visible {
+    outline-color: var(--ring);
   }
 }
 
@@ -67,6 +88,20 @@
     transition-delay: var(--reveal-delay, 0s);
   }
   html.js [data-reveal]:not([data-reveal-ready]) {
+    opacity: 0;
+    transform: translateY(var(--reveal-y, 24px));
+  }
+
+  /* Cascade variant: `data-reveal-stagger` on a container transitions its
+     children in sequence — each child sets `--i` (0, 1, 2…), the step is
+     `--reveal-stagger` (default 0.08s). Same double gate as [data-reveal]. */
+  html.js [data-reveal-stagger] > * {
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--i, 0) * var(--reveal-stagger, 0.08s));
+  }
+  html.js [data-reveal-stagger]:not([data-reveal-ready]) > * {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));
   }

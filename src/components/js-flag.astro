@@ -1,0 +1,15 @@
+---
+// Marks <html> with the `js` class BEFORE first paint. CSS uses it to gate
+// JS-dependent initial states (e.g. reveal-on-scroll hides elements only
+// under `html.js` — with JS off nothing ever hides). Kept separate from
+// theme-script.astro on purpose: motion gating must not depend on theming.
+---
+
+<script is:inline>
+  function markJs() {
+    document.documentElement.classList.add('js')
+  }
+  markJs()
+  // View transitions don't re-execute inline scripts on the incoming page.
+  document.addEventListener('astro:after-swap', markJs)
+</script>

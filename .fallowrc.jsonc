@@ -5,7 +5,11 @@
     // template's public surface: not everything is consumed by the starter
     // pages yet, but they are kept intentionally — not dead code.
     "src/components/ui/**",
-    "src/components/reveal.astro"
+    "src/components/reveal.astro",
+    // The motion barrel is the layer's stable public import point (internals
+    // import leaf modules directly, so the barrel has no consumer until an
+    // interactive component lands).
+    "src/lib/motion/index.ts"
   ],
   "ignoreDependencies": [
     // Only imported from astro.config.mjs — fallow doesn't count config-file
@@ -21,7 +25,7 @@
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
     // Reserved motion utilities — no caller in the starter yet.
-    { "file": "src/lib/motion/index.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
+    { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
     // Vitest alias target for the astro:env/server virtual module — called
     // indirectly through the alias, fallow can't trace through it.
     { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },

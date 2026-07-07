@@ -23,9 +23,7 @@
     const dark = stored
       ? stored === 'dark'
       : window.matchMedia('(prefers-color-scheme: dark)').matches
-    const root = document.documentElement
-    root.classList.add('js')
-    root.classList.toggle('dark', dark)
+    document.documentElement.classList.toggle('dark', dark)
     syncThemeToggles()
   }
 
