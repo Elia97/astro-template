@@ -1,0 +1,47 @@
+---
+// Progressive-enhancement select: renders a fully functional native <select>
+// (works with JS off / before hydration); select-behavior.ts then hides it
+// and activates the styled trigger + listbox, keeping the native element as
+// the form-facing source of truth (value + change events). Composed from
+// select-{native,trigger,listbox}.astro — one root, three focused parts.
+import type { HTMLAttributes } from 'astro/types'
+
+import { cn } from '@/lib/utils'
+
+import SelectListbox from './select-listbox.astro'
+import SelectNative from './select-native.astro'
+import SelectTrigger from './select-trigger.astro'
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface Props extends HTMLAttributes<'select'> {
+  options: SelectOption[]
+  placeholder?: string
+}
+
+const { class: className, options, placeholder, ...rest } = Astro.props
+
+// Shared by the native select and the custom trigger so the two render
+// identically — the JS swap must not shift layout.
+const triggerClasses = cn(
+  'h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+  className,
+)
+---
+
+<div class="relative" data-select-root>
+  <SelectNative options={options} placeholder={placeholder} triggerClasses={triggerClasses} {...rest} />
+
+  <SelectTrigger options={options} placeholder={placeholder} triggerClasses={triggerClasses} />
+
+  <SelectListbox options={options} />
+</div>
+
+<script>
+  import { bindSelects } from './select-behavior'
+
+  bindSelects()
+</script>

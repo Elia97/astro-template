@@ -1,0 +1,37 @@
+---
+// The dropdown options list. Focus, keyboard navigation and aria-selected
+// state are driven by select-behavior.ts (roving focus over [role=option]).
+import { Check } from '@lucide/astro'
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface Props {
+  options: SelectOption[]
+}
+
+const { options } = Astro.props
+---
+
+<ul
+  role="listbox"
+  data-select-listbox
+  class="absolute z-20 mt-1 hidden max-h-60 w-full overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground text-sm shadow-lg backdrop-blur-md"
+>
+  {
+    options.map((option) => (
+      <li
+        role="option"
+        data-value={option.value}
+        aria-selected="false"
+        tabindex="-1"
+        class="group/option relative flex cursor-pointer select-none items-center justify-between gap-2 rounded-sm px-3 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-hidden"
+      >
+        <span>{option.label}</span>
+        <Check stroke-width={1} class="size-5 shrink-0 opacity-0 group-aria-selected/option:opacity-100" />
+      </li>
+    ))
+  }
+</ul>

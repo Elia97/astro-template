@@ -1,0 +1,27 @@
+---
+// The styled stand-in for the native select. Starts hidden — select-behavior.ts
+// reveals it (and hides the native element) only when JS is available.
+import { ChevronDown } from '@lucide/astro'
+
+import { cn } from '@/lib/utils'
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface Props {
+  options: SelectOption[]
+  placeholder?: string | undefined
+  triggerClasses: string
+}
+
+const { options, placeholder, triggerClasses } = Astro.props
+---
+
+<button type="button" data-select-trigger aria-haspopup="listbox" aria-expanded="false" class={cn(triggerClasses, 'hidden')}>
+  <span data-select-value class="truncate text-muted-foreground">
+    {placeholder ?? options[0]?.label}
+  </span>
+  <ChevronDown stroke-width={1} class="size-4 shrink-0 text-muted-foreground" />
+</button>

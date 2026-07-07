@@ -3,9 +3,12 @@ import type { HTMLAttributes } from 'astro/types'
 
 import { cn } from '@/lib/utils'
 
-type Props = HTMLAttributes<'div'>
+interface Props extends HTMLAttributes<'div'> {
+  /** Render as `p` for real copy, `span` for inline use. */
+  as?: 'div' | 'span' | 'p'
+}
 
-const { class: className, ...rest } = Astro.props
+const { as: Tag = 'div', class: className, ...rest } = Astro.props
 ---
 
-<div class={cn('text-sm text-muted-foreground', className)} {...rest}><slot /></div>
+<Tag class={cn('text-sm text-muted-foreground', className)} {...rest}><slot /></Tag>

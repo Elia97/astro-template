@@ -14,6 +14,9 @@ importers:
       '@astrojs/vercel':
         specifier: ^11.0.1
         version: 11.0.1(astro@7.0.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.0.1)(@vercel/functions@3.7.4(ws@8.21.0))(jiti@2.7.0)(yaml@2.9.0))(ws@8.21.0)
+      '@lucide/astro':
+        specifier: ^1.23.0
+        version: 1.23.0(astro@7.0.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.0.1)(@vercel/functions@3.7.4(ws@8.21.0))(jiti@2.7.0)(yaml@2.9.0))
       astro:
         specifier: ^7.0.4
         version: 7.0.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.0.1)(@vercel/functions@3.7.4(ws@8.21.0))(jiti@2.7.0)(yaml@2.9.0)
@@ -818,6 +821,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@lucide/astro@1.23.0':
+    resolution: {integrity: sha512-SP5JHwI46QJjCJGzS8BTQsUXcHJoGkVIeywN12NraSiTEt4uh0iNLPs4hEHTSJr+LbZeHxc3W1BiRJPF2tS5Yw==}
+    peerDependencies:
+      astro: ^4 || ^5 || ^6 || ^7
 
   '@mapbox/node-pre-gyp@2.0.3':
     resolution: {integrity: sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg==}
@@ -3806,6 +3814,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@lucide/astro@1.23.0(astro@7.0.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.0.1)(@vercel/functions@3.7.4(ws@8.21.0))(jiti@2.7.0)(yaml@2.9.0))':
+    dependencies:
+      astro: 7.0.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.0.1)(@vercel/functions@3.7.4(ws@8.21.0))(jiti@2.7.0)(yaml@2.9.0)
 
   '@mapbox/node-pre-gyp@2.0.3':
     dependencies:

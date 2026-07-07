@@ -38,8 +38,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-display: ui-sans-serif, system-ui, sans-serif;
+  /* Webfont hooks: Astro's fonts API defines `--font-stack-*` when a fork
+     registers fonts (astro.config `fonts` + `<Font>` preload in the layout
+     head — see HOW_TO_USE.md). Without fonts the var() fallback keeps the
+     system stack; components never change either way. */
+  --font-sans: var(--font-stack-base, ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--font-stack-display, ui-sans-serif, system-ui, sans-serif);
 
   /* max() keeps the derived steps valid for any brand --radius: with small
      values (or 0 for sharp corners) the plain calc() would go negative. */

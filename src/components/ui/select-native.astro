@@ -1,0 +1,31 @@
+---
+// The no-JS baseline and the form-facing element: name/value/validation live
+// here. select-behavior.ts hides it once the custom trigger takes over.
+import type { HTMLAttributes } from 'astro/types'
+
+import { cn } from '@/lib/utils'
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface Props extends HTMLAttributes<'select'> {
+  options: SelectOption[]
+  placeholder?: string | undefined
+  triggerClasses: string
+}
+
+const { options, placeholder, triggerClasses, ...rest } = Astro.props
+---
+
+<select class={cn('flex', triggerClasses)} data-select-native {...rest}>
+  {
+    placeholder && (
+      <option value="" disabled selected>
+        {placeholder}
+      </option>
+    )
+  }
+  {options.map((option) => <option value={option.value}>{option.label}</option>)}
+</select>

@@ -3,9 +3,12 @@ import type { HTMLAttributes } from 'astro/types'
 
 import { cn } from '@/lib/utils'
 
-type Props = HTMLAttributes<'div'>
+interface Props extends HTMLAttributes<'div'> {
+  /** Render as a real heading (`h2`/`h3`…) when the card title belongs in the page outline. */
+  as?: 'div' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}
 
-const { class: className, ...rest } = Astro.props
+const { as: Tag = 'div', class: className, ...rest } = Astro.props
 ---
 
-<div class={cn('font-semibold tracking-tight', className)} {...rest}><slot /></div>
+<Tag class={cn('font-semibold tracking-tight', className)} {...rest}><slot /></Tag>
