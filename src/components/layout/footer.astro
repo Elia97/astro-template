@@ -3,34 +3,51 @@ import Container from '@/components/ui/container.astro'
 
 import { SITE } from '@/lib/site'
 
+import { localizedHref } from '@/i18n/href'
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+const href = (path: string) => localizedHref(Astro.currentLocale, path)
 const year = new Date().getFullYear()
 ---
 
-<footer class="border-t border-border/60 bg-background">
+<footer class="border-border/60 border-t bg-background">
   <Container class="py-12">
     <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
       <div class="max-w-sm">
-        <p class="text-lg font-semibold tracking-tight text-foreground">{SITE.name}</p>
-        <p class="mt-2 text-sm text-muted-foreground">{SITE.description}</p>
+        <p class="font-semibold text-foreground text-lg tracking-tight">{SITE.name}</p>
+        <p class="mt-2 text-muted-foreground text-sm">{SITE.description}</p>
       </div>
 
-      <nav aria-label={SITE.strings.legalNav} class="flex flex-col gap-2">
-        <p class="text-sm font-medium text-foreground">{SITE.strings.legalHeading}</p>
+      <nav aria-label={t('a11y.legalNav')} class="flex flex-col gap-2">
+        <p class="font-medium text-foreground text-sm">{t('footer.legalHeading')}</p>
         {
           SITE.legal.map((link) => (
-            <a
-              href={link.href}
-              class="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
+            <a href={href(link.href)} class="text-muted-foreground text-sm transition-colors hover:text-foreground">
+              {t(link.key)}
             </a>
           ))
         }
       </nav>
     </div>
 
-    <div class="mt-10 border-t border-border/60 pt-6 text-sm text-muted-foreground">
-      <p>&copy; {year} {SITE.name}. {SITE.strings.allRightsReserved}</p>
+    <div
+      class="mt-10 flex flex-col gap-4 border-border/60 border-t pt-6 text-muted-foreground text-sm sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>&copy; {year} {SITE.name}. {t('footer.allRightsReserved')}</p>
+      {
+        SITE.social.length > 0 && (
+          <ul class="flex items-center gap-4">
+            {SITE.social.map((profile) => (
+              <li>
+                <a href={profile.href} rel="noreferrer" class="transition-colors hover:text-foreground">
+                  {profile.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
     </div>
   </Container>
 </footer>

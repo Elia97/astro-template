@@ -1,5 +1,7 @@
 // Single source of truth for site metadata and chrome content (nav/footer/CTA/legal).
 // Replace the placeholders per project — de-branding happens at design time.
+// UI copy is NOT here: entries reference i18n dictionary keys (`key`,
+// resolved via useTranslations), so the chrome localizes with the site.
 export const SITE = {
   name: '<PROJECT_NAME>',
   // ⚠️ Must be a valid URL: it feeds `site` in astro.config.mjs and every
@@ -11,25 +13,19 @@ export const SITE = {
   // locale *codes* from `i18n.locales` in astro.config.mjs (for object
   // entries that's `codes[0]`, not `path`).
   localeTags: { it: 'it-IT' },
-  // Header navigation — add the project's entries.
-  nav: [{ label: 'Home', href: '/' }],
-  // Header primary CTA.
-  cta: { label: 'Call to action', href: '#' },
+  // Header navigation. `href` is the default-locale path — components run it
+  // through localizedHref(), which localizes prefix and segments per locale.
+  nav: [{ key: 'nav.home', href: '/' }],
+  // Header primary CTA ('#' placeholder: point it at a real internal path
+  // and route it through localizedHref() like the nav entries).
+  cta: { key: 'nav.cta', href: '#' },
   // Legal links (universal for EU sites).
   legal: [
-    { label: 'Privacy', href: '/privacy' },
-    { label: 'Cookie Policy', href: '/cookie-policy' },
+    { key: 'legal.privacy', href: '/privacy' },
+    { key: 'legal.cookies', href: '/cookie-policy' },
   ],
-  // Single-locale UI microcopy, written in the default locale. If a real i18n
-  // dictionary ever lands, it replaces this block.
-  strings: {
-    skipToContent: 'Salta al contenuto',
-    primaryNav: 'Navigazione principale',
-    toggleTheme: 'Cambia tema',
-    legalNav: 'Link legali',
-    legalHeading: 'Legale',
-    allRightsReserved: 'Tutti i diritti riservati.',
-  },
+  // Social profiles (footer). Brand names don't translate — plain labels.
+  social: [{ label: 'LinkedIn', href: '#' }],
 } as const
 
 /** @public SITE shape: template surface, consumable by child projects. */

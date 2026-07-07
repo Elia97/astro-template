@@ -68,6 +68,20 @@ Contracts worth knowing (details in `docs/guides/content-collections.md`):
   `homepageCollectionSchema`, `getHomepageSections`, the `@gen:home-*`
   markers): the generators assert on them and abort with the contract error.
 
+## Adding a locale
+
+The template ships single-locale (`it`) with the i18n rails already in place — a second locale is purely additive:
+
+1. `astro.config.mjs` — add the locale code to `i18n.locales`.
+2. `src/lib/site.ts` — add its BCP 47 tag to `localeTags`.
+3. `src/i18n/strings/<locale>.ts` — export a `Record<UIKey, string>`; the compiler forces every key to exist.
+4. `src/i18n/ui.ts` — register the new dictionary in `dictionaries`.
+5. `src/i18n/route-segments.ts` — map the top-level URL segments that change (`contatti` → `contact`); unmapped segments pass through.
+6. Content: add `src/content/<collection>/<locale>/…` files (default-locale content stays flat — the loaders enforce this).
+7. Pages: mirror the default tree under `src/pages/<locale>/…`; `getHomepageSections(Astro.currentLocale)` and `useTranslations(Astro.currentLocale)` already resolve per locale.
+
+Chrome links go through `localizedHref(Astro.currentLocale, path)` (see header/footer), so nav and legal URLs localize without touching components.
+
 ## Release secrets
 
 Release automation (`release-please.yml`) needs these secrets set manually on GitHub — `gh secret set <NAME>` from inside the repo, or Settings → Secrets and variables → Actions:

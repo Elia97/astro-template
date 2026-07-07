@@ -9,7 +9,10 @@
     // The motion barrel is the layer's stable public import point (internals
     // import leaf modules directly, so the barrel has no consumer until an
     // interactive component lands).
-    "src/lib/motion/index.ts"
+    "src/lib/motion/index.ts",
+    // Consumed by the head/SEO layer (canonical + hreflang) — wired up when
+    // the modular head lands; keep until then.
+    "src/i18n/path.ts"
   ],
   "ignoreDependencies": [
     // Only imported from astro.config.mjs — fallow doesn't count config-file
@@ -26,9 +29,10 @@
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
     // Reserved motion utilities — no caller in the starter yet.
     { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
-    // Vitest alias target for the astro:env/server virtual module — called
-    // indirectly through the alias, fallow can't trace through it.
+    // Vitest alias targets for the astro:* virtual modules — consumed
+    // indirectly through the aliases, fallow can't trace through them.
     { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },
+    { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
     // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }

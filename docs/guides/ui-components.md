@@ -31,8 +31,12 @@ Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
 
 ## Chrome content
 
-Header/footer/skip-link content comes from `src/lib/site.ts` (`SITE`): nav, CTA,
-legal links, UI microcopy (`SITE.strings`). No hardcoded labels in components.
+Header/footer/skip-link structure comes from `src/lib/site.ts` (`SITE`): nav,
+CTA, legal links, socials. Copy is NOT there — entries carry i18n dictionary
+keys resolved via `useTranslations(Astro.currentLocale)`
+(`src/i18n/strings/<locale>.ts`). No hardcoded labels in components; internal
+links go through `localizedHref()` so they localize with the site
+(HOW_TO_USE.md → "Adding a locale").
 
 ## Tailwind v4 idioms adopted (don't regress to v3 habits)
 
