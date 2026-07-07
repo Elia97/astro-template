@@ -32,3 +32,5 @@ pnpm-debug.log*
 .claude/scheduled_tasks.lock
 .claude/plans/
 .env*
+# ...except the tracked list of required keys (no real values in it)
+!.env.example

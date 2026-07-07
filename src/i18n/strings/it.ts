@@ -10,10 +10,27 @@ export const it = {
   'a11y.legalNav': 'Link legali',
 
   'nav.home': 'Home',
-  'nav.cta': 'Call to action',
+  'nav.contact': 'Contatti',
+  'nav.cta': 'Contattaci',
 
   'legal.privacy': 'Privacy',
   'legal.cookies': 'Cookie Policy',
+
+  'contact.pageTitle': 'Contatti',
+  'contact.pageDescription': 'Raccontaci il tuo progetto: ti rispondiamo al più presto.',
+  'contact.formTitle': 'Richiesta informazioni',
+  'contact.formIntro': 'Compila il form e ti ricontatteremo al più presto.',
+  'contact.firstName': 'Nome',
+  'contact.lastName': 'Cognome',
+  'contact.email': 'Email',
+  'contact.message': 'Messaggio',
+  'contact.consent': 'Acconsento al trattamento dei miei dati personali secondo la',
+  'contact.privacyPolicy': 'Privacy Policy',
+  'contact.submit': 'Invia richiesta',
+  'contact.sending': 'Invio…',
+  'contact.success': 'Richiesta inviata. Ti ricontatteremo a breve.',
+  'contact.error': 'Invio non riuscito. Riprova tra poco.',
+  'contact.genericFieldError': 'Controlla i dati inseriti.',
 
   'footer.legalHeading': 'Legale',
   'footer.allRightsReserved': 'Tutti i diritti riservati.',

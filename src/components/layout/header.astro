@@ -43,7 +43,7 @@ const href = (path: string) => localizedHref(Astro.currentLocale, path)
         <span class="hidden dark:inline" aria-hidden="true">☀&#xFE0E;</span>
         <span class="inline dark:hidden" aria-hidden="true">☾</span>
       </Button>
-      <Button as="a" href={SITE.cta.href} size="sm">{t(SITE.cta.key)}</Button>
+      <Button as="a" href={href(SITE.cta.href)} size="sm">{t(SITE.cta.key)}</Button>
     </div>
   </Container>
 </header>

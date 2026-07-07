@@ -15,10 +15,12 @@ export const SITE = {
   localeTags: { it: 'it-IT' },
   // Header navigation. `href` is the default-locale path — components run it
   // through localizedHref(), which localizes prefix and segments per locale.
-  nav: [{ key: 'nav.home', href: '/' }],
-  // Header primary CTA ('#' placeholder: point it at a real internal path
-  // and route it through localizedHref() like the nav entries).
-  cta: { key: 'nav.cta', href: '#' },
+  nav: [
+    { key: 'nav.home', href: '/' },
+    { key: 'nav.contact', href: '/contatti' },
+  ],
+  // Header primary CTA.
+  cta: { key: 'nav.cta', href: '/contatti' },
   // Legal links (universal for EU sites).
   legal: [
     { key: 'legal.privacy', href: '/privacy' },
