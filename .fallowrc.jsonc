@@ -22,6 +22,9 @@
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
     // Reserved motion utilities — no caller in the starter yet.
     { "file": "src/lib/motion/index.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
+    // Vitest alias target for the astro:env/server virtual module — called
+    // indirectly through the alias, fallow can't trace through it.
+    { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },
     // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
