@@ -20,13 +20,14 @@ src/
 public/        # static assets, served as-is (favicons, og-default.png placeholder)
 docs/          # planning + architecture docs for whichever project is built from this template
   guides/      # domain-specific pattern references, consulted by the vertical agents (see below)
+  milestone-templates/ # reusable milestone blueprints (see docs/milestone-templates/README.md)
 scripts/       # operational tooling — never imported by src/
   gen/         # plop generators (page/component/collection/section) + ts-morph injection
   templates/   # .hbs templates the generators render
 plopfile.mjs   # CLI harness: `pnpm gen` / `pnpm gen:<name>`
 .claude/
   agents/      # vertical subagent definitions
-  commands/    # /milestone orchestration command
+  commands/    # /milestone (seed issues) + /pr (implement one) commands
 ```
 
 ## Source layering
@@ -71,4 +72,4 @@ known failure modes in mind (hit in production, don't rediscover them):
 
 ## Planning and vertical agents
 
-Work for a project built from this template is planned in `docs/ROADMAP.md` (one milestone = one PR = one release) and `docs/DECISIONS.md` (open decisions, informational, non-blocking). The `/milestone` command implements a milestone by coordinating domain-specific vertical agents (`.claude/agents/`) in parallel, each following the matching guide in `docs/guides/*.md` when one exists — see `CLAUDE.md` for the full breakdown.
+Work for a project built from this template is seeded as GitHub issues via `/milestone <template-name>|<N>` (from a `docs/milestone-templates/*.md` blueprint or a hand-written `docs/ROADMAP.md` section) and implemented one issue at a time via `/pr <issue-number>`, coordinating domain-specific vertical agents (`.claude/agents/`) — each following the matching guide in `docs/guides/*.md` when one exists. See `CLAUDE.md` for the full breakdown.

@@ -1,90 +1,99 @@
 ---
-description: Start implementing a milestone (or one of its sub-tasks) from docs/ROADMAP.md, with plan mode and vertical agents in parallel. Never commits, pushes, or opens a PR — that's the user's job.
-argument-hint: <milestone-number>[.<sub-task>]
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, ToolSearch, AskUserQuestion, EnterPlanMode, ExitPlanMode
+description: Seed a milestone as a native GitHub Milestone + one issue per sub-task, from a docs/milestone-templates/*.md template or a hand-written docs/ROADMAP.md section. Never writes application code, never branches, never commits — implementation happens per-issue via /pr <N>.
+argument-hint: <template-name> | <milestone-number>
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, ToolSearch, AskUserQuestion, EnterPlanMode, ExitPlanMode
 ---
 
-# /milestone — Start implementation
+# /milestone — Seed a milestone's issues
 
-Arguments passed: **$ARGUMENTS**
+Arguments: **$ARGUMENTS** → either the name of a file in `docs/milestone-templates/<name>.md` (without extension), or a milestone number `<N>` matching an existing `## Milestone N` heading in `docs/ROADMAP.md`.
 
-Working model: **one milestone = one PR** (long-lived branch `milestone/NN-slug`) with **one conventional commit per sub-task**. Merge happens via **squash** → 1 commit per milestone on `main` → 1 release via release-please.
+Working model: **`/milestone` only seeds** — it turns a template or a hand-written ROADMAP section into a native GitHub Milestone plus one GitHub issue per sub-task, after a single plan-mode approval covering the whole batch. It never writes application code, never creates a branch, never spawns implementation agents, never commits. Implementation happens later, one issue at a time, via `/pr <issue-number>`.
 
-Extract from `$ARGUMENTS`:
+If `$ARGUMENTS` is empty, or doesn't match a template file or an existing ROADMAP milestone number, **stop and show the available options** (list `docs/milestone-templates/*.md` filenames + descriptions, and list ROADMAP milestone numbers not yet fully seeded).
 
-- `<N>` — milestone number. Implements all sub-tasks not yet done.
-- `<N>.<x>` (optional) — a single sub-task (e.g. `2.6`).
-
-If `$ARGUMENTS` is empty, `<N>` is invalid, or it doesn't match anything in `docs/ROADMAP.md`, **stop and ask**.
-
----
+`gh milestone` does **not exist** as a `gh` CLI subcommand — the milestone object is only reachable through `gh api repos/{owner}/{repo}/milestones`. Never write `gh milestone create` anywhere in this command.
 
 ## Phase 1 — Pre-flight (read-only)
 
 1. `git rev-parse --is-inside-working-tree`. If it fails, stop.
-2. Clean working tree (`git status --short`). If there are uncommitted changes, stop and ask how to proceed (exception: you're already on the `milestone/NN-slug` branch with previous sub-task commits).
-3. Acceptable current branch: `main`, or the `milestone/NN-slug` branch of the milestone in progress. Otherwise warn and ask for confirmation.
-4. Read `docs/ROADMAP.md`, extract the Milestone N section: name, branch slug, sub-tasks in scope.
-5. Read `docs/DECISIONS.md` — it's **informational, not blocking**: if there are open items relevant to the milestone, flag them in the plan (Phase 3) and in the final summary (Phase 5), but don't stop for this.
+2. Clean working tree (`git status --short`) — the only change this command makes is to `docs/ROADMAP.md`, and it needs a clean base. If dirty, stop and ask.
+3. Current branch should be `main` (this command no longer creates a dedicated branch). If not, warn and ask for confirmation.
+4. `gh auth status` and `gh repo view --json owner,name` — confirms `gh` is authenticated and the remote resolves. Fail fast with a clear message if not (a freshly-forked project may not have `gh` set up yet).
+5. Parse `$ARGUMENTS`: matches `docs/milestone-templates/<arg>.md` → **template path**; parses as an integer matching an existing `## Milestone <N>` heading → **bespoke path**; neither → stop, list available options.
+6. Idempotency / duplicate guard:
+   - Template path: if `docs/ROADMAP.md` already has a section with `**Source:** template <same name>`, stop and ask explicit confirmation before instantiating a second copy.
+   - Bespoke path: if every sub-task in that section already has an issue number recorded, stop and report "already seeded — use `/pr <issue-number>` on the issues listed" instead of re-seeding. If only some sub-tasks have one, proceed but only seed what's missing (safe to re-run, same idempotency spirit as `scripts/bootstrap-github.sh`).
+7. Read `docs/DECISIONS.md` — informational only: surface relevant open items in the plan (Phase 3) and the summary (Phase 5), never blocking.
 
-## Phase 2 — Long-lived branch + context loading
+## Phase 2 — Load the source
 
-1. Branch slug from `docs/ROADMAP.md` (`**Branch:**` field). If it doesn't exist yet, create it from `main`: `git switch -c milestone/NN-slug`. If it already exists, switch to it: `git switch milestone/NN-slug`.
-2. Targeted context loading: the Milestone N section of `docs/ROADMAP.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md` if it exists and is relevant.
-3. Spawn an **Explore** agent (breadth: "medium") to map existing files/folders relevant to the area of the sub-tasks in scope.
+**Template path:**
+1. Read `docs/milestone-templates/<arg>.md`. Parse front-matter (`name`, `description` — informational).
+2. Scan the body for distinct `{{snake_case}}` tokens. Ask about all of them in one batched `AskUserQuestion` call.
+3. Substitute every `{{token}}` with the collected value.
+4. Determine the next milestone number `N` = 1 + the highest `## Milestone <N>` heading already in `docs/ROADMAP.md`. **Special case**: if the only section present is the untouched scaffold placeholder, treat ROADMAP.md as empty (`N = 1`), and that placeholder section gets **replaced**, not appended after — this is the real first-run state of every freshly-forked project.
 
-## Phase 3 — Planning
+**Bespoke path:**
+1. Read the `## Milestone N` section as-is — `N` is already fixed by the heading, no placeholder substitution.
 
-Enter **plan mode**.
+**Both paths — parse sub-tasks:**
+- Template path: split on `### <n>. <title>` headings; extract `**Agent:**`, `**Labels:**`, remaining prose+checklist as the issue body.
+- Bespoke path: split on `### N.x <slug>` headings (existing convention); no `**Agent:**` metadata available, so derive it from this domain table (kept identical, verbatim, in `.claude/commands/pr.md`):
 
-1. Write/extend the plan in `.claude/plans/milestone-NN-slug.md` (gitignored, one file per milestone).
-2. For each sub-task in scope, the plan includes:
-   - **Context**: 2-3 lines on why this sub-task and what the deliverable is
-   - **Expected conventional commit** (e.g. `feat(scope): <description>`)
-   - **Files to create/modify**
-   - **Vertical agents involved**, each with an **exclusive scope-path** (no filesystem overlap) and **role = implement**. Choose among `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent` based on what the sub-task touches — not every sub-task involves every agent. If the sub-task doesn't fit any vertical (e.g. a generic refactor), use `general-purpose`.
-   - **Quality gate**: `pnpm run ci` (Biome + typecheck) and `pnpm run build`
-   - **Manual checks** for the user, copy-paste-friendly
-3. Use `AskUserQuestion` for ambiguities that affect the plan.
-4. The user calls `ExitPlanMode` to approve, or iterates on the plan.
+  | Domain | Agent | Signals |
+  |---|---|---|
+  | Content collections, Zod schemas, MDX/Markdown, i18n content | `content-agent` | `src/content/**` |
+  | Astro components, interactive islands, markup/a11y | `ui-agent` | `src/components/**` (non-content) |
+  | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/head-seo*`, canonical/hreflang |
+  | Forms, Astro Actions, email | `forms-agent` | `src/actions/**`, `src/emails/**` |
+  | Prerender/SSR, images, bundle | `perf-rendering-agent` | `astro.config.mjs`, `prerender` |
+  | Vercel/env/deploy | `ops-agent` | `vercel.json`, `scripts/vercel-ignore-build.sh` |
+  | None of the above | `general-purpose` | generic refactor, tooling |
 
-## Phase 4 — Implementation
+## Phase 3 — Plan mode: issue-by-issue preview
 
-Iterate over the sub-tasks in scope one at a time, in ROADMAP order.
+Enter plan mode.
 
-1. Read the sub-task's section in the plan file (already approved).
-2. For each vertical agent in the breakdown: spawn in parallel (single message, N `Agent` invocations). Each prompt includes: exclusive scope-path, **explicit role ("implement")**, the work spec, a reference to `CLAUDE.md` and to the plan file. Instruction: "don't commit, don't run `git`."
-3. Wait for all of them to finish. Check for overlap with `git status`: if two agents modified the same file despite exclusive scope-paths, **stop this step** — don't attempt an automatic merge. Overlap usually means the plan's scope split wasn't actually exclusive, which is worth understanding rather than papering over. Show the user the overlapping file(s) with a diff from each agent's intended change, and use `AskUserQuestion` to decide: (a) the user resolves it manually and you re-run the quality gate, or (b) spawn one dedicated agent to reconcile the two sets of changes coherently, then re-run from step 3.
-4. **Light review** (optional but recommended for non-trivial sub-tasks): re-spawn the same vertical agents involved with **role "review"** on the produced diff, prompt: "don't modify files, only check and report issues." If issues come up, spawn an agent to fix them and repeat the quality gate.
-5. Sequential quality gate: `pnpm run ci` then `pnpm run build`. If it fails, spawn a dedicated agent to fix it and re-run (max 2 attempts, then stop).
-6. Update `docs/ROADMAP.md`: mark the sub-task as done. Don't commit — it becomes part of the sub-task's commit.
+1. Write `.claude/plans/milestone-NN-slug.md` (gitignored). For each sub-task: exact issue title, exact issue body (prose + checklist + the two HTML comments, byte-for-byte what `gh issue create --body-file` will receive), suggested agent, labels. Plus the GitHub Milestone about to be created (title: `Milestone N — <name>`).
+2. `AskUserQuestion` for any ambiguity affecting the plan.
+3. The user iterates, or approves with `ExitPlanMode` — **this single approval covers creating the whole batch**. No second per-issue confirmation.
+
+## Phase 4 — Creation (autonomous, after approval)
+
+1. **Dedup check** before creating: `gh api repos/{owner}/{repo}/milestones -f state=all --method GET --jq '.[] | select(.title=="Milestone N — <name>") | .number'` (the `--method GET` forces a read despite the `-f` flag — this is a safety check against a stale/reset `docs/ROADMAP.md` no longer matching what's really on GitHub, not just trusting the local file). If found, reuse that milestone number instead of creating a duplicate.
+2. Otherwise, create it:
+   ```bash
+   gh api repos/{owner}/{repo}/milestones -f title="Milestone N — <name>"
+   ```
+   Always the literal `{owner}/{repo}` placeholder — `gh` resolves it from the current repo's remote; this keeps the command file byte-identical and safely re-runnable across every project forked from this template. Capture `number` and `html_url`.
+3. For each sub-task, in ROADMAP order: write the rendered issue body to `.claude/plans/milestone-NN-slug.issue-<k>.body.md` (gitignored, left on disk for audit), then:
+   ```bash
+   gh issue create --title "<title>" --body-file <path> --milestone "Milestone N — <name>" [--label <label>]
+   ```
+   (omit `--label` if `**Labels:**` was empty). Parse the issue number from the returned URL; keep a sub-task → issue-number mapping.
+4. Update `docs/ROADMAP.md`: write/replace the `## Milestone N` section with `**GitHub Milestone:** #N (<html_url>)`, a `Sub-task | Issue` table with the created numbers, Status table row → `🟡 seeded`.
+5. **Do not commit** — this leaves `docs/ROADMAP.md` as an uncommitted change; only issue/milestone creation via `gh` is the autonomous part.
 
 ## Phase 5 — Handoff
 
-Generate/update `.claude/plans/milestone-NN-slug.body.md` (the milestone's PR body, one per milestone, extended with each sub-task): sections "What changes" (bullets, one per sub-task), "Quality gate" (outcome), "Relevant open decisions" (from `docs/DECISIONS.md`, if any), "Manual checks for the reviewer".
-
-End with a summary that includes: branch, sub-tasks implemented in this session, `git status --short`, quality gate outcome, and ready-to-copy commands:
+Summary: Milestone (number, title, URL); every issue (number, title, URL) in order; confirmation `docs/ROADMAP.md` was updated; ready-to-copy:
 
 ```bash
-git diff
-git add -A
-git commit -m "feat(scope): <sub-task N.x>"
-# repeat for each sub-task done in this session
-
-# --- only once the milestone is complete ---
-git push -u origin milestone/NN-slug
-gh pr create --title "feat(scope): milestone NN — <name>" --body-file .claude/plans/milestone-NN-slug.body.md
-# merge via SQUASH
+git add docs/ROADMAP.md
+git commit -m "docs: seed milestone N — <name> issues (#X-#Y)"
 ```
+
+Next step: "run `/pr <issue-number>` for each issue above, in any order."
 
 ## Non-negotiable constraints
 
-- **Never** `git commit`, `git push`, `gh pr create`, or any other action with external effects — those belong to the user.
-- **Never** introduce dependencies or stack choices not documented in `CLAUDE.md`/`docs/ARCHITECTURE.md`. If needed, stop and ask with `AskUserQuestion`.
+- **Never** `git commit`, `git push`, `gh pr create`, or `gh issue close`/`delete`/`reopen` — the user's job (or automatic on merge via `Closes #N`).
+- **Never** modify `docs/PROJECT.md`.
 - **Never** modify `.env` or read/log its real values.
 - Respect all `[HARD]` rules in `CLAUDE.md`.
 
 ## Operational notes
 
-- Files in `.claude/plans/` are local and gitignored.
-- If a sub-task doesn't touch any specific vertical, use `general-purpose` instead of forcing it into a domain that doesn't fit.
+- Files in `.claude/plans/` (including the per-issue `.body.md` files) are local and gitignored.
+- If a sub-task doesn't touch any specific vertical, use `general-purpose` rather than forcing a domain that doesn't fit.

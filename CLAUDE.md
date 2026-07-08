@@ -14,12 +14,15 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - Commits: Conventional Commits, validated by commitlint on lefthook's `commit-msg` hook (`type(scope): subject`). A commit that doesn't match the format is rejected by the hook — don't bypass it with `--no-verify`.
 - Before considering a task done, run `pnpm run ci` (Biome check + type-check, doesn't modify files) — it must pass clean.
 - The `pre-commit` hook auto-formats staged files with Biome: it's normal for files to be rewritten at commit time, that's not an error.
+- `docs/PROJECT.md` is the client's brief in their own words — never modify it arbitrarily; update it only with explicit new client input.
 
 ## Planning and vertical agents
 
-- Work is planned in `docs/ROADMAP.md` (milestone = PR = release) and `docs/DECISIONS.md` (open decisions, informational — doesn't block starting a milestone).
-- To implement a milestone/sub-task use `/milestone <N>[.<x>]` — plan mode + vertical agents in parallel, never commits/pushes/opens a PR on its own.
-- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`. Each reads the matching guide in `docs/guides/*.md` if it exists (authoritative source for this project's conventions); if the guide doesn't exist yet, it applies standard best practices and flags that they're worth codifying into the guide. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
+- Work is planned in `docs/ROADMAP.md` (a ledger of milestones and their sub-tasks, cross-referenced to GitHub issues) and `docs/DECISIONS.md` (open decisions, informational — doesn't block seeding a milestone).
+- **Seeding**: `/milestone <template-name>|<N>` turns a `docs/milestone-templates/*.md` template (or a hand-written `docs/ROADMAP.md` section) into a native GitHub Milestone plus one GitHub issue per sub-task — plan mode previews every issue before creation, one approval creates the whole batch. It never writes application code, never branches, never commits.
+- **Implementation**: `/pr <issue-number>` implements a single GitHub issue end-to-end (branch → vertical agents → quality gates → PR body with `Closes #N`) — one issue = one PR = one squash commit. Never commits/pushes/opens a PR on its own.
+- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`. Both `/milestone` (suggesting an agent per issue) and `/pr` (implementing one) use the same domain-detection logic. Each agent reads the matching guide in `docs/guides/*.md` if it exists (authoritative source for this project's conventions); if the guide doesn't exist yet, it applies standard best practices and flags that they're worth codifying into the guide. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
+- Reusable milestone blueprints live in `docs/milestone-templates/*.md` — same "stable, reusable across projects" status as `docs/guides/*.md`.
 
 ## Development
 
