@@ -19,7 +19,7 @@ This repo is a personal/freelance starting point — clone it fresh for each new
 4. `corepack enable && pnpm install && pnpm dev` — installs dependencies and git hooks (lefthook), starts the dev server.
 5. Create the GitHub repo, then run `bash scripts/bootstrap-github.sh` from inside it (needs `gh` authenticated) — sets up dependabot labels, squash-only merge policy, and Actions permissions for release-please.
 6. Connect the repo to a Vercel project, then set **Settings → Build & Deployment → Ignored Build Step** to `bash scripts/vercel-ignore-build.sh` — production only ships from a release tag, not from every push.
-7. Fill in `docs/ROADMAP.md` with the new project's real milestones (one milestone = one PR = one release) and `docs/PROJECT.md`/`docs/DECISIONS.md` if the project needs them — these stay empty scaffolds in the template itself.
+7. Fill in `docs/ROADMAP.md` — either hand-write a `## Milestone N` section, or instantiate one from a reusable blueprint in `docs/milestone-templates/*.md` via `/milestone <template-name>` — and `docs/PROJECT.md`/`docs/DECISIONS.md` if the project needs them — these stay empty scaffolds in the template itself.
 
 ## What the scaffold gives you
 
@@ -139,7 +139,8 @@ Until all three Vercel secrets are set, the `deploy` job in `release-please.yml`
 - Start new pieces with the generators (`pnpm gen:*`) — they emit code already
   on the project's conventions (layout primitives, schema patterns, fail-loud
   wiring) and formatted by the same Biome gate as CI.
-- Implement a milestone with `/milestone <N>[.<x>]` — plan mode, then parallel vertical agents (`.claude/agents/`: content, UI, SEO, forms, rendering/performance, ops), never commits/pushes/opens a PR on its own.
+- Seed a milestone's issues with `/milestone <template-name>|<N>` — turns a blueprint or a hand-written ROADMAP section into a native GitHub Milestone + one issue per sub-task, after one plan-mode approval. Never writes code, never branches, never commits.
+- Implement each issue with `/pr <issue-number>` — plan mode, then parallel vertical agents (`.claude/agents/`: content, UI, SEO, forms, rendering/performance, ops), never commits/pushes/opens a PR on its own.
 - Vertical agents follow the matching guide in `docs/guides/*.md` when one exists; guides grow from real work rather than being written upfront (see `docs/guides/README.md`).
 - Commits are Conventional Commits, validated on commit by lefthook + commitlint. PRs merge in squash only.
 
