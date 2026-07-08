@@ -1,10 +1,10 @@
 # How to use this template
 
-This repo is a personal/freelance starting point — clone it fresh for each new project rather than working directly in `astro-template` itself.
+This repo is a personal/freelance starting point — start fresh from it for each new project rather than working directly in `astro-template` itself.
 
 ## Bootstrap a new project
 
-1. Clone/duplicate this repo under the new project's name.
+1. On GitHub, click **"Use this template" → "Create a new repository"** under the new project's name (not `git clone` — that would drag along this repo's own git history and release tags).
 2. Rename `package.json#name` — it leaks into the changelog that release-please generates, so it should match the new project, not stay `astro-template`.
 3. De-brand the scaffold:
    - `src/lib/site.ts` — name, url, description, nav/CTA/legal, UI microcopy
@@ -20,6 +20,7 @@ This repo is a personal/freelance starting point — clone it fresh for each new
 5. Create the GitHub repo, then run `bash scripts/bootstrap-github.sh` from inside it (needs `gh` authenticated) — sets up dependabot labels, squash-only merge policy, and Actions permissions for release-please.
 6. Connect the repo to a Vercel project, then set **Settings → Build & Deployment → Ignored Build Step** to `bash scripts/vercel-ignore-build.sh` — production only ships from a release tag, not from every push.
 7. Fill in `docs/ROADMAP.md` — either hand-write a `## Milestone N` section, or instantiate one from a reusable blueprint in `docs/milestone-templates/*.md` via `/milestone <template-name>` — and `docs/PROJECT.md`/`docs/DECISIONS.md` if the project needs them — these stay empty scaffolds in the template itself.
+8. `.release-please-manifest.json` starts at `{".": "0.0.0"}`, which release-please treats as "nothing released yet" rather than a real prior version — so the first `release-please` PR proposes `1.0.0` directly, automatically, and stays open, updating on every `feat`/`fix`, until you merge it once the initial batch of milestones is done. No config change needed for this; it's release-please's own default behavior when there's no real prior release.
 
 ## What the scaffold gives you
 

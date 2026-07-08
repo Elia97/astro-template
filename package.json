@@ -1,7 +1,7 @@
 {
   "name": "astro-template",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.0.0",
   "engines": {
     "node": ">=24.0.0"
   },
