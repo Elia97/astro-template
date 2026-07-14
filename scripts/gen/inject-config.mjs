@@ -6,22 +6,13 @@
 // or renamed hook point must abort the generator, never silently no-op.
 import { Project, SyntaxKind } from 'ts-morph'
 
+import { isNameTaken } from './ts-morph-utils.mjs'
+
 const CONFIG_PATH = 'src/content.config.ts'
 
 function loadConfig(root) {
   const project = new Project()
   return project.addSourceFileAtPath(`${root}/${CONFIG_PATH}`)
-}
-
-function isNameTaken(cfg, name) {
-  if (cfg.getVariableDeclaration(name)) return true
-  return cfg
-    .getImportDeclarations()
-    .some(
-      (d) =>
-        d.getNamedImports().some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
-        d.getDefaultImport()?.getText() === name,
-    )
 }
 
 function locateContract(cfg, { camel, kebab }) {

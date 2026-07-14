@@ -13,6 +13,8 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Project, SyntaxKind } from 'ts-morph'
 
+import { isNameTaken } from './ts-morph-utils.mjs'
+
 const SCHEMA_BARREL = 'src/lib/schemas/homepage/index.ts'
 const DATA_LAYER = 'src/lib/homepage.ts'
 const INDEX_PAGE = 'src/pages/index.astro'
@@ -74,17 +76,6 @@ function readIndexPage(root) {
   return src
 }
 
-function isNameTakenInTs(sourceFile, name) {
-  if (sourceFile.getVariableDeclaration(name) || sourceFile.getFunction(name)) return true
-  return sourceFile
-    .getImportDeclarations()
-    .some(
-      (d) =>
-        d.getNamedImports().some((n) => (n.getAliasNode()?.getText() ?? n.getName()) === name) ||
-        d.getDefaultImport()?.getText() === name,
-    )
-}
-
 /**
  * Pre-flight: assert all three hook points and every collision (including the
  * identifiers the injection will introduce) WITHOUT touching anything.
@@ -96,7 +87,7 @@ export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   if (union.getElements().some((e) => e.getText() === `${camel}SectionSchema()`)) {
     fail(SCHEMA_BARREL, `section "${camel}" is already in the union — pick another name`)
   }
-  if (isNameTakenInTs(barrel, `${camel}SectionSchema`)) {
+  if (isNameTaken(barrel, `${camel}SectionSchema`)) {
     fail(
       SCHEMA_BARREL,
       `the identifier \`${camel}SectionSchema\` is already taken — the injected import would collide. Pick another name`,
