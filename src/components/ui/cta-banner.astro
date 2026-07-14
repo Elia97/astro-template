@@ -1,0 +1,41 @@
+---
+// Opinionated CTA section built on <Banner>: title + optional subtitle + one or
+// two actions. Forward a background image/gradient through the `background` slot.
+import Banner from '@/components/ui/banner.astro'
+import Button from '@/components/ui/button.astro'
+import Heading from '@/components/ui/heading.astro'
+
+interface Action {
+  label: string
+  url: string
+}
+
+interface Props {
+  title: string
+  subtitle?: string | undefined
+  action: Action
+  secondaryAction?: Action | undefined
+}
+
+const { title, subtitle, action, secondaryAction } = Astro.props
+
+const buttonWidth = secondaryAction ? 'w-full sm:w-auto' : undefined
+---
+
+<Banner>
+  <slot name="background" slot="background" />
+  <div class="relative z-10 flex flex-col items-center">
+    <Heading as="h2" size="h1">{title}</Heading>
+    {subtitle && <p class="mt-6 text-foreground/70 2xl:text-lg">{subtitle}</p>}
+    <div class="mt-12 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
+      <Button as="a" href={action.url} size="lg" class={buttonWidth}>{action.label}</Button>
+      {
+        secondaryAction && (
+          <Button as="a" href={secondaryAction.url} variant="soft" size="lg" class={buttonWidth}>
+            {secondaryAction.label}
+          </Button>
+        )
+      }
+    </div>
+  </div>
+</Banner>

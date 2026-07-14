@@ -1,0 +1,14 @@
+---
+// Full-bleed rounded band for a high-emphasis CTA. Forces `.dark` so its
+// content reads light-on-dark regardless of the page theme. Drop an image or
+// gradient into the `background` slot (position it `absolute inset-0`, ideally
+// with a dark overlay for contrast); the default is the solid dark fill.
+import Section from '@/components/ui/section.astro'
+---
+
+<Section spacing="none" class="px-3 sm:px-4">
+  <div class="dark relative flex min-h-[70svh] flex-col items-center justify-center overflow-hidden rounded-3xl bg-background px-6 py-16 text-center text-foreground sm:py-24">
+    <slot name="background" />
+    <slot />
+  </div>
+</Section>
