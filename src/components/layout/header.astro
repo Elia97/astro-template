@@ -1,6 +1,7 @@
 ---
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
+import ThemeToggle from '@/components/ui/theme-toggle.astro'
 
 import { SITE } from '@/lib/site'
 
@@ -30,19 +31,7 @@ const href = (path: string) => localizedHref(Astro.currentLocale, path)
     </nav>
 
     <div class="flex items-center gap-2">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-md"
-        data-theme-toggle
-        aria-label={t('a11y.toggleTheme')}
-        aria-pressed="false"
-        class="text-muted-foreground hover:text-foreground"
-      >
-        {/* VS15 forces text presentation: WebKit would otherwise render the emoji sun */}
-        <span class="hidden dark:inline" aria-hidden="true">☀&#xFE0E;</span>
-        <span class="inline dark:hidden" aria-hidden="true">☾</span>
-      </Button>
+      <ThemeToggle class="text-muted-foreground hover:text-foreground" />
       <Button as="a" href={href(SITE.cta.href)} size="sm">{t(SITE.cta.key)}</Button>
     </div>
   </Container>

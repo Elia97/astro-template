@@ -1,0 +1,31 @@
+---
+// Click handling is delegated globally in theme-script.astro via
+// `[data-theme-toggle]`; this only renders the control.
+import { Moon, Sun } from '@lucide/astro'
+
+import Button from '@/components/ui/button.astro'
+
+import { useTranslations } from '@/i18n/translate'
+
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+
+const t = useTranslations(Astro.currentLocale)
+---
+
+<Button
+  type="button"
+  variant="ghost"
+  size="icon-md"
+  data-theme-toggle
+  aria-label={t('a11y.toggleTheme')}
+  aria-pressed="false"
+  title={t('a11y.toggleTheme')}
+  class={className}
+>
+  <Sun aria-hidden="true" class="hidden size-5 dark:inline" />
+  <Moon aria-hidden="true" class="inline size-5 dark:hidden" />
+</Button>
