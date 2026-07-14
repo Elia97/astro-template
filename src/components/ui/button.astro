@@ -19,6 +19,8 @@ export const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
         accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
+        // Low-emphasis fill; no text color baked in, so a slotted glyph inherits currentColor.
+        soft: 'border border-transparent bg-surface-foreground/10 hover:bg-surface-foreground/20',
       },
       // One t-shirt scale for text and icon buttons (icon-* are square). `md`
       // is the default — there is deliberately no `default` size key.
@@ -32,8 +34,13 @@ export const buttonVariants = cva(
         'icon-lg': 'size-11',
         'icon-xl': 'size-12',
       },
+      // Box shape, orthogonal to size/variant.
+      shape: {
+        default: '',
+        pill: 'rounded-full',
+      },
     },
-    defaultVariants: { variant: 'default', size: 'md' },
+    defaultVariants: { variant: 'default', size: 'md', shape: 'default' },
   },
 )
 
@@ -46,8 +53,8 @@ type Props = VariantProps<typeof buttonVariants> &
   // forgetting as="a" — which the union's excess-check would let through.
   (({ as?: 'button'; href?: never } & HTMLAttributes<'button'>) | ({ as: 'a'; href: string } & HTMLAttributes<'a'>))
 
-const { as: Tag = 'button', variant, size, class: className, ...rest } = Astro.props
-const classes = cn(buttonVariants({ variant, size }), className)
+const { as: Tag = 'button', variant, size, shape, class: className, ...rest } = Astro.props
+const classes = cn(buttonVariants({ variant, size, shape }), className)
 ---
 
 {
