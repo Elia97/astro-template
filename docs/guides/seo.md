@@ -41,6 +41,14 @@ content can't close the script element early. Never `set:html` raw
 `src/lib/company.ts` + WebSite) live on the homepage only; inner pages build
 their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo.ts`.
 
+For a listing → detail route pair, the **listing** emits `BreadcrumbList` +
+an `ItemList` of its children (the catalog); each **detail** emits the
+single-entity schema (`Service`, `Article`, …) + its own `BreadcrumbList`.
+Don't replicate the full entity on the listing — the authoritative instance
+belongs to its detail URL. Entity builders in `src/lib/seo.ts` absolutize
+their URLs against `SITE.url` and fill `provider`/`author`/`publisher` from
+the single company source (`src/lib/company.ts`).
+
 ## OG / social
 
 - OG and Twitter image URLs are always absolute, built from `SITE.url`.
@@ -59,6 +67,11 @@ their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo.ts`.
   allows everything: per-response indexing control does NOT belong there.
 - Excluding a page from search takes BOTH sides: `filter` in the sitemap
   config AND the path in `NOINDEX_PATHS` (`src/middleware.ts`).
+- That mirror is only for routes that **are** built but must stay unindexed.
+  A route never enumerated by `getStaticPaths` in production (e.g. a draft
+  gated out by a visibility predicate) needs neither side: only prerendered
+  routes reach the sitemap, so a URL that's never built can't appear in it —
+  no `filter` required.
 
 ## Preview deploys
 
