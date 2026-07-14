@@ -25,6 +25,8 @@
     // classes outside the component (e.g. an <a> styled as a button).
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
+    { "file": "src/components/ui/heading.astro", "exports": ["headingVariants"] },
+    { "file": "src/components/ui/card/card.astro", "exports": ["cardVariants"] },
     // Reserved motion utilities — no caller in the starter yet.
     { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
     // Vitest alias targets for the astro:* virtual modules — consumed
@@ -32,6 +34,7 @@
     { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
     { "file": "test/stubs/astro-i18n.ts", "exports": ["getPathByLocale", "getAbsoluteLocaleUrl"] },
+    { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
     // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }

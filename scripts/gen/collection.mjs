@@ -2,61 +2,9 @@
 // renderable body) + AST injection into content.config.ts (import +
 // defineCollection + entry in `collections`), failing loud on any broken
 // hook point.
+import { isValidIdentifier } from './identifier.mjs'
 import { assertInjectable, injectCollection } from './inject-config.mjs'
 import { postGenAction } from './post-gen.mjs'
-
-// `<camel>Schema` and the `<camel>` collection const must be valid ASCII
-// JS identifiers — including NOT being reserved words ('class', 'new', …
-// would save a syntactically broken content.config.ts).
-const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/
-const RESERVED = new Set([
-  'await',
-  'break',
-  'case',
-  'catch',
-  'class',
-  'const',
-  'continue',
-  'debugger',
-  'default',
-  'delete',
-  'do',
-  'else',
-  'enum',
-  'export',
-  'extends',
-  'false',
-  'finally',
-  'for',
-  'function',
-  'if',
-  'implements',
-  'import',
-  'in',
-  'instanceof',
-  'interface',
-  'let',
-  'new',
-  'null',
-  'package',
-  'private',
-  'protected',
-  'public',
-  'return',
-  'static',
-  'super',
-  'switch',
-  'this',
-  'throw',
-  'true',
-  'try',
-  'typeof',
-  'var',
-  'void',
-  'while',
-  'with',
-  'yield',
-])
 
 export default function collectionGenerator(plop) {
   const root = process.cwd()
@@ -71,7 +19,7 @@ export default function collectionGenerator(plop) {
         validate: (value) => {
           const camel = plop.getHelper('camelCase')(String(value))
           if (!camel) return 'Collection name is required'
-          if (!IDENTIFIER.test(camel) || RESERVED.has(camel)) {
+          if (!isValidIdentifier(camel)) {
             return `"${value}" would generate an invalid identifier (const ${camel}) — use ASCII letters/digits, starting with a letter, not a JS reserved word`
           }
           return true

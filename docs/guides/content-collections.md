@@ -1,6 +1,28 @@
 # Content collections
 
-Conventions established by the homepage-sections pattern.
+Three archetypes (*Choosing the archetype*, next). The homepage-sections
+pattern is the worked reference for the first; the other two are documented
+here to wire the same way on demand.
+
+## Choosing the archetype
+
+Three shapes — pick by the content's structure, not its topic.
+
+- **Singleton split into sections** — one page built from heterogeneous
+  blocks. Schema is a `z.discriminatedUnion` on a `section` field, one file
+  per section, fronted by a dedicated data-access function
+  (`getXSections(locale?)`) that assembles the page. The homepage pattern
+  below is the reference — replicate it verbatim.
+- **Flat shared-schema** — many entries sharing ONE schema shape, each a full
+  page/record. Read them directly (`getCollection` for the listing, `getEntry`
+  for one), keyed on the file's `generateId` (the slug); no data-access layer.
+- **Document** (`document: true`) — the only form with a renderable `body`
+  (MDX/MD). Frontmatter is a flat schema like the shared-schema form; the body
+  renders via `render(entry)` → `<Content />`.
+
+Decision rule: reach for a **dedicated collection only when you have many
+interchangeable entries**. A fixed, one-off block on a singleton page is a
+**section**, not a collection — don't spin one up for it.
 
 ## Homepage: singleton split into sections
 
@@ -45,6 +67,82 @@ Conventions established by the homepage-sections pattern.
   served from `node_modules/.astro/data-store.json`. CI is always cold, so the
   guarantee holds there. If a local build behaves suspiciously after
   adding/removing content files, clear `node_modules/.astro` (and `.astro/`).
+
+## Flat shared-schema collections
+
+Every entry validates against one schema; each file is a full page/record
+keyed by its `generateId` (slug). Pages read entries directly — no data-access
+layer, because there's nothing to assemble (the schema already is the shape).
+
+- Make sub-sections beyond the first and last block **optional**, so a lighter
+  entry (e.g. an index page reusing only the opening block and the closing
+  call-to-action) validates against the same schema without carrying empty
+  middle blocks.
+- Add a thin data-access layer **only** when a visibility filter enters the
+  picture, and route both listing and detail through it (see *Testable domain
+  rules*).
+
+## Document collections (MDX / MD)
+
+The only archetype with a renderable `body`. Scaffold with `gen:collection` in
+document mode, then hand-fix — the generator hardcodes a `**/*.md` glob and a
+matching `generateId` regex.
+
+- **MDX takes extra edits.** After generation, change the glob and the
+  `generateId` regex to `**/*.mdx` / `\.(mdx)$` in `content.config.ts`, and
+  register the `@astrojs/mdx` integration in `astro.config.mjs`. Missing the
+  integration fails the build with an **unrecognized-extension** error — not a
+  schema error, so don't go debugging the schema.
+- **Rendering the body.** On a prerendered detail route (`prerender = true` +
+  a `getStaticPaths` that enumerates the entries), `const { Content } = await
+  render(entry)` (`render` from `astro:content`, the Content Layer API) yields
+  a `<Content />` for the body.
+- **`{…}` is JS in MDX.** Any authoring marker (layout hint on a heading,
+  image sizing, …) goes in **plain text** — never `{.class}`, which is parsed
+  as a JS expression and breaks the build.
+- **Processor / rehype plugins don't hot-reload.** They're config-imported
+  (`markdown.processor: unified({ rehypePlugins: [...] })`, the non-deprecated
+  API), so editing a local plugin needs a **dev-server restart** — the page
+  won't reflect the change on save.
+- **Draft = 404 for free.** If the visibility filter (below) drops drafts from
+  `getStaticPaths` in a prod build and there's no `fallback`, draft slugs are
+  never generated → Astro's native `404.astro` serves them. Zero manual 404
+  code: a route never enumerated in prod is simply not built. The same
+  contract covers the sitemap — with `output: "server"` only prerendered
+  routes are emitted, so an unbuilt draft URL can't leak in (no sitemap
+  `filter` needed).
+
+## Testable domain rules
+
+Any predicate with branching (draft visibility, environment-gated filters, …)
+is **extracted into a pure module** that takes the environment as a parameter
+— `isPublished(entry, isProd)`, not a function that reads `import.meta.env`
+inside. Two properties make it unit-testable:
+
+- It **receives** the environment, so a test pins both prod and dev without
+  touching globals.
+- It does **not** import `astro:content`, so the test imports it directly with
+  no collection to mock — the same split rationale as keeping head-SEO logic
+  in a plain `.ts` beside the `.astro` head component.
+
+Route every consumer through **one** shared helper (listing filter, detail
+`getStaticPaths`, anything downstream) so the rule can't drift between call
+sites. That single filter is what earns *draft = 404 for free* above: the same
+check that hides a draft in the listing keeps its route out of
+`getStaticPaths`.
+
+## Schema-shape conventions
+
+- **String-driven fields → loose schema.** For a field that selects a
+  component option by name (`icon`, `variant`, …) use a plain `z.string()`,
+  never `z.enum`. The name→value map and its type guard live in the
+  **component**; an unknown value degrades to a **no-op** (render nothing, or a
+  default), never a build error. The schema stays stable while the option set
+  evolves — adding or renaming an option touches only the component's map, and
+  content on an old name fails soft.
+- **Nest a lone button under `action`, not `cta`.** A block already named for
+  its purpose otherwise reads `cta.cta`; `action` kills the stutter. Applies to
+  any block wrapping a single call-to-action, in either archetype.
 
 ## The CMS seam (per-fork decision, researched 2026-07)
 

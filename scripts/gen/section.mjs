@@ -2,60 +2,9 @@
 // into the three hook points (union, data layer, index.astro markers).
 // Neutral/generic output. No image() option yet: no real image section exists
 // to derive it from (same reasoning the plan applies to form/motion-effect).
+import { isValidIdentifier } from './identifier.mjs'
 import { assertSectionInjectable, injectSection } from './inject-section.mjs'
 import { postGenAction } from './post-gen.mjs'
-
-// `<camel>SectionSchema` must be a valid ASCII JS identifier; reserved words
-// are rejected for consistency with gen:collection.
-const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/
-const RESERVED = new Set([
-  'await',
-  'break',
-  'case',
-  'catch',
-  'class',
-  'const',
-  'continue',
-  'debugger',
-  'default',
-  'delete',
-  'do',
-  'else',
-  'enum',
-  'export',
-  'extends',
-  'false',
-  'finally',
-  'for',
-  'function',
-  'if',
-  'implements',
-  'import',
-  'in',
-  'instanceof',
-  'interface',
-  'let',
-  'new',
-  'null',
-  'package',
-  'private',
-  'protected',
-  'public',
-  'return',
-  'static',
-  'super',
-  'switch',
-  'this',
-  'throw',
-  'true',
-  'try',
-  'typeof',
-  'var',
-  'void',
-  'while',
-  'with',
-  'yield',
-])
 
 export default function sectionGenerator(plop) {
   const root = process.cwd()
@@ -70,7 +19,7 @@ export default function sectionGenerator(plop) {
         validate: (value) => {
           const camel = plop.getHelper('camelCase')(String(value))
           if (!camel) return 'Section name is required'
-          if (!IDENTIFIER.test(camel) || RESERVED.has(camel)) {
+          if (!isValidIdentifier(camel)) {
             return `"${value}" would generate an invalid identifier (${camel}SectionSchema) — use ASCII letters/digits, starting with a letter, not a JS reserved word`
           }
           return true

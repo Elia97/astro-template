@@ -19,9 +19,14 @@ interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
+  // Forwarded to <Header>: sit the header transparent over a page's hero instead
+  // of the default sticky chrome; 'light' forces white overlay chrome for a hero
+  // band that is dark/colored across both themes.
+  heroOverlay?: boolean
+  overlayChrome?: 'auto' | 'light'
 }
 
-const { title, description, canonicalPath, ogImage, jsonLd } = Astro.props
+const { title, description, canonicalPath, ogImage, jsonLd, heroOverlay = false, overlayChrome = 'auto' } = Astro.props
 const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 ---
 
@@ -41,7 +46,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
   </head>
   <body class="flex min-h-svh flex-col">
     <SkipLink />
-    <Header />
+    <Header heroOverlay={heroOverlay} overlayChrome={overlayChrome} />
     {/* tabindex=-1: the skip-link must move real focus, not just the tab start point */}
     <main id="main-content" class="flex-1" tabindex="-1">
       <slot />

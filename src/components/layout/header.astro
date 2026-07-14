@@ -1,28 +1,57 @@
 ---
+import { Menu } from '@lucide/astro'
+
+import MobileNav from '@/components/layout/mobile-nav.astro'
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
+import ThemeToggle from '@/components/ui/theme-toggle.astro'
 
 import { SITE } from '@/lib/site'
+import { cn } from '@/lib/utils'
 
 import { localizedHref } from '@/i18n/href'
 import { useTranslations } from '@/i18n/translate'
 
+interface Props {
+  // Sit the header transparent over a page's full-bleed hero instead of the
+  // default sticky opaque chrome.
+  heroOverlay?: boolean
+  // 'auto' follows the theme foreground (fine when the hero's top band tracks
+  // the theme). 'light' forces white nav/controls for a band that's dark or
+  // colored across BOTH themes, where near-black chrome would fail contrast.
+  // Only meaningful with heroOverlay.
+  overlayChrome?: 'auto' | 'light'
+}
+
+const { heroOverlay = false, overlayChrome = 'auto' } = Astro.props
+const lightChrome = heroOverlay && overlayChrome === 'light'
+
 const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
+
+const headerClass = heroOverlay
+  ? 'absolute inset-x-0 top-0 z-50'
+  : 'sticky top-0 z-50 border-border/60 border-b bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
+
+const wordmarkClass = lightChrome ? 'text-white' : 'text-foreground'
+
+const navLinkClass = lightChrome
+  ? 'text-white/85 hover:text-white'
+  : heroOverlay
+    ? 'text-foreground/80 hover:text-foreground'
+    : 'text-muted-foreground hover:text-foreground'
+
+const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-muted-foreground hover:text-foreground'
 ---
 
-<header
-  class="sticky top-0 z-50 border-border/60 border-b bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60"
->
+<header class={cn('w-full', headerClass)}>
   <Container class="flex h-16 items-center justify-between">
-    <a href={href('/')} class="font-semibold text-foreground text-lg tracking-tight">
-      {SITE.name}
-    </a>
+    <a href={href('/')} class={cn('font-semibold text-lg tracking-tight', wordmarkClass)}>{SITE.name}</a>
 
     <nav aria-label={t('a11y.primaryNav')} class="hidden items-center gap-6 md:flex">
       {
         SITE.nav.map((link) => (
-          <a href={href(link.href)} class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground">
+          <a href={href(link.href)} class={cn('font-medium text-sm transition-colors', navLinkClass)}>
             {t(link.key)}
           </a>
         ))
@@ -30,20 +59,22 @@ const href = (path: string) => localizedHref(Astro.currentLocale, path)
     </nav>
 
     <div class="flex items-center gap-2">
+      <ThemeToggle class={cn('hidden md:inline-flex', controlClass)} />
+      <Button as="a" href={href(SITE.cta.href)} size="sm" class="hidden md:inline-flex">{t(SITE.cta.key)}</Button>
       <Button
         type="button"
         variant="ghost"
         size="icon-md"
-        data-theme-toggle
-        aria-label={t('a11y.toggleTheme')}
-        aria-pressed="false"
-        class="text-muted-foreground hover:text-foreground"
+        data-mobile-nav-toggle
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        aria-label={t('a11y.openMenu')}
+        class={cn('md:hidden', controlClass)}
       >
-        {/* VS15 forces text presentation: WebKit would otherwise render the emoji sun */}
-        <span class="hidden dark:inline" aria-hidden="true">☀&#xFE0E;</span>
-        <span class="inline dark:hidden" aria-hidden="true">☾</span>
+        <Menu aria-hidden="true" class="size-5" />
       </Button>
-      <Button as="a" href={href(SITE.cta.href)} size="sm">{t(SITE.cta.key)}</Button>
     </div>
   </Container>
 </header>
+
+<MobileNav />

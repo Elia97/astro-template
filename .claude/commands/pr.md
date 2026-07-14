@@ -48,15 +48,16 @@ Quality gate to plan for: **`pnpm run ci`** (Biome + typecheck + unit tests: `bi
 
 ## Phase 5 — Handoff
 
-1. Generate `.claude/plans/pr-<N>-<slug>.body.md` from `.github/PULL_REQUEST_TEMPLATE.md`, with **`Closes #<N>`**: what changes, DoD (check only what's verified), reviewer checks, notes.
-2. **Milestone-closing suggestion** (new vs. itajourney): if the issue's JSON has a `milestone`, run `gh issue list --milestone "<milestone title>" --state open --json number`. If the only open issue is `#<N>` itself (or the list is empty), print — **never execute**:
+1. **Checklist sync**: once the quality gate is green and every issue checklist item is covered (or explicitly flagged as deferred), `gh issue edit <N>` to check off (`- [x]`) each satisfied `- [ ]` item directly in the issue body — edit only the checkbox markers, keep the rest of the body byte-for-byte identical (fetch with `gh issue view <N> --json body -q .body` first, flip the boxes, write back with `--body-file`). Leave any deferred item unchecked. This is a plain issue-body edit, not covered by the `gh issue close/delete/reopen` ban above — do it directly, no need to ask each time.
+2. Generate `.claude/plans/pr-<N>-<slug>.body.md` from `.github/PULL_REQUEST_TEMPLATE.md`, with **`Closes #<N>`**: what changes, DoD (check only what's verified), reviewer checks, notes.
+3. **Milestone-closing suggestion** (new vs. itajourney): if the issue's JSON has a `milestone`, run `gh issue list --milestone "<milestone title>" --state open --json number`. If the only open issue is `#<N>` itself (or the list is empty), print — **never execute**:
    ```bash
    # once this PR is merged (Closes #<N> closes the last open issue in the milestone):
    gh api -X PATCH repos/{owner}/{repo}/milestones/{milestone-number} -f state=closed
    # and update docs/ROADMAP.md by hand: Milestone N → 🟢 done
    ```
    (`milestone-number` — not the title — comes from the same `gh issue view --json milestone` call in Phase 1.)
-3. Summary: issue, branch, `git status --short`, gate outcome, checklist covered/deferred, and the ready-to-copy commands:
+4. Summary: issue, branch, `git status --short`, gate outcome, checklist covered/deferred, and the ready-to-copy commands:
    ```bash
    git diff
    git add -A && git commit -m "<type>(scope): <description from the issue title>"
