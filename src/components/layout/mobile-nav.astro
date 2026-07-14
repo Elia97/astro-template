@@ -1,0 +1,57 @@
+---
+// Mobile drawer nav. Behavior (open/close, focus trap, scroll lock) lives in
+// lib/motion/mobile-nav.ts, reusing the template's trap-focus + scroll-lock.
+import { X } from '@lucide/astro'
+
+import Button from '@/components/ui/button.astro'
+import ThemeToggle from '@/components/ui/theme-toggle.astro'
+
+import { SITE } from '@/lib/site'
+
+import { localizedHref } from '@/i18n/href'
+import { useTranslations } from '@/i18n/translate'
+
+const t = useTranslations(Astro.currentLocale)
+const href = (path: string) => localizedHref(Astro.currentLocale, path)
+---
+
+<div id="mobile-nav" data-mobile-nav hidden class="fixed inset-0 z-[60] flex flex-col bg-background md:hidden">
+  <div class="flex h-16 items-center justify-between gap-6 px-4">
+    <span class="font-semibold text-foreground text-lg tracking-tight">{SITE.name}</span>
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-md"
+      data-mobile-nav-close
+      aria-label={t('a11y.closeMenu')}
+      class="text-muted-foreground hover:text-foreground"
+    >
+      <X aria-hidden="true" class="size-5" />
+    </Button>
+  </div>
+
+  <nav aria-label={t('a11y.primaryNav')} class="flex flex-1 flex-col gap-1 px-4 pt-6">
+    {
+      SITE.nav.map((link) => (
+        <a
+          href={href(link.href)}
+          class="border-border/60 border-b py-4 font-display font-medium text-2xl text-foreground transition-colors hover:text-primary"
+        >
+          {t(link.key)}
+        </a>
+      ))
+    }
+    <Button as="a" href={href(SITE.cta.href)} class="mt-6 w-full">{t(SITE.cta.key)}</Button>
+  </nav>
+
+  <div class="flex items-center gap-3 px-4 pt-6 pb-10">
+    <ThemeToggle class="text-muted-foreground hover:text-foreground" />
+    <span class="text-muted-foreground text-sm">{t('a11y.toggleTheme')}</span>
+  </div>
+</div>
+
+<script>
+  import { bindMobileNav } from '@/lib/motion/mobile-nav'
+
+  bindMobileNav()
+</script>
