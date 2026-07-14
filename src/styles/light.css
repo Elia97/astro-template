@@ -7,6 +7,8 @@
 
   --background: var(--neutral-50);
   --foreground: var(--neutral-950);
+  --surface: var(--neutral-100);
+  --surface-foreground: var(--neutral-950);
   --card: var(--neutral-50);
   --card-foreground: var(--neutral-950);
   --popover: var(--neutral-50);
