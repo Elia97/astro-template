@@ -53,7 +53,44 @@
 - Extending motion: build on `createMotionBinding` + the guards; keep the CSS
   initial state gated the same way. No animation library in the base scaffold.
 
+## Motion: one-shot vs ongoing effects
+
+- A **one-shot** effect (a reveal) is irreversible once it fires: its
+  `prefers-reduced-motion` change listener only needs to gate *future* setups —
+  don't arm reveals that haven't happened yet.
+- An **ongoing/live** effect (scroll pinning, parallax, a running rAF loop) needs
+  a **bidirectional** reduced-motion gate: the change listener tears the effect
+  down live if the user switches "reduce" on mid-session, and re-wires it if
+  switched off — not just a gate on future setups. **[HARD]** "reduce" disables
+  ALL motion, including motion already running.
+- Both use the same `createMotionBinding(setup, cleanup)` contract: `setup` stays
+  idempotent (it can run twice on a cold load); `cleanup` on `astro:before-swap`
+  destroys any instances the third-party library created (observers, rAF loops,
+  scroll controllers) before the DOM swap, or they leak across navigations.
+- **Bundle budget**: heavy animation/scroll libraries stay confined to the bundle
+  of the page that uses them — never imported into the global/critical bundle.
+  None ships in the base scaffold.
+- **Testing**: when an effect depends on real layout/rAF/geometry (which
+  happy-dom can't provide), mock the third-party library rather than internal
+  modules and assert the lifecycle contract against call counts — created on
+  setup, killed/destroyed on cleanup, idempotent, reduced-motion bidirectional —
+  not the visual result.
+
 ## Images
 
-No image pipeline conventions yet — none shipped. Use `astro:assets` when real
-images land, and codify the pattern here.
+Local images live in `src/assets/**` and go through `astro:assets`
+(`import { Image } from 'astro:assets'`); content-driven ones are referenced via
+an `image()` schema field. Optimization runs at **build time** via Astro's
+default Sharp service — add `sharp` as a devDependency when you adopt
+`astro:assets` (prebuilt platform binaries, nothing to compile; the blank
+scaffold ships no image pipeline). Prerendered pages emit pre-generated
+responsive variants into `dist/_astro/`, served as static files.
+
+- Deliberately NOT the Vercel adapter's `imageService: true`: build-time/static
+  variants keep the template portable to non-Vercel hosts and off the Vercel
+  Image-Optimization runtime quota.
+- Author `<Image>` with explicit `widths` + `sizes` (and a low `quality` for
+  photographic art) so the build emits a right-sized srcset.
+- Always pass a meaningful `alt`; empty string only for purely decorative
+  images. Content-driven images carry their alt as a sibling schema field
+  (e.g. `imageAlt`), forwarded with `alt={imageAlt ?? ''}`.
