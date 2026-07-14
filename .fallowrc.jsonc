@@ -25,6 +25,8 @@
     // classes outside the component (e.g. an <a> styled as a button).
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
+    { "file": "src/components/ui/heading.astro", "exports": ["headingVariants"] },
+    { "file": "src/components/ui/card/card.astro", "exports": ["cardVariants"] },
     // Reserved motion utilities — no caller in the starter yet.
     { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
     // Vitest alias targets for the astro:* virtual modules — consumed
