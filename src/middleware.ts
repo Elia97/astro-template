@@ -1,14 +1,13 @@
 import { defineMiddleware } from 'astro:middleware'
 
-// Paths that must stay out of search engines even in production (thank-you
-// pages, internal tools, …). Mirror every entry in the sitemap `filter` in
-// astro.config.mjs. Empty in the template.
+// Non-HTML SSR responses that must stay out of search (a generated feed, a JSON
+// endpoint): X-Robots-Tag is the only way to mark those — they have no <head> to
+// carry a meta tag. Empty in the template.
 //
-// ⚠️ SSR routes only: a page with `export const prerender = true` is served as a
-// static file and never reaches this middleware, so listing its path here does
-// nothing — that page needs its own <meta name="robots">. Preview deploys are
-// not handled here for the same reason: the *.vercel.app noindex is an edge
-// header rule in vercel.json, which covers static files too.
+// ⚠️ Not for pages: `prerender = true` skips this middleware entirely (which is
+// every page in the template today), so a page takes the layout's `noindex` prop
+// instead. Preview deploys are handled at the edge for the same reason — the
+// *.vercel.app rule in vercel.json.
 const NOINDEX_PATHS = new Set<string>([])
 
 export const onRequest = defineMiddleware(async (context, next) => {

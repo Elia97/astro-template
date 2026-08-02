@@ -19,6 +19,10 @@ interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
+  // Keeps a utility page out of search (thank-you/confirmation pages, internal
+  // tools). Works on prerendered pages, unlike NOINDEX_PATHS in src/middleware.ts
+  // — pair it with the sitemap `filter` in astro.config.mjs.
+  noindex?: boolean
   // Forwarded to <Header>: sit the header transparent over a page's hero instead
   // of the default sticky chrome; 'light' forces white overlay chrome for a hero
   // band that is dark/colored across both themes.
@@ -26,7 +30,16 @@ interface Props {
   overlayChrome?: 'auto' | 'light'
 }
 
-const { title, description, canonicalPath, ogImage, jsonLd, heroOverlay = false, overlayChrome = 'auto' } = Astro.props
+const {
+  title,
+  description,
+  canonicalPath,
+  ogImage,
+  jsonLd,
+  noindex,
+  heroOverlay = false,
+  overlayChrome = 'auto',
+} = Astro.props
 const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 ---
 
@@ -41,7 +54,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
     <ThemeScript />
-    <Head {title} {description} {canonicalPath} {ogImage} {jsonLd} />
+    <Head {title} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} />
     <ClientRouter />
   </head>
   <body class="flex min-h-svh flex-col">

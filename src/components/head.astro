@@ -18,9 +18,10 @@ interface Props {
   canonicalPath?: string | undefined
   ogImage?: string | undefined
   jsonLd?: Record<string, unknown>[] | undefined
+  noindex?: boolean | undefined
 }
 
-const { title, description, canonicalPath, ogImage, jsonLd } = Astro.props
+const { title, description, canonicalPath, ogImage, jsonLd, noindex = false } = Astro.props
 
 const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
   currentLocale: Astro.currentLocale,
@@ -36,6 +37,9 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 
 <title>{title}</title>
 {description ? <meta name="description" content={description} /> : null}
+{/* The only per-path noindex that reaches a prerendered page: middleware never
+    runs for one, so X-Robots-Tag can't get there (src/middleware.ts). */}
+{noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 <link rel="canonical" href={canonical} />
 <HeadAlternates localeAlternates={localeAlternates} defaultHref={defaultHref} />
 
