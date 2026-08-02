@@ -16,6 +16,7 @@
     "typecheck": "astro check",
     "test": "vitest run",
     "perf:bundle": "node scripts/bundle-budget.mjs",
+    "smoke:prod": "node scripts/smoke-production.mjs",
     "ci": "biome ci . && pnpm run typecheck && pnpm run test",
     "gen": "plop",
     "gen:section": "plop section",

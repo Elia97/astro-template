@@ -96,3 +96,10 @@ jobs:
           url=$(pnpm dlx vercel@58 deploy --prebuilt --prod)
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
+
+      # Runtime check against the live host: the vercel.json tests are
+      # declarative and astro dev never reads that file, so this is the only
+      # place headers, rewrites and the served routes are exercised for real. It
+      # hits the apex, not $url — see the comment at the top of the script.
+      - name: Smoke test production
+        run: pnpm run smoke:prod
