@@ -67,6 +67,17 @@ export default defineConfig({
         access: 'public',
         default: 'info@example.com',
       }),
+      // Abuse protection (Vercel BotID). NOT a kill switch for the check: BotID
+      // classifies either way, this only decides what happens to a request it
+      // calls a bot — false observes and logs, true rejects. Ships as false on
+      // purpose: enforcing before a real browser submit has been seen passing
+      // would risk swallowing leads, and a false positive is invisible to us.
+      // Flip it in the deploy provider once verified.
+      BOTID_ENFORCE: envField.boolean({
+        context: 'server',
+        access: 'public',
+        default: false,
+      }),
     },
   },
 })

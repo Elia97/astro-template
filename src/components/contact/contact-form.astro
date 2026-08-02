@@ -44,7 +44,12 @@ const t = useTranslations(Astro.currentLocale)
 </Card>
 
 <script>
+  import { initFormBotId } from '@/components/forms/botid'
+
   import { bindContactForm } from './contact-form-behavior'
 
+  // Scoped to the form's own page rather than the layout: only a route that can
+  // submit pays for the challenge client (see the bundle budget).
+  initFormBotId()
   bindContactForm()
 </script>

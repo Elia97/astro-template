@@ -1,5 +1,6 @@
 import { ActionError, defineAction } from 'astro:actions'
-import { CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
+import { BOTID_ENFORCE, CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
+import { checkBotId } from 'botid/server'
 
 import { type ContactRequest, contactAttributes, contactSchema } from '@/lib/contact'
 import { isHoneypotFilled } from '@/lib/honeypot'
@@ -24,6 +25,39 @@ function assertNotRateLimited(clientAddress: string): void {
   throw new ActionError({
     code: 'TOO_MANY_REQUESTS',
     message: 'Troppe richieste, riprova tra poco.',
+  })
+}
+
+// BotID reads the request off Vercel's request context, so there's nothing to
+// pass here. Gated on PROD like its client half (src/components/forms/botid.ts):
+// off Vercel the challenge never runs. Fail-open on a thrown check — a guard
+// that breaks must never cost a lead.
+async function detectBot(): Promise<boolean> {
+  if (!import.meta.env.PROD) return false
+  try {
+    const { isBot } = await checkBotId()
+    return isBot
+  } catch (error) {
+    console.error('[contact] bot check failed:', error)
+    return false
+  }
+}
+
+// Observe by default (BOTID_ENFORCE=false): the verdict is logged and the
+// submission proceeds, so a misclassified human never loses a lead — the log is
+// what tells us whether enforcing is safe here. Enforcing fails loud rather than
+// faking success, so the user keeps the phone/email fallback in play. That is
+// the opposite of the honeypot, whose whole value is silence.
+async function assertNotBot(): Promise<void> {
+  if (!(await detectBot())) return
+  if (!BOTID_ENFORCE) {
+    console.warn('[contact] bot detected — observe mode, submission allowed (BOTID_ENFORCE=false)')
+    return
+  }
+  console.warn('[contact] bot detected — submission rejected')
+  throw new ActionError({
+    code: 'FORBIDDEN',
+    message: 'Verifica di sicurezza non superata, riprova.',
   })
 }
 
@@ -80,6 +114,7 @@ export const server = {
     handler: async (input, context) => {
       if (droppedByHoneypot(input)) return { ok: true }
       assertNotRateLimited(context.clientAddress)
+      await assertNotBot()
       reportContactResults(await sendContactEmails(input))
       return { ok: true }
     },
