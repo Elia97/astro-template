@@ -35,6 +35,10 @@
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
     { "file": "test/stubs/astro-i18n.ts", "exports": ["getPathByLocale", "getAbsoluteLocaleUrl"] },
     { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
+    // Raw-HTML escape hatch for the Container API helpers: renderToFragment
+    // covers structural assertions, this one is for the cases a parsed document
+    // can't express (substring absence, script bodies).
+    { "file": "test/container.ts", "exports": ["renderToString"] },
     // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
