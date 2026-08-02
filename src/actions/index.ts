@@ -107,16 +107,27 @@ function reportContactResults([notified, autoreplied, persisted]: [BrevoResult, 
   }
 }
 
+// The handler is named and exported so the orchestration — guard order,
+// fail-open, observe vs enforce — can be tested without going through
+// `defineAction` (src/actions/guards.test.ts). Only `clientAddress` is read off
+// the action context: narrowing it here keeps the tests off Astro's internal
+// `ActionAPIContext` type.
+export interface ActionContext {
+  clientAddress: string
+}
+
+export async function handleContact(input: ContactRequest, context: ActionContext): Promise<{ ok: true }> {
+  if (droppedByHoneypot(input)) return { ok: true }
+  assertNotRateLimited(context.clientAddress)
+  await assertNotBot()
+  reportContactResults(await sendContactEmails(input))
+  return { ok: true }
+}
+
 export const server = {
   contact: defineAction({
     accept: 'json',
     input: contactSchema,
-    handler: async (input, context) => {
-      if (droppedByHoneypot(input)) return { ok: true }
-      assertNotRateLimited(context.clientAddress)
-      await assertNotBot()
-      reportContactResults(await sendContactEmails(input))
-      return { ok: true }
-    },
+    handler: handleContact,
   }),
 }
