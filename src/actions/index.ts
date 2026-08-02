@@ -2,12 +2,22 @@ import { ActionError, defineAction } from 'astro:actions'
 import { CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL } from 'astro:env/server'
 
 import { type ContactRequest, contactAttributes, contactSchema } from '@/lib/contact'
+import { isHoneypotFilled } from '@/lib/honeypot'
 import { rateLimit } from '@/lib/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
+
+// Cheapest guard, so it runs first: a filled decoy never reaches the vendor, and
+// the caller still gets the success shape — an error would tell the bot which
+// field gave it away.
+function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
+  if (!isHoneypotFilled(input)) return false
+  console.warn('[contact] honeypot filled — submission dropped')
+  return true
+}
 
 function assertNotRateLimited(clientAddress: string): void {
   if (rateLimit(`contact:${clientAddress}`)) return
@@ -68,6 +78,7 @@ export const server = {
     accept: 'json',
     input: contactSchema,
     handler: async (input, context) => {
+      if (droppedByHoneypot(input)) return { ok: true }
       assertNotRateLimited(context.clientAddress)
       reportContactResults(await sendContactEmails(input))
       return { ok: true }

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
+import { HONEYPOT_FIELD } from '@/lib/honeypot'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 
 const baseRequest: ContactRequest = {
+  // Part of the parsed payload, never of the rendered email — a request that
+  // reaches the renderer has already cleared the decoy.
+  [HONEYPOT_FIELD]: '',
   firstName: 'Mario',
   lastName: 'Rossi',
   email: 'mario@example.com',

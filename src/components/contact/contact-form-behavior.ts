@@ -5,6 +5,8 @@ import { actions } from 'astro:actions'
 
 import { createActionFormBinding } from '@/components/forms/action-submit'
 
+import { HONEYPOT_FIELD } from '@/lib/honeypot'
+
 function field(data: FormData, name: string): string {
   return String(data.get(name) ?? '')
 }
@@ -14,6 +16,7 @@ export const bindContactForm = createActionFormBinding({
   buildPayload: (form) => {
     const data = new FormData(form)
     return {
+      [HONEYPOT_FIELD]: field(data, HONEYPOT_FIELD),
       firstName: field(data, 'firstName'),
       lastName: field(data, 'lastName'),
       email: field(data, 'email'),

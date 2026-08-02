@@ -1,9 +1,12 @@
 import { z } from 'astro/zod'
 
+import { honeypotShape } from '@/lib/honeypot-schema'
+
 // Contract of the contact action (src/actions/index.ts). Validation lives
 // here so client and server share one source of truth; extending the form
 // starts by extending this schema (docs/guides/forms-email.md).
 export const contactSchema = z.object({
+  ...honeypotShape,
   firstName: z.string().trim().max(100).default(''),
   lastName: z.string().trim().max(100).default(''),
   email: z.string().trim().max(254).pipe(z.email()),
