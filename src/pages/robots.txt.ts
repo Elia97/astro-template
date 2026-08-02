@@ -4,7 +4,8 @@ export const prerender = true
 
 // Pairs with the @astrojs/sitemap integration (astro.config.mjs), which emits
 // sitemap-index.xml at build time. Preview-deploy noindexing is NOT done here
-// (crawlers cache robots.txt) — src/middleware.ts handles it per response.
+// (crawlers cache robots.txt) — the *.vercel.app header rule in vercel.json
+// handles it per response, on static and SSR routes alike.
 export const GET: APIRoute = ({ site }) => {
   const base = site ?? new URL('http://localhost:4321/')
   const sitemapUrl = new URL('sitemap-index.xml', base).href
