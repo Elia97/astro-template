@@ -77,13 +77,22 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm dlx vercel pull --yes --environment=production
+      # The binding gate: the tag only becomes production if it passes the same
+      # suite CI runs. `vercel build` below is `astro build` — no Biome, no
+      # astro check, no vitest — and nothing else guards this moment (the `main`
+      # ruleset covers what lands on main, not what ships from a tag).
+      - run: pnpm run ci
 
-      - run: pnpm dlx vercel build --prod
+      # Version-pinned on purpose: `pnpm dlx vercel` resolves whatever is latest
+      # at release time, and Dependabot doesn't cover `pnpm dlx` — a major bump
+      # would land unannounced, in the middle of a release. Bump it deliberately.
+      - run: pnpm dlx vercel@58 pull --yes --environment=production
+
+      - run: pnpm dlx vercel@58 build --prod
 
       - name: Deploy to Vercel production
         id: deploy
         run: |
-          url=$(pnpm dlx vercel deploy --prebuilt --prod)
+          url=$(pnpm dlx vercel@58 deploy --prebuilt --prod)
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
