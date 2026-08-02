@@ -55,7 +55,9 @@ declare -a patterns=(
 )
 
 for pattern in "${patterns[@]}"; do
-  if echo "$command" | grep -qE "$pattern"; then
+  # `--` is required: patterns starting with `-` (--no-verify, --no-gpg-sign)
+  # would otherwise be parsed by grep as options and never match.
+  if echo "$command" | grep -qE -- "$pattern"; then
     cat >&2 <<EOF
 Command blocked by the pre-tool hook (.claude/scripts/block-destructive.sh)
 
