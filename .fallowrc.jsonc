@@ -33,7 +33,10 @@
     // indirectly through the aliases, fallow can't trace through them.
     { "file": "test/stubs/astro-env-server.ts", "exports": ["getSecret"] },
     { "file": "test/stubs/astro-config-client.ts", "exports": ["i18n"] },
-    { "file": "test/stubs/astro-i18n.ts", "exports": ["getPathByLocale", "getAbsoluteLocaleUrl"] },
+    {
+      "file": "test/stubs/astro-i18n.ts",
+      "exports": ["getPathByLocale", "getAbsoluteLocaleUrl", "getRelativeLocaleUrl"]
+    },
     { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
     // Raw-HTML escape hatch for the Container API helpers: renderToFragment
     // covers structural assertions, this one is for the cases a parsed document

@@ -1,0 +1,26 @@
+---
+// Per-field error slot: rendered empty and referenced by the control's
+// `aria-describedby` (an empty element contributes no description, so the
+// attribute stays static markup — the binder only writes the text).
+// `empty:sr-only` keeps an empty slot out of the layout WITHOUT display:none,
+// which would drop it from the accessibility tree and break the reference.
+import type { HTMLAttributes } from 'astro/types'
+
+import { fieldErrorId } from '@/components/forms/field-errors'
+
+import { cn } from '@/lib/utils'
+
+interface Props extends Omit<HTMLAttributes<'p'>, 'id'> {
+  /** Schema field this slot belongs to: drives both the id the control points
+   *  at and the `data-field-error` hook the binder writes into. */
+  field: string
+}
+
+const { field, class: className, ...rest } = Astro.props
+---
+
+<p
+  id={fieldErrorId(field)}
+  data-field-error={field}
+  class={cn('font-medium text-destructive text-sm leading-snug empty:sr-only', className)}
+  {...rest}><slot /></p>

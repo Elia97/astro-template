@@ -1,5 +1,6 @@
 ---
-import { Field, FieldLabel } from '@/components/ui/field'
+import { fieldErrorId } from '@/components/forms/field-errors'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import Input from '@/components/ui/input.astro'
 
 import { useTranslations } from '@/i18n/translate'
@@ -10,15 +11,42 @@ const t = useTranslations(Astro.currentLocale)
 <div class="grid gap-4 sm:grid-cols-2">
   <Field>
     <FieldLabel for="firstName">{t('contact.firstName')}</FieldLabel>
-    <Input id="firstName" type="text" name="firstName" autocomplete="given-name" maxlength="100" required />
+    <Input
+      id="firstName"
+      type="text"
+      name="firstName"
+      autocomplete="given-name"
+      maxlength="100"
+      required
+      aria-describedby={fieldErrorId('firstName')}
+    />
+    <FieldError field="firstName" />
   </Field>
   <Field>
     <FieldLabel for="lastName">{t('contact.lastName')}</FieldLabel>
-    <Input id="lastName" type="text" name="lastName" autocomplete="family-name" maxlength="100" required />
+    <Input
+      id="lastName"
+      type="text"
+      name="lastName"
+      autocomplete="family-name"
+      maxlength="100"
+      required
+      aria-describedby={fieldErrorId('lastName')}
+    />
+    <FieldError field="lastName" />
   </Field>
 </div>
 
 <Field>
   <FieldLabel for="email">{t('contact.email')}</FieldLabel>
-  <Input id="email" type="email" name="email" autocomplete="email" maxlength="254" required />
+  <Input
+    id="email"
+    type="email"
+    name="email"
+    autocomplete="email"
+    maxlength="254"
+    required
+    aria-describedby={fieldErrorId('email')}
+  />
+  <FieldError field="email" />
 </Field>

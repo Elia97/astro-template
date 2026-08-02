@@ -2,6 +2,8 @@ import { isInputError } from 'astro:actions'
 
 import { createMotionBinding } from '@/lib/motion'
 
+import { applyFieldErrors, clearFieldErrors, focusFirstInvalid } from './field-errors'
+
 type ActionSubmit<P> = (payload: P) => Promise<{ error?: unknown }>
 
 function submitLabel(form: HTMLFormElement, pending: boolean): string {
@@ -15,12 +17,28 @@ function setPending(form: HTMLFormElement, pending: boolean): void {
   submit.textContent = submitLabel(form, pending)
 }
 
-function firstErrorMessage(form: HTMLFormElement, error: unknown): string | undefined {
-  if (isInputError(error)) return Object.values(error.fields)[0]?.[0] ?? form.dataset.i18nGenericError
+function messageOf(form: HTMLFormElement, error: unknown): string | undefined {
   if (error && typeof error === 'object' && 'message' in error) {
     return String((error as { message: unknown }).message)
   }
   return form.dataset.i18nGenericError
+}
+
+/**
+ * Validation errors land on their own field (slot text + `aria-invalid`) and
+ * focus moves to the first invalid control. The form-level alert then speaks
+ * only for what had no slot to land in — repeating a message a field already
+ * carries would have a screen reader read it twice.
+ */
+function reportError(form: HTMLFormElement, error: unknown): void {
+  if (!isInputError(error)) {
+    showFeedback(form, 'error', messageOf(form, error))
+    return
+  }
+  const { matched, unmatched } = applyFieldErrors(form, error.fields)
+  focusFirstInvalid(form)
+  if (matched && unmatched.length === 0) return
+  showFeedback(form, 'error', unmatched[0] ?? form.dataset.i18nGenericError)
 }
 
 function showFeedback(form: HTMLFormElement, kind: 'success' | 'error' | 'none', message?: string): void {
@@ -38,10 +56,11 @@ async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: Ac
 
   if (!error) {
     form.reset()
+    clearFieldErrors(form)
     showFeedback(form, 'success')
     return
   }
-  showFeedback(form, 'error', firstErrorMessage(form, error))
+  reportError(form, error)
 }
 
 /**
@@ -61,6 +80,7 @@ export function createActionFormBinding<P>(config: {
     const form = event.currentTarget
     if (!(form instanceof HTMLFormElement)) return
     showFeedback(form, 'none')
+    clearFieldErrors(form)
     await submitActionForm(form, config.buildPayload(form), config.submit)
   }
 

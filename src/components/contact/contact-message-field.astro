@@ -1,5 +1,6 @@
 ---
-import { Field, FieldLabel } from '@/components/ui/field'
+import { fieldErrorId } from '@/components/forms/field-errors'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import Textarea from '@/components/ui/textarea.astro'
 
 import { useTranslations } from '@/i18n/translate'
@@ -9,5 +10,6 @@ const t = useTranslations(Astro.currentLocale)
 
 <Field>
   <FieldLabel for="message">{t('contact.message')}</FieldLabel>
-  <Textarea id="message" name="message" rows={4} maxlength="2000" />
+  <Textarea id="message" name="message" rows={4} maxlength="2000" aria-describedby={fieldErrorId('message')} />
+  <FieldError field="message" />
 </Field>

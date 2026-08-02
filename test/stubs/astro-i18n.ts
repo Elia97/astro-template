@@ -9,10 +9,16 @@ export function getPathByLocale(locale: string): string {
   return locale
 }
 
-export function getAbsoluteLocaleUrl(locale: string, path = '/'): string {
+/** Same policy as getAbsoluteLocaleUrl, minus the origin — what `localizedHref`
+ *  builds every in-app link from, so any component rendering one needs it. */
+export function getRelativeLocaleUrl(locale: string, path = '/'): string {
   const prefix = locale === i18n.defaultLocale ? '' : `/${locale}`
   const joined = `${prefix}${path.startsWith('/') ? path : `/${path}`}`
-  const normalized = joined.length > 1 ? joined.replace(/\/+$/, '') : joined
+  return joined.length > 1 ? joined.replace(/\/+$/, '') : joined
+}
+
+export function getAbsoluteLocaleUrl(locale: string, path = '/'): string {
+  const normalized = getRelativeLocaleUrl(locale, path)
   // Faithful to Astro's rendering under trailingSlash 'never': the root URL
   // comes out as the bare origin, without the trailing slash.
   const url = new URL(normalized, SITE.url)
