@@ -13,12 +13,14 @@ never by reinventing the submit lifecycle or the vendor transport.
 | Layer | File | Owns |
 |---|---|---|
 | Schema | `src/lib/contact.ts` | zod contract, shared client/server |
-| Action | `src/actions/index.ts` | orchestration, rate limit, error policy |
+| Action | `src/actions/index.ts` | orchestration, abuse guards, error policy |
 | Vendor | `src/lib/vendor/brevo.ts` | HTTP client, result-as-value, key handling (shared) |
 | Email | `src/emails/contact.ts` | HTML rendering, escaping, copy |
 | UI | `src/components/contact/*.astro` | markup, i18n keys, a11y |
 | Behavior | `contact-form-behavior.ts` | FormData → typed payload (`buildPayload`) |
 | Binder | `src/components/forms/action-submit.ts` | submit lifecycle, feedback, multi-instance binding (shared) |
+| Field errors | `src/components/forms/field-errors.ts` | per-field error slots, `aria-invalid`, focus (shared) |
+| Honeypot | `src/lib/honeypot.ts` + `honeypot-schema.ts` | decoy field name and predicate / its zod shape (shared) |
 
 Layers talk through narrow interfaces: `ContactPayload` derives from the
 action (`Parameters<typeof actions.contact>[0]`), so a schema change
@@ -32,6 +34,8 @@ propagates to the client at typecheck time.
   with the privacy link inside the label
   (`contact-consent-field.astro`).
 - Field limits mirror the UI's `maxlength` — keep both in sync.
+- Every action schema spreads `honeypotShape` (see Abuse protection): the decoy
+  is part of the contract, not something the handler reads off the raw body.
 
 ## Error policy (fail-loud where it matters)
 
@@ -50,6 +54,64 @@ Pick the policy from the action's **shape**:
   cold starts and isn't shared across serverless instances: a base anti-abuse
   layer, not a hard quota. Upgrade path for a real quota: a store shared across
   instances (e.g. a hosted key-value service).
+
+## Abuse protection
+
+The action is public and unauthenticated, so the guards are layered in the
+handler **cheapest-first** — the one that costs a network call only runs for a
+submission that already looks human:
+
+1. **Honeypot** — `HONEYPOT_FIELD` (`website`) in `src/lib/honeypot.ts`. The
+   schema *accepts* a filled decoy instead of rejecting it: a validation error
+   would tell the bot which field gave it away. Filled → `console.warn` +
+   `{ ok: true }`, no vendor call. One name shared by the schema shape
+   (`honeypotShape`), the hidden input
+   (`src/components/forms/honeypot-field.astro` — `sr-only`, `aria-hidden`,
+   `tabindex="-1"`, `autocomplete="off"`) and every `buildPayload`: import the
+   constant, never retype the string.
+2. **Rate limit** — the in-memory window above.
+3. **Bot check** — Vercel BotID Basic (free on every plan, invisible, no visible
+   challenge). Three pieces that must stay in sync: the `vercel.json` rewrites
+   (same-origin proxy for the challenge script — that's what keeps ad-blockers
+   and the CSP out of the way, which is why enabling it needed no `script-src`
+   entry; guarded by `src/vercel-botid.test.ts`), `initFormBotId()`
+   (`src/components/forms/botid.ts`) declaring `/_actions/contact`, and
+   `checkBotId()` in the handler. **A path missing from the client list always
+   reads as a bot server-side.**
+
+Policy worth keeping in a fork:
+
+- **`honeypot.ts` and `honeypot-schema.ts` stay two modules.** The form behavior
+  imports the constant client-side, and a module-level `z.…()` call isn't
+  tree-shakeable: merging them ships all of Zod (~12 KB gz) to every page with a
+  form. `pnpm perf:bundle` fails on it — measured, `/contatti` goes 9.8 → 22.1 KB.
+- **Both halves of BotID are gated on `import.meta.env.PROD`**: the challenge
+  script is served by a `vercel.json` rewrite that `astro dev` never reads, so
+  initializing locally would leave every action POST waiting on a 404.
+- **Init where the form is, not in the layout.** `initFormBotId()` runs from
+  `contact-form.astro`'s own script so only a route that can submit pays for the
+  challenge client (+2.1 KB gz on `/contatti`, nothing elsewhere). A sitewide
+  form — a footer newsletter — is the case for moving it to the layout instead.
+- **Two failure modes, both biased toward the lead.** `checkBotId()` throwing →
+  fail-open (log + proceed): a guard that breaks must never cost a lead. A bot
+  verdict → whatever `BOTID_ENFORCE` says: unset/false **observes** (verdict
+  logged, submission proceeds), true **rejects** with an `ActionError` instead of
+  faking success, so the user keeps the phone/email fallback in play. Note this
+  is the opposite of the honeypot, whose whole value is silence — there the
+  sender is certainly a bot, here it may be a person.
+- **Observe first, enforce after.** The flag ships `false` on purpose: a false
+  positive is invisible — a lead that simply never arrives — so enforcement
+  waits until a real browser submit has been seen passing on a deploy. Promotion
+  path, no code change: watch the function logs for `bot detected — observe mode`
+  on submissions you know are human; when they stay clean, set
+  `BOTID_ENFORCE=true` (Plain, **never** Sensitive) in the deploy provider and
+  redeploy. The classification runs either way — the flag only decides the
+  consequence.
+- BotID reads the request off Vercel's request context; there is nothing to pass
+  it by hand.
+- Escalation without code changes: **Deep Analysis** from the Vercel dashboard
+  (Firewall → Rules; Pro, paid per `checkBotId()` call). Still open in the
+  template: a durable rate limit — the in-memory window is the only per-IP quota.
 
 ## Email vendor contract
 
@@ -94,35 +156,108 @@ Pick the policy from the action's **shape**:
   identical (they scope per `<form>`).
 - Fields compose the `Field` primitives with **visible labels** (the
   accessible default — a fork can go `sr-only` + placeholder as a look).
-- Field-level zod errors surface via `isInputError` (first message wins);
-  everything else falls back to the generic error copy.
 - The submit path requires JS (Astro Actions call): there's no `action=`
   fallback. The action still enforces everything server-side, so a custom
   no-JS fallback can be added without changing the contract.
+
+### Validation surface
+
+A zod error arrives as `error.fields`, keyed by schema field. It lands on the
+field, not in one summary line:
+
+- Each control sits beside a `<FieldError field="<schema key>" />` and points at
+  it with a **static** `aria-describedby` (`fieldErrorId()` builds the id at both
+  ends, so they can't drift). The slot renders empty — an empty element
+  contributes no description, so the reference is inert until there's a message.
+- `applyFieldErrors` writes the first message per field and flips `aria-invalid`;
+  `focusFirstInvalid` then moves focus to the first invalid control **in DOM
+  order**, not in `error.fields` key order, which would send focus backwards past
+  a field the user hasn't reached.
+- The `[data-form-error]` alert speaks **only** for messages with no slot to land
+  in. Repeating there what a field already carries would have a screen reader
+  announce it twice.
+- The slot uses `empty:sr-only`, never `hidden`/`display:none`: hidden that way
+  it leaves the accessibility tree and the `aria-describedby` dangles.
+- Honeypot errors are dropped, never rendered — a slot would tell a bot which
+  field it is.
+- `markup-contract.test.ts` guards the pairing. Nothing about it is checked at
+  compile time (`field` is a plain string), so a renamed or missing slot would
+  only degrade at runtime, silently, into a form-level message. The test renders
+  the fields through the Container API and compares the slots against the
+  schema's keys — **rendered, not grepped**: the names exist for real only once
+  the components have run, and a dangling `aria-describedby` is invisible in the
+  source.
+
+## Testing the actions
+
+The orchestration is where a regression stays silent — every dependency can be
+green while the guard order or the error policy is inverted — so it's covered in
+`src/actions/{contact,guards}.test.ts`, one file per area (Biome caps files at
+200 lines). Shared fixtures and the vendor/BotID mocks live in
+`test/helpers/actions.ts`.
+
+- **Handlers are exported by name** (`handleContact`) and passed to
+  `defineAction`, so the tests drive the real orchestration without the action
+  wrapper. `ActionContext` narrows what they read off the context to
+  `clientAddress` alone; keep any new action to that shape rather than reaching
+  for Astro's `ActionAPIContext`.
+- **Vendor mocked, not fetch**: `vi.mock('@/lib/vendor/brevo', …)` returns
+  `BrevoResult`s directly, keyed on the email `tags` so the tests don't pin the
+  `Promise.all` order.
+- **Env is driven through the stubs**: `test/stubs/astro-env-server.ts` mirrors
+  astro.config.mjs's schema off `process.env`, read at import — hence
+  `stubEnv` → `resetModules` → re-import, wrapped in `importActions()`.
+  `vi.stubEnv('PROD', true)` reaches `import.meta.env.PROD` inside the imported
+  module, which is what makes the production-only branches testable. The
+  re-import also hands each test a clean rate-limit window (the sliding window is
+  module-level state).
+- **`test/stubs/astro-actions.ts`** carries `isInputError` (verbatim from Astro,
+  for the client binder) plus a mirrored `ActionError` and an identity
+  `defineAction`. Since `resetModules` re-instantiates that stub, the thrown
+  class is never the one a test file imported: assert on `type`/`code`, never
+  `instanceof` (`rejectionOf` in the helper does exactly that).
+- **What the tests pin down**, i.e. what to re-check before touching the handler:
+  fail-loud only on the owner notification, autoreply and CRM upsert logged and
+  swallowed; `TOO_MANY_REQUESTS` on the sixth submission with independent windows
+  per address; the honeypot short-circuit running before the rate limit; BotID
+  off outside PROD, observe-by-default, `FORBIDDEN` when enforcing, fail-open
+  when it throws.
 
 ## Extending
 
 ### New field on the contact form
 
 1. Add it to `contactSchema` (limits included).
-2. Render it in the right `contact-*.astro` component (+ i18n keys).
+2. Render it in the right `contact-*.astro` component (+ i18n keys), with its
+   `aria-describedby={fieldErrorId('<name>')}` and a sibling
+   `<FieldError field="<name>" />` — `markup-contract.test.ts` fails without them.
 3. Pick it up in `buildPayload` (`contact-form-behavior.ts`).
 4. Show it in the notification email (`detailRow` in `emails/contact.ts`).
 5. Persist it if useful (`contactAttributes` → CRM columns).
+6. Extend the fixture in `test/helpers/actions.ts` — `ContactRequest` gained a
+   key, so the action tests stop type-checking until it's there.
 
 ### A whole new action-backed form
 
-1. **Schema** in its own `src/lib/<name>.ts` (zod, shared client/server).
-2. **Action** in `src/actions/index.ts`: `defineAction({ accept: 'json', input,
-   handler })`; rate-limit under its **own scope prefix**; pick the error policy
-   by shape — one fatal call → fail-loud on its result; fan-out → fail-loud only
-   on the call that would lose data.
+1. **Schema** in its own `src/lib/<name>.ts` (zod, shared client/server),
+   spreading `honeypotShape`.
+2. **Action** in `src/actions/index.ts`: an exported `handle<Name>` handler
+   passed to `defineAction({ accept: 'json', input, handler })`; run the guards
+   in the same order (honeypot → rate limit under its **own scope prefix** →
+   `assertNotBot`); pick the error policy by shape — one fatal call → fail-loud
+   on its result; fan-out → fail-loud only on the call that would lose data.
+   Register `/_actions/<name>` in `PROTECTED_ACTIONS`
+   (`src/components/forms/botid.ts`), or the check reads every submit as a bot.
 3. **Vendor**: reuse a `src/lib/vendor/brevo.ts` function (result-as-value) or
    add a sibling vendor module, keeping the missing-config dev-no-op /
    prod-refuse policy (api key and optional ids alike).
 4. **UI** `src/components/<name>/*.astro`: the `data-*` presentational contract —
    the form marker, `data-i18n-*` labels, and `[data-form-success|error]`
-   paragraphs.
+   paragraphs — plus `<HoneypotField />` and one `<FieldError>` per schema key.
 5. **Behavior** `src/components/<name>/<name>-form-behavior.ts`: one
    `createActionFormBinding({ formSelector, buildPayload, submit })` — reuse the
-   shared binder, don't re-implement the submit lifecycle.
+   shared binder, don't re-implement the submit lifecycle. `buildPayload` carries
+   `HONEYPOT_FIELD` through.
+6. **Tests**: a `markup-contract` case for the new form's slots, and
+   `src/actions/<name>.test.ts` for its error policy — the guards are already
+   covered once in `guards.test.ts` and don't need repeating per form.
