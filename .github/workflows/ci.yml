@@ -23,3 +23,6 @@ jobs:
       - run: pnpm run ci
 
       - run: pnpm run build
+
+      # Reads dist/client, so it has to follow the build.
+      - run: pnpm run perf:bundle

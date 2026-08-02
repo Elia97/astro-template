@@ -10,6 +10,34 @@
   inline scripts don't re-run on navigation (listen to `astro:after-swap`, as
   the theme script does); module scripts run once per module, not per page.
 
+## Bundle budget (`scripts/bundle-budget.mjs`)
+
+`pnpm perf:bundle`, run by CI right after the build. It walks `dist/client`, and
+for every emitted route measures the **static closure** — the chunks the page
+reaches by following `import` edges only — in gzip bytes, then compares that to
+the route's budget. Exit code 1 fails the job.
+
+- **Static, not total.** A chunk reachable only through `await import()` is
+  reported in the `DEFERRED` column and costs the budget nothing: it loads after
+  paint, behind a runtime guard. Moving a heavy dependency behind a dynamic
+  import is therefore the standard way to get back under budget.
+- **The default is 20 KB gz**, sitting roughly 2× above the starter's heaviest
+  route (`/contatti`, ~10 KB: ClientRouter + mobile-nav + the contact form). It's
+  sized to catch a *dependency* entering the critical path, not single KBs.
+- **A heavier route class** goes in front of the default in `BUDGETS`
+  (`scripts/lib/bundle-budget.ts`) with its own `matches` — first match wins. A
+  page that mounts an animation library belongs there rather than in a raised
+  global default, so the rest of the site keeps the tight budget.
+- **Expected routes are read off `src/pages`**, not listed by hand: a page that
+  is `prerender = true` but emits no HTML fails the gate, and an empty
+  `dist/client` fails it too. Without that the per-route checks would be
+  fail-open — they iterate the emitted pages, so measuring nothing would pass.
+- **SSR pages are outside the budget** by construction (no HTML to measure) and
+  are listed in a `NOTE` at the end of the report, not counted as failures.
+
+The pure logic lives in `scripts/lib/bundle-budget.ts` and is unit-tested; the
+script itself keeps the filesystem, the gzip sizing and the exit code.
+
 ## Motion system (`src/lib/motion/`)
 
 - Module layout: `index.ts` is the barrel and the ONLY import point for

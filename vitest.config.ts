@@ -35,6 +35,8 @@ export default getViteConfig({
     // `// @vitest-environment happy-dom` docblock. Component renders must stay
     // on node — see the note in test/container.ts.
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // `scripts/` is build tooling, never bundled — only the pure logic behind a
+    // script is unit-tested there (scripts/lib/), never the CLI itself.
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
   },
 })
