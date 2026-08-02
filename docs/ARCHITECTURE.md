@@ -6,7 +6,7 @@
 - **Language**: TypeScript, `astro/tsconfigs/strictest`.
 - **Formatting/linting**: [Biome](https://biomejs.dev) — sole tool, no ESLint/Prettier. Config in `biome.json`.
 - **Package manager**: pnpm via corepack, pinned in `package.json#packageManager`. Node pinned in `.nvmrc`.
-- **Deploy**: Vercel. Production ships only from a release tag (see `scripts/vercel-ignore-build.sh`), not from every push to `main` — the Vercel git integration is deliberately disabled for `main` and `release-please--*` branches.
+- **Deploy**: Vercel. Production ships only from a release tag (see `scripts/vercel-ignore-build.sh`), not from every push to `main` — the Vercel git integration is deliberately disabled for `main` and `release-please--*` branches. The `main` ruleset (`scripts/bootstrap-github.sh`) guards that path by making `ci` a required check on every PR, so nothing reaches a tag without having passed it.
 - **Images**: local assets under `src/assets/**`, optimized at build time by `astro:assets` (Sharp) into static responsive variants — deliberately not the Vercel adapter's `imageService`, to stay portable off-Vercel and off the Image-Optimization quota. Add `sharp` as a devDependency when a fork starts using `astro:assets`.
 
 ## Repository layout
@@ -68,7 +68,7 @@ known failure modes in mind (hit in production, don't rediscover them):
 ## Commit and release workflow
 
 - Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook.
-- Squash-merge only into `main` (one PR = one commit on `main`).
+- Squash-merge only into `main` (one PR = one commit on `main`), with an empty commit body (`squash_merge_commit_message=BLANK`, set by `scripts/bootstrap-github.sh`) — release-please parses body lines too, so anything left there re-lists the same change in the CHANGELOG. A breaking change must therefore be marked with `!` in the PR title, not with a `BREAKING CHANGE:` footer.
 - Release automation via release-please (see `HOW_TO_USE.md` for the secrets checklist required to activate it).
 
 ## Planning and vertical agents

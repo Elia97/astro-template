@@ -68,6 +68,6 @@ Quality gate to plan for: **`pnpm run ci`** (Biome + typecheck + unit tests: `bi
 
 ## Notes
 
-- The **type from the issue title** drives the commit and release-please's version bump.
-- `Closes #<N>` in the body (or the commit — one of the two is enough).
+- The **type from the issue title** drives the commit and release-please's version bump — a breaking change needs `!` in the title (`feat(ui)!: …`), since the squash body is blank and a `BREAKING CHANGE:` footer would never reach release-please.
+- `Closes #<N>` goes in the **PR description** (`--body-file`), and only there: the squash body is blank, so a keyword put in the commit message would never reach `main` and the issue would stay open.
 - `.claude/plans/` is gitignored (`pr-<N>-<slug>.md` internal, `.body.md` for reviewers).
