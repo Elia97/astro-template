@@ -7,22 +7,19 @@ This repo is a personal/freelance starting point — start fresh from it for eac
 1. On GitHub, click **"Use this template" → "Create a new repository"** under the new project's name (not `git clone` — that would drag along this repo's own git history and release tags).
 2. Rename `package.json#name` — it leaks into the changelog that release-please generates, so it should match the new project, not stay `astro-template`.
 3. De-brand the scaffold:
-   - `src/lib/site.ts` — name, url, description, nav/CTA/legal, UI microcopy
-     (single source of truth: the chrome renders from here, nothing is
-     hardcoded in components);
+   - `src/lib/site.ts` — name, url, description, nav/CTA/legal (the chrome
+     renders from here; entries carry i18n keys, not copy);
    - `src/styles/tokens.css` — the ONLY file to touch for the visual rebrand
      (raw oklch primitives; the semantic names in `light.css`/`dark.css` stay);
    - `public/og-default.png` — replace the placeholder (1200×630);
-   - `public/favicon.svg` + `public/favicon.ico` — replace both; the SVG is also
-     the manifest's only icon out of the box, which keeps it valid but **not
-     installable**. For the install prompt add `public/icon-192.png`,
-     `public/icon-512.png` and a maskable 512 (content inside the centered 80%
-     safe zone, opaque) and list them in `ICONS` (`src/lib/seo/manifest.ts`) —
-     `manifest.test.ts` holds every declared icon to actually existing;
+   - `public/favicon.svg` + `public/favicon.ico` — replace both. The SVG is the
+     manifest's only icon out of the box: valid, but **not installable** —
+     `docs/guides/seo.md` § Icons, manifest & theme-color has what to add for
+     the install prompt;
    - `SITE.themeColor` — the browser-chrome colours; keep them equal to
      `--background` in `light.css`/`dark.css`;
    - `astro.config.mjs` → `i18n.defaultLocale`/`locales` if the project isn't
-     Italian-first (also update `SITE.localeTags` and `SITE.strings`);
+     Italian-first (§ Adding a locale below is the full list);
    - `src/content/homepage/hero.yml` — real homepage copy.
 4. `corepack enable && pnpm install && pnpm dev` — installs dependencies and git hooks (lefthook), starts the dev server.
 5. Create the GitHub repo, then run `bash scripts/bootstrap-github.sh` from inside it (needs `gh` authenticated) — sets up dependabot labels, squash-only merge policy, Actions permissions for release-please, and the `main` ruleset (PR required, `ci` as a required status check, branch up to date before merging, no direct push). Re-run it any time: every step is idempotent.
@@ -32,24 +29,18 @@ This repo is a personal/freelance starting point — start fresh from it for eac
 
 ## What the scaffold gives you
 
-- **Design tokens, three tiers** (`src/styles/`): `tokens.css` (rebrand
-  surface) → `light.css`/`dark.css` (stable semantic names) → `globals.css`
-  (orchestrator; also extends Tailwind's `container` with centering + gutter).
+- **Design tokens, three tiers** (`src/styles/`): `tokens.css` (rebrand surface)
+  → `light.css`/`dark.css` (semantic names) → `globals.css` (orchestrator).
 - **UI primitives** (`src/components/ui/`): native `.astro`, cva + `cn()`,
   shadcn API shape, zero client JS. Compound families (card, alert) are
   folders with a `.ts` barrel; layout lives in `Container`/`Section` only.
-- **Base layout + SEO** (`src/layouts/main.astro`): centralized head
-  (canonical/hreflang/OG/JSON-LD — pages talk to the layout, never to
-  `head.astro`), FOUC-free dark mode, skip-link, view transitions.
+- **Base layout + SEO** (`src/layouts/main.astro`): centralized head, FOUC-free
+  dark mode, skip-link, view transitions.
 - **Homepage sections** (`src/content/homepage/*.yml`): one YAML per section,
-  discriminated-union schema, typed access ONLY via
-  `getHomepageSections(locale)` — missing/duplicate/misplaced files fail the
-  build, and the function is the seam for a per-fork CMS later.
+  typed access only via `getHomepageSections(locale)` — also the CMS seam.
 - **i18n, additive by design**: the default locale keeps unprefixed URLs and
-  FLAT content files forever; a second language is a config entry plus new
-  files under `src/content/homepage/<locale>/` — never a restructure. UI copy
-  lives in typed dictionaries (`src/i18n/strings/`), chrome links go through
-  `localizedHref()` (see "Adding a locale" below).
+  FLAT content files forever — a second language is never a restructure
+  (§ Adding a locale below).
 - **SEO plumbing**: modular head (`head/seo.ts` + subcomponents), sitemap +
   `robots.txt`, JSON-LD builders, `X-Robots-Tag: noindex` on `*.vercel.app`
   preview deploys, security headers in `vercel.json`.
@@ -61,11 +52,9 @@ This repo is a personal/freelance starting point — start fresh from it for eac
   page carries a "draft, needs legal review" alert until reviewed. Configure an
   iubenda policy id and `privacy`/`cookie-policy` serve the real hosted document
   instead, fetched and sanitized at build time.
-- **Consent + analytics, off until configured**: an iubenda CMP and a GTM
-  container behind a consent gate that holds every measurement/marketing script
-  until the visitor opts in, with Google Consent Mode v2 defaults denied. Set no
-  env and none of it exists — no banner, no tags, no cookie. See "Consent and
-  analytics setup" below.
+- **Consent + analytics, off until configured**: iubenda CMP + GTM behind a
+  consent gate, Google Consent Mode v2 defaults denied (§ Consent and analytics
+  setup below).
 - **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
   Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
   pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast.
@@ -176,11 +165,9 @@ Until all three Vercel secrets are set, the `deploy` job in `release-please.yml`
 ## Day-to-day workflow
 
 - Start new pieces with the generators (`pnpm gen:*`) — they emit code already
-  on the project's conventions (layout primitives, schema patterns, fail-loud
-  wiring) and formatted by the same Biome gate as CI.
-- Seed a milestone's issues with `/milestone <template-name>|<N>` — turns a blueprint or a hand-written ROADMAP section into a native GitHub Milestone + one issue per sub-task, after one plan-mode approval. Never writes code, never branches, never commits.
-- Implement each issue with `/pr <issue-number>` — plan mode, then parallel vertical agents (`.claude/agents/`: content, UI, SEO, forms, rendering/performance, ops), never commits/pushes/opens a PR on its own.
-- Vertical agents follow the matching guide in `docs/guides/*.md` when one exists; guides grow from real work rather than being written upfront (see `docs/guides/README.md`).
-- Commits are Conventional Commits, validated on commit by lefthook + commitlint. PRs merge in squash only.
+  on the project's conventions (§ CLI generators above).
+- Seed a milestone's issues with `/milestone <template-name>|<N>`, then implement
+  each issue with `/pr <issue-number>` — neither commits, pushes nor opens a PR
+  on its own.
 
 See `CLAUDE.md` for the full set of `[HARD]` project conventions, and `docs/ARCHITECTURE.md` for the stack overview.

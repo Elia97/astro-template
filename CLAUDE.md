@@ -8,7 +8,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
 - **Rendering**: `output: "server"` — pages are SSR by default. Pages that must stay static have `export const prerender = true` explicit in the frontmatter.
 - **Deploy**: Vercel, via `@astrojs/vercel`.
-- **Reading the tree**: `docs/ARCHITECTURE.md` § Repository layout labels every path `machinery` / `config` / `chrome` / `example`. Machinery is about two thirds of the codebase and exists to work, not to be restructured — touch it to fix a defect, not to tidy. `example` is the worked reference a fork rewrites: extend the pattern there rather than inventing a second one.
+- **Reading the tree**: `docs/ARCHITECTURE.md` § Repository layout labels every path `machinery` / `config` / `chrome` / `seed` / `example`. Touch machinery to fix a defect, not to tidy; extend the `example` pattern rather than inventing a second one, and don't delete a `seed` path — the generators write into it.
 - **Comments**: keep only what the code can't say itself — normative constraints/invariants, non-obvious warnings/gotchas, security/env notes, `TODO`/`FIXME`, `[HARD]` markers, and functional directives (`@vitest-environment`, `@ts-expect-error`, `biome-ignore`, …). Drop prose that restates the code, "what it does" narration, and pointers to `docs/`/guides/legacy. Match the surrounding (deliberately low) comment density, not a verbose baseline.
 
 ## Workflow [HARD]
@@ -23,28 +23,13 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - Work is planned in `docs/ROADMAP.md` (a ledger of milestones and their sub-tasks, cross-referenced to GitHub issues) and `docs/DECISIONS.md` (open decisions, informational — doesn't block seeding a milestone).
 - **Seeding**: `/milestone <template-name>|<N>` turns a `docs/milestone-templates/*.md` template (or a hand-written `docs/ROADMAP.md` section) into a native GitHub Milestone plus one GitHub issue per sub-task — plan mode previews every issue before creation, one approval creates the whole batch. It never writes application code, never branches, never commits.
 - **Implementation**: `/pr <issue-number>` implements a single GitHub issue end-to-end (branch → vertical agents → quality gates → PR body with `Closes #N`) — one issue = one PR = one squash commit. Never commits/pushes/opens a PR on its own.
-- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`. Both `/milestone` (suggesting an agent per issue) and `/pr` (implementing one) use the same domain-detection logic. Each agent reads the matching guide in `docs/guides/*.md` if it exists (authoritative source for this project's conventions); if the guide doesn't exist yet, it applies standard best practices and flags that they're worth codifying into the guide. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
+- Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`. Both `/milestone` (suggesting an agent per issue) and `/pr` (implementing one) use the same domain-detection logic. Each agent reads the matching guide in `docs/guides/*.md` when one exists, and falls back to standard best practices when it doesn't. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
 - Reusable milestone blueprints live in `docs/milestone-templates/*.md` — same "stable, reusable across projects" status as `docs/guides/*.md`.
 
 ## Development
 
-Start the dev server in background mode:
-
-```
-astro dev --background
-```
-
-Manage it with `astro dev stop`, `astro dev status`, `astro dev logs`.
+Dev server: `astro dev --background`, managed with `astro dev stop` / `astro dev status` / `astro dev logs`.
 
 ## Documentation
 
-Full Astro documentation: https://docs.astro.build
-
-Consult it before working on:
-
-- [Routing, dynamic pages, middleware](https://docs.astro.build/en/guides/routing/)
-- [Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [React/Vue/Svelte/other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Content and content collections](https://docs.astro.build/en/guides/content-collections/)
-- [Styling and Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Internationalization](https://docs.astro.build/en/guides/internationalization/)
+Astro docs: https://docs.astro.build — consult them before touching routing/middleware, components, framework islands, content collections, Tailwind styling or i18n.

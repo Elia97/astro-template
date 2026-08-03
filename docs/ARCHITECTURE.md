@@ -2,17 +2,14 @@
 
 ## Stack
 
-- **Framework**: [Astro](https://astro.build) 7, `output: "server"` (SSR by default) with `@astrojs/vercel` as the deployment adapter. Pages that don't depend on per-request data opt into static rendering with `export const prerender = true`.
-- **Language**: TypeScript, `astro/tsconfigs/strictest`.
-- **Formatting/linting**: [Biome](https://biomejs.dev) — sole tool, no ESLint/Prettier. Config in `biome.json`.
-- **Package manager**: pnpm via corepack, pinned in `package.json#packageManager`. Node pinned in `.nvmrc`.
+- **Framework**: [Astro](https://astro.build) 7, `output: "server"` (SSR by default) with `@astrojs/vercel` as the deployment adapter. Toolchain and the rules that govern it — pnpm/corepack, Node, Biome, `astro/tsconfigs/strictest`, the `prerender = true` opt-in — are in `CLAUDE.md` § Stack and conventions.
 - **`@types/node` is a direct devDependency on purpose**, even though nothing imports it by hand. Vite's `UserConfig` type is peer-keyed on it: left to transitive resolution, pnpm installs one copy of Vite for astro and another for vitest, and the `test` key `vitest/config` augments onto `UserConfig` never reaches the type `getViteConfig()` accepts — `vitest.config.ts` then fails to typecheck with "'test' does not exist in type 'UserConfig'". Declaring it pins one peer for both. Don't drop it as unused.
-- **Deploy**: Vercel. Production ships only from a release tag (see `scripts/vercel-ignore-build.sh`), not from every push to `main` — the Vercel git integration is deliberately disabled for `main` and `release-please--*` branches. The `main` ruleset (`scripts/bootstrap-github.sh`) guards that path by making `ci` a required check on every PR, so nothing reaches a tag without having passed it.
-- **Images**: local assets go under `src/assets/**` — a folder the template doesn't ship, since it has no images of its own; create it with the first one. They're optimized at build time by `astro:assets` (Sharp) into static responsive variants — deliberately not the Vercel adapter's `imageService`, to stay portable off-Vercel and off the Image-Optimization quota. Add `sharp` as a devDependency at that point; `biome.json` already excludes `src/assets/**/*.svg` from formatting.
-- **Quality gates**: four, each covering a moment the others don't — the `main` ruleset (`ci` required on every PR), `pnpm run ci` re-run on the release tag, `pnpm perf:bundle` over `dist/client` after the build, and `pnpm smoke:prod` against the live host after the deploy. Nothing reaches production without passing all four. See `docs/guides/deploy-ops.md` § The gate chain.
-- **Abuse protection**: three layers on the public action, cheapest-first — an in-app honeypot (`src/lib/forms/honeypot.ts`, drops silently), an in-memory rate limit, and Vercel BotID Basic (`botid` dependency, free on every plan) whose verdict is observe-only until `BOTID_ENFORCE=true`. Both BotID halves are gated on `import.meta.env.PROD`; the challenge is proxied same-origin by `vercel.json` rewrites, which is why it needs no CSP entry. See `docs/guides/forms-email.md` § Abuse protection.
-- **Crawl policy**: `src/lib/seo/crawl-policy.ts` is the single source of truth for what stays out of search — read by the sitemap filter, `robots.txt` and the middleware. Matching is by subtree, so a listed section covers everything under it. It is import-free by constraint: `astro.config.mjs` loads before Vite resolves the `@/` alias.
-- **Consent and analytics**: off unless configured. `src/lib/analytics/tracking.ts` returns null without BOTH a GTM container id and an iubenda site id, and with null the layout renders no CMP, no tags and no cookie — the template's default state. When they are set, `src/lib/consent/gate.ts` holds every measurement/marketing script in a queue until the user opts in, and translates the CMP preference into Google Consent Mode v2. Turning it on requires widening the CSP in `vercel.json`: the exact source lists are in `src/components/head/tracking.astro`.
+- **Deploy**: Vercel. Production ships only from a release tag, never from a push to `main` — `scripts/vercel-ignore-build.sh` is wired into Vercel's Ignored Build Step, so the git integration only ever produces previews. See `docs/guides/deploy-ops.md` § Deploy model.
+- **Images**: local assets go under `src/assets/**` — a folder the template doesn't ship, since it has no images of its own; create it with the first one, and add `sharp` then. `biome.json` already excludes `src/assets/**/*.svg` from formatting. See `docs/guides/rendering-performance.md` § Images.
+- **Quality gates**: four, each covering a moment the others don't; nothing reaches production without passing all four. See `docs/guides/deploy-ops.md` § The gate chain.
+- **Abuse protection**: three layers on the public action, cheapest-first — an in-app honeypot, an in-memory rate limit, and Vercel BotID Basic (observe-only until `BOTID_ENFORCE=true`). See `docs/guides/forms-email.md` § Abuse protection.
+- **Crawl policy**: `src/lib/seo/crawl-policy.ts` is the single source of truth for what stays out of search — read by the sitemap filter, `robots.txt` and the middleware. See `docs/guides/seo.md` § Sitemap & robots.
+- **Consent and analytics**: off unless configured — without **both** a GTM container id and an iubenda site id the layout renders no CMP, no tag and no cookie. Turning it on requires widening the CSP in `vercel.json`. See `docs/guides/deploy-ops.md` § Tracking & Consent Mode v2.
 - **Function region**: `fra1` (`vercel.json`). Left unset, Vercel defaults to `iad1` and every SSR route and action round-trips across the Atlantic.
 
 ## Repository layout
@@ -147,12 +144,6 @@ known failure modes in mind (hit in production, don't rediscover them):
 - Islands don't share state: bridge static markup ↔ island through `data-*`
   attributes explicitly.
 
-## Commit and release workflow
-
-- Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook.
-- Squash-merge only into `main` (one PR = one commit on `main`), with an empty commit body (`squash_merge_commit_message=BLANK`, set by `scripts/bootstrap-github.sh`) — release-please parses body lines too, so anything left there re-lists the same change in the CHANGELOG. A breaking change must therefore be marked with `!` in the PR title, not with a `BREAKING CHANGE:` footer.
-- Release automation via release-please (see `HOW_TO_USE.md` for the secrets checklist required to activate it).
-
 ## Planning and vertical agents
 
-Work for a project built from this template is seeded as GitHub issues via `/milestone <template-name>|<N>` (from a `docs/milestone-templates/*.md` blueprint or a hand-written `docs/ROADMAP.md` section) and implemented one issue at a time via `/pr <issue-number>`, coordinating domain-specific vertical agents (`.claude/agents/`) — each following the matching guide in `docs/guides/*.md` when one exists. See `CLAUDE.md` for the full breakdown.
+Milestones are seeded as GitHub issues (`/milestone`) and implemented one issue at a time (`/pr <issue-number>`) by the vertical agents in `.claude/agents/` — see `CLAUDE.md` § Planning and vertical agents.

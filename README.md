@@ -34,8 +34,8 @@ pnpm dev
 | `pnpm typecheck` | Run `astro check` |
 | `pnpm ci` | Non-mutating check used in CI: `biome ci` + typecheck |
 
-## Planning and vertical agents
+## Planning and workflow
 
-Work is planned in `docs/ROADMAP.md` (one milestone = one PR = one release) and tracked with `docs/DECISIONS.md` for open questions. Use `/milestone <N>[.<x>]` to implement a milestone — it runs plan mode and coordinates domain-specific vertical agents (`.claude/agents/`: content, UI, SEO, forms, rendering/performance, ops) in parallel, each following the matching guide in `docs/guides/` when one exists.
+Issue-driven: `/milestone` seeds a milestone as a GitHub Milestone plus one issue per sub-task; `/pr <issue-number>` implements one issue end-to-end — one issue = one PR = one squash commit. Planning lives in `docs/ROADMAP.md` and `docs/DECISIONS.md`.
 
 See `CLAUDE.md` for the full set of project conventions.
