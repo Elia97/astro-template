@@ -9,6 +9,12 @@ export const SITE = {
   url: 'https://example.com',
   description: '<DESCRIPTION>',
   defaultOgImage: '/og-default.png',
+  // Browser-chrome colour per theme (head-icons.astro) and the manifest's
+  // background/theme colour. ⚠️ Keep equal to `--background` in
+  // styles/light.css / dark.css, or the chrome and the page disagree at the
+  // seam. Hex, not oklch: a `<meta name="theme-color">` is parsed by the browser
+  // UI layer, where support is narrower than in CSS.
+  themeColor: { light: '#fafafa', dark: '#0a0a0a' },
   // BCP 47 tag per locale (lang/hreflang/og:locale). Keys must match the
   // locale *codes* from `i18n.locales` in astro.config.mjs (for object
   // entries that's `codes[0]`, not `path`).

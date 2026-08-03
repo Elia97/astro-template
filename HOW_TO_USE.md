@@ -13,6 +13,14 @@ This repo is a personal/freelance starting point — start fresh from it for eac
    - `src/styles/tokens.css` — the ONLY file to touch for the visual rebrand
      (raw oklch primitives; the semantic names in `light.css`/`dark.css` stay);
    - `public/og-default.png` — replace the placeholder (1200×630);
+   - `public/favicon.svg` + `public/favicon.ico` — replace both; the SVG is also
+     the manifest's only icon out of the box, which keeps it valid but **not
+     installable**. For the install prompt add `public/icon-192.png`,
+     `public/icon-512.png` and a maskable 512 (content inside the centered 80%
+     safe zone, opaque) and list them in `ICONS` (`src/lib/manifest.ts`) —
+     `manifest.test.ts` holds every declared icon to actually existing;
+   - `SITE.themeColor` — the browser-chrome colours; keep them equal to
+     `--background` in `light.css`/`dark.css`;
    - `astro.config.mjs` → `i18n.defaultLocale`/`locales` if the project isn't
      Italian-first (also update `SITE.localeTags` and `SITE.strings`);
    - `src/content/homepage/hero.yml` — real homepage copy.

@@ -25,6 +25,21 @@
       : window.matchMedia('(prefers-color-scheme: dark)').matches
     document.documentElement.classList.toggle('dark', dark)
     syncThemeToggles()
+    syncThemeColor(dark)
+  }
+
+  // The two theme-color metas (head-icons.astro) ship with a
+  // prefers-color-scheme media query — the right no-JS default, but it ignores
+  // the toggle. Flipping `media` to all / not all makes the browser chrome
+  // follow the theme actually applied instead of the system preference.
+  // NB: this script is `is:inline`, so it lands in the HTML verbatim —
+  // comments included. Keep them short and free of markup.
+  function syncThemeColor(dark) {
+    const metas = document.querySelectorAll('meta[name="theme-color"][data-scheme]')
+    for (const meta of metas) {
+      const isDarkMeta = meta.getAttribute('data-scheme') === 'dark'
+      meta.setAttribute('media', isDarkMeta === dark ? 'all' : 'not all')
+    }
   }
 
   applyTheme()
@@ -43,6 +58,7 @@
       if (!toggle) return
       const isDark = document.documentElement.classList.toggle('dark')
       syncThemeToggles()
+      syncThemeColor(isDark)
       try {
         localStorage.setItem('theme', isDark ? 'dark' : 'light')
       } catch {

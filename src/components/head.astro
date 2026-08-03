@@ -5,6 +5,7 @@
 // resolution is pure (./head-seo.ts), rendering is split per concern
 // (./head-{alternates,og,twitter,json-ld}.astro).
 import HeadAlternates from './head-alternates.astro'
+import HeadIcons from './head-icons.astro'
 import HeadJsonLd from './head-json-ld.astro'
 import HeadOg from './head-og.astro'
 import { resolveHeadSeoMeta } from './head-seo'
@@ -32,8 +33,7 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 
 {/* charset/viewport live in the layout: they must precede the inline theme script */}
 <meta name="generator" content={Astro.generator} />
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<HeadIcons />
 
 <title>{title}</title>
 {description ? <meta name="description" content={description} /> : null}

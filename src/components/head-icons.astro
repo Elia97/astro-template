@@ -1,0 +1,16 @@
+---
+// Document identity: favicons, the web manifest and the browser-chrome colour.
+import { SITE } from '@/lib/site'
+---
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="manifest" href="/site.webmanifest" />
+
+{/* The `media` pair is the no-JS baseline (system preference). The theme here is
+    class-based and overridable from the toggle, so theme-script.astro flips the
+    `media` of these two to follow the theme actually applied — `data-scheme` is
+    the hook it matches on, and keeping the colours in the markup is what stops
+    them from being duplicated inside the inline script. */}
+<meta name="theme-color" data-scheme="light" content={SITE.themeColor.light} media="(prefers-color-scheme: light)" />
+<meta name="theme-color" data-scheme="dark" content={SITE.themeColor.dark} media="(prefers-color-scheme: dark)" />
