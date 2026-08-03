@@ -6,9 +6,14 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
+    # [HARD] A releasable type, not `chore`. Production ships only from a release
+    # tag, and release-please bumps the version on `feat`/`fix` alone — hidden
+    # types cut no tag, so under `chore(deps)` a merged CVE patch would sit on
+    # `main` and never reach production. devDependencies get it too: Tailwind and
+    # Vite are devDeps here and they shape the built output.
     commit-message:
-      prefix: 'chore(deps)'
-      prefix-development: 'chore(deps-dev)'
+      prefix: 'fix(deps)'
+      prefix-development: 'fix(deps-dev)'
     cooldown:
       default-days: 2
     ignore:
@@ -34,6 +39,8 @@ updates:
       interval: 'weekly'
     labels:
       - 'github-actions'
+    # `chore` on purpose, unlike the npm group above: an action version never
+    # enters the deployed artifact, so these have nothing to publish.
     commit-message:
       prefix: 'chore(deps)'
     groups:

@@ -235,6 +235,12 @@ Production is live and broken:
 - Consequence: a breaking change is marked with `!` in the **PR title**
   (`feat(ui)!: …`). A `BREAKING CHANGE:` footer never survives the squash.
 - Same reason: `Closes #N` goes in the PR description, not in the commit message.
+- **[HARD] Only `feat` and `fix` cut a tag**, and only a tag deploys. Listing a
+  type in `changelog-sections` governs how it is *displayed*, never whether it
+  releases — so a change merged as `chore`/`docs` reaches `main` and stops
+  there, silently. That is why `.github/dependabot.yml` emits `fix(deps)` and
+  why content edits are titled `fix(content): …`. The failure has no symptom:
+  CI is green, the PR is merged, and production keeps serving the old build.
 
 ## Go-live checklist
 

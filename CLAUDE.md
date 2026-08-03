@@ -14,6 +14,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 ## Workflow [HARD]
 
 - Commits: Conventional Commits, validated by commitlint on lefthook's `commit-msg` hook (`type(scope): subject`). A commit that doesn't match the format is rejected by the hook — don't bypass it with `--no-verify`.
+- **Anything that must reach production needs a releasable type** — release-please bumps the version on `feat`/`fix` only, and production ships from a release tag. A change landed as `chore`/`docs` stays on `main` unpublished. Content edits are therefore `fix(content): …`. On a PR this is the **title** that matters, not the commits: squash-merge makes the title the commit message.
 - Before considering a task done, run `pnpm run ci` (Biome check + type-check, doesn't modify files) — it must pass clean.
 - The `pre-commit` hook auto-formats staged files with Biome: it's normal for files to be rewritten at commit time, that's not an error.
 - `docs/PROJECT.md` is the client's brief in their own words — never modify it arbitrarily; update it only with explicit new client input.
