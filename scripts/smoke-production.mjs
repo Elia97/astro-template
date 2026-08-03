@@ -126,12 +126,33 @@ async function checkBotIdChallenge() {
   }
 }
 
+/** The www → apex 308 from vercel.json. The one check that can't run against an
+ *  arbitrary base URL: it depends on DNS and on the domain configured on the
+ *  Vercel project, not on the deployment under test. */
+async function checkCanonicalHost() {
+  const check = 'www → apex 308'
+  if (baseUrl !== SITE.url) {
+    console.log(`- ${check} (skipped: base URL is not ${SITE.url})`)
+    return
+  }
+  try {
+    const response = await get(`https://www.${new URL(SITE.url).host}/`)
+    const location = response.headers.get('location') ?? ''
+    if (response.status !== 308) fail(check, `expected 308, got ${response.status}`)
+    else if (!location.startsWith(SITE.url)) fail(check, `location "${location}" does not point at ${SITE.url}`)
+    else pass(check)
+  } catch (error) {
+    fail(check, error.message)
+  }
+}
+
 console.log(`\nProduction smoke — ${baseUrl}\n`)
 
 await waitForAlias()
 await checkPages()
 await checkSecurityHeaders()
 await checkBotIdChallenge()
+await checkCanonicalHost()
 
 if (failures.length > 0) {
   console.error(`\n✗ ${failures.length} check(s) failed:\n${failures.map((f) => `  - ${f}`).join('\n')}\n`)
