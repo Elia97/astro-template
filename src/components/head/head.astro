@@ -4,12 +4,12 @@
 // the layout, never to this component directly. Thin orchestrator: URL/meta
 // resolution is pure (./head-seo.ts), rendering is split per concern
 // (./head-{alternates,og,twitter,json-ld}.astro).
-import HeadAlternates from './head-alternates.astro'
-import HeadIcons from './head-icons.astro'
-import HeadJsonLd from './head-json-ld.astro'
-import HeadOg from './head-og.astro'
-import { resolveHeadSeoMeta } from './head-seo'
-import HeadTwitter from './head-twitter.astro'
+import HeadAlternates from './alternates.astro'
+import HeadIcons from './icons.astro'
+import HeadJsonLd from './json-ld.astro'
+import HeadOg from './og.astro'
+import { resolveHeadSeoMeta } from './seo'
+import HeadTwitter from './twitter.astro'
 
 // `| undefined` is explicit so the layout can forward its own optional props
 // under `exactOptionalPropertyTypes`.

@@ -1,6 +1,6 @@
 # SEO
 
-Conventions established by the centralized head (`src/components/head.astro`).
+Conventions established by the centralized head (`src/components/head/head.astro`).
 
 ## Head contract
 
@@ -9,8 +9,8 @@ Conventions established by the centralized head (`src/components/head.astro`).
   (`src/layouts/main.astro`), which forwards them — pages never render
   `head.astro` directly.
 - Internally it's a thin orchestrator: URL/meta resolution is a pure function
-  (`head-seo.ts` → `resolveHeadSeoMeta`, unit-tested in `head-seo.test.ts`);
-  rendering is split per concern (`head-{alternates,og,twitter,json-ld}.astro`).
+  (`head/seo.ts` → `resolveHeadSeoMeta`, unit-tested in `head/seo.test.ts`);
+  rendering is split per concern (`head/{alternates,og,twitter,json-ld}.astro`).
   Extend by adding meta to the right subcomponent — don't grow the orchestrator.
 - `<meta charset>` and `<meta viewport>` live in the **layout**, before the
   inline theme script: the encoding declaration must sit within the first
@@ -35,7 +35,7 @@ Conventions established by the centralized head (`src/components/head.astro`).
 ## JSON-LD
 
 Pass structured data as objects via the layout's `jsonLd` prop.
-`head-json-ld.astro` escapes `<` (as the unicode escape) before `set:html` —
+`head/json-ld.astro` escapes `<` (as the unicode escape) before `set:html` —
 content can't close the script element early. Never `set:html` raw
 `JSON.stringify` output anywhere else. Sitewide schemas (Organization from
 `src/lib/company.ts` + WebSite) live on the homepage only; inner pages build
@@ -58,7 +58,7 @@ the single company source (`src/lib/company.ts`).
 
 ## Icons, manifest & theme-color
 
-`head-icons.astro` carries the document's identity — favicons, the manifest link
+`head/icons.astro` carries the document's identity — favicons, the manifest link
 and the browser-chrome colour — and is rendered once from `head.astro`.
 
 - **The manifest is built, not authored.** `src/lib/manifest.ts` derives it from
@@ -83,7 +83,7 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
   is narrower than in CSS.
 - **The two theme-color metas ship with a `prefers-color-scheme` media query**,
   which is the right no-JS default but ignores the theme toggle.
-  `theme-script.astro` flips their `media` between `all` and `not all` so the
+  `head/theme-script.astro` flips their `media` between `all` and `not all` so the
   chrome follows the theme actually applied. Drop that and the mismatch is
   visible the moment someone switches theme.
 
@@ -119,6 +119,12 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
 
 ## Preview deploys
 
-`src/middleware.ts` sets `X-Robots-Tag: noindex, nofollow` whenever the host
-ends in `.vercel.app` — preview/branch deploys must never compete with the
+A `has: host` header rule in `vercel.json` sets `X-Robots-Tag: noindex, nofollow`
+on every `*.vercel.app` host — preview/branch deploys must never compete with the
 production domain in search indexes. Nothing to configure per fork.
+
+It lives at the edge, **not** in `src/middleware.ts`: a page with
+`prerender = true` is served as a static file and never reaches middleware, so a
+middleware check would have covered only the routes that happened to stay SSR.
+`src/vercel-robots.test.ts` pins the rule and asserts it never matches the custom
+domain — the failure that would drop the live site out of every index.

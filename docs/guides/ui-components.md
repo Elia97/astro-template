@@ -28,7 +28,7 @@ Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
 
 ## Dark mode
 
-- Theme = `.dark` class on `<html>`, toggled by `src/components/theme-script.astro`
+- Theme = `.dark` class on `<html>`, toggled by `src/components/head/theme-script.astro`
   (inline anti-FOUC in `<head>`, delegated `[data-theme-toggle]` click handler,
   re-applied on `astro:after-swap`).
 - Both themes declare `color-scheme` so native UI (form controls, scrollbars)

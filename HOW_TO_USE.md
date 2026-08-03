@@ -50,7 +50,7 @@ This repo is a personal/freelance starting point — start fresh from it for eac
   files under `src/content/homepage/<locale>/` — never a restructure. UI copy
   lives in typed dictionaries (`src/i18n/strings/`), chrome links go through
   `localizedHref()` (see "Adding a locale" below).
-- **SEO plumbing**: modular head (`head-seo.ts` + subcomponents), sitemap +
+- **SEO plumbing**: modular head (`head/seo.ts` + subcomponents), sitemap +
   `robots.txt`, JSON-LD builders, `X-Robots-Tag: noindex` on `*.vercel.app`
   preview deploys, security headers in `vercel.json`.
 - **Contact form stack**: Astro Action + zod schema + rate limiting + Brevo
@@ -61,7 +61,7 @@ This repo is a personal/freelance starting point — start fresh from it for eac
   page carries a "draft, needs legal review" alert until reviewed.
 - **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
   Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
-  pure logic (head-seo, i18n, rate-limit, emails, vendors) tests fast.
+  pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast.
 - **Dead-code analysis** (fallow, dev-only): `pnpm exec fallow dead-code` and
   `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc` documents every
   intentional ignore. `fallow health` is informational (coverage-driven).

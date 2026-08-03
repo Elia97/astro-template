@@ -1,11 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
-    // The shared design system and the motion/reveal primitives are the
-    // template's public surface: not everything is consumed by the starter
-    // pages yet, but they are kept intentionally — not dead code.
+    // The shared design system is the template's public surface: not everything
+    // is consumed by the starter pages yet, but it is kept intentionally — not
+    // dead code. `reveal.astro` lives here too and is covered by the glob.
     "src/components/ui/**",
-    "src/components/reveal.astro",
     // The motion barrel is the layer's stable public import point (internals
     // import leaf modules directly, so the barrel has no consumer until an
     // interactive component lands).

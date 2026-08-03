@@ -1,4 +1,4 @@
-// Reveal-on-scroll setup (see components/reveal.astro for the markup side).
+// Reveal-on-scroll setup (see components/ui/reveal.astro for the markup side).
 // An IntersectionObserver marks `[data-reveal]` / `[data-reveal-stagger]`
 // containers with `data-reveal-ready` on viewport entry; the transition is
 // pure CSS (initial state gated on `html.js` + reduced-motion, globals.css).

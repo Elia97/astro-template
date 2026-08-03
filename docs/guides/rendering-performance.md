@@ -94,11 +94,11 @@ shared name is needed on both sides, split the file rather than the name.
     the DOM swap, or they leak across navigations);
   - listeners are registered exactly once even if the component script re-runs.
 
-## Reveal-on-scroll (`src/lib/motion/reveal.ts` + `src/components/reveal.astro`)
+## Reveal-on-scroll (`src/lib/motion/reveal.ts` + `src/components/ui/reveal.astro`)
 
 - Attribute-driven: IO flips `data-reveal-ready`; the transition is pure CSS in
   `globals.css`, double-gated on `html.js` (no JS → content visible; the class
-  is set pre-paint by `src/components/js-flag.astro`, deliberately separate
+  is set pre-paint by `src/components/head/js-flag.astro`, deliberately separate
   from the theme script) and `@media (prefers-reduced-motion: no-preference)`
   (reduced → static).
 - Cascade variant without the wrapper component: `data-reveal-stagger` on any

@@ -83,7 +83,7 @@
   }
 }
 
-/* ─── Reveal-on-scroll ([data-reveal], see components/reveal.astro) ───
+/* ─── Reveal-on-scroll ([data-reveal], see components/ui/reveal.astro) ───
    Initial hidden state is double-gated: `html.js` (JS off → content stays
    visible) and `prefers-reduced-motion: no-preference` (reduced → static). */
 @media (prefers-reduced-motion: no-preference) {
