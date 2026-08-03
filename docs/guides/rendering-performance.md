@@ -71,6 +71,32 @@ The rule that follows: **a module a client script imports may hold constants,
 types and pure functions, but no module-level call into a dependency.** When a
 shared name is needed on both sides, split the file rather than the name.
 
+## Resource hints
+
+The template emits hints for one thing only: the consent/analytics origins, from
+inside the `getTrackingConfig()` gate (`src/components/head/tracking.astro`), so
+a project without tracking emits none at all. Rules for adding more:
+
+- **`preconnect` only for origins loaded unconditionally.** It opens TCP+TLS
+  eagerly; on an origin that may never be contacted, that's a wasted socket. The
+  CMP qualifies outright — it loads on every page, pre-consent by definition.
+- **`dns-prefetch` for consent-gated origins.** **[HARD]** A `preconnect` to
+  `www.googletagmanager.com` sends SNI and the visitor's IP to Google *before*
+  opt-in, which breaks the invariant the whole consent gate exists to hold
+  (`deploy-ops.md` § Tracking). `dns-prefetch` only queries the visitor's own
+  resolver, so the lookup is warm with no third-party contact.
+- **Gate placement follows the origin, not the vendor.** Something contacted
+  regardless of consent — an image CDN, say — must have its hint *outside* the
+  tracking gate, or it would be missing in dev and on every preview without
+  those env vars, which is exactly where the origin is still hit.
+- **Never `crossorigin` on a hint for a non-CORS request.** It opens an
+  *anonymous* connection that a plain `<script src>` won't reuse — two sockets,
+  zero gain. Reserve it for fonts and CORS `fetch`.
+- Pair every `preconnect` with a `dns-prefetch` on the same origin, as a fallback
+  for browsers that ignore the former; those supporting both discard the dupe.
+- Hints need no CSP entry (`default-src` doesn't govern them), but the origin is
+  expected to be in the policy anyway, since something eventually loads from it.
+
 ## Motion system (`src/lib/motion/`)
 
 - Module layout: `index.ts` is the barrel and the ONLY import point for

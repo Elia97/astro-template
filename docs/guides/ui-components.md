@@ -35,6 +35,35 @@ Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
   follows the theme.
 - Toggle buttons carry `aria-pressed`, synced by the theme script — new toggles
   only need the `data-theme-toggle` attribute plus an initial `aria-pressed="false"`.
+- The two `theme-color` metas (`head/icons.astro`) ship with a
+  `prefers-color-scheme` media query — the correct no-JS default, but it ignores
+  the toggle. The script flips `media` between `all` and `not all` so the browser
+  chrome follows the applied theme. It re-runs on `DOMContentLoaded` for a
+  reason: on a cold load the inline script executes in `<head>` *before* the
+  parser reaches those metas, so the first pass finds nothing to sync and the
+  chrome would keep following the system preference.
+
+## Contrast on composite backgrounds
+
+**Over a gradient, a glass panel or a photo, text does not take opacity — it
+takes a solid token.** An alpha that reads fine over the darkest stop collapses
+over the lightest one: the same `white/55` can go from ~6:1 to ~2.3:1 across one
+gradient, and no alpha short of full opacity recovers 4.5:1 at the light end.
+
+Lighthouse will not catch this. It doesn't compose alpha over a gradient or an
+image, so the page audits clean while failing WCAG 1.4.3 in practice. If a fork
+introduces composite backgrounds, the contract has to live in a unit test that
+computes relative luminance → alpha-over → ratio for each pair, asserted against
+the **worst** stop, not the average one.
+
+- **Borders may stay alpha** — a solid border turns a field into a filled box —
+  but size them against WCAG 1.4.11's 3:1 on *both* sides: the fill inside and
+  the background outside.
+- **The one derogation is large text** (≥24px, or ≥18.7px bold), where 1.4.3
+  asks 3:1 rather than 4.5:1 — and only where the floor is asserted against the
+  worst stop. Below that size the derogation doesn't exist.
+- A `bg-clip-text` gradient headline is the legitimate case for alpha: there the
+  transparency *is* the effect, and a solid token would erase it.
 
 ## Chrome content
 
@@ -47,9 +76,18 @@ links go through `localizedHref()` so they localize with the site
 
 ## Tailwind v4 idioms adopted (don't regress to v3 habits)
 
-- `focus-visible:outline-hidden`, not `outline-none` — rings are box-shadows and
-  disappear in forced-colors mode; `outline-hidden` keeps a transparent outline
-  that Windows High Contrast repaints.
+- **Never `outline-none`.** A `ring` is a box-shadow, and box-shadows are dropped
+  in forced-colors mode: `outline-none` there leaves a control with no focus
+  indicator at all. `focus-visible:outline-hidden` keeps a *transparent* outline
+  that Windows High Contrast repaints, which is why every focus style in the
+  primitives pairs the two.
+- **Prefer `outline` over `ring` for anything not a form control.** An outline
+  sits in the gap and shows the real backdrop; a ring offset has to guess a
+  background colour the component can't know, and gets it wrong the moment the
+  control lands on a gradient or a coloured band. `.focus-ring` (`globals.css`)
+  is the outline-based utility for custom focusables. The primitives keep
+  `focus-visible:ring-2 ring-ring` because there the focus style doubles as a
+  glow around the field border — a legitimate use, not a leftover.
 - Logical properties for the inline axis (`start-4`, `ms-*`) — the template is
   i18n-ready and must survive an RTL locale.
 - `min-h-svh` for full-viewport shells (stable on mobile; `dvh` janks on scroll,
@@ -67,12 +105,66 @@ links go through `localizedHref()` so they localize with the site
 - `<html>` carries `scroll-pt-20` so anchor jumps clear the 64px sticky header.
 - Icon glyphs are `aria-hidden` with the label on the control; text-presentation
   variation selector (`&#xFE0E;`) on codepoints WebKit would render as emoji.
-- Overlay building blocks (for menus/dialogs a fork adds): `lib/trap-focus.ts`
-  (`cycleFocus` — call from the container's keydown, Tab wraps at both ends)
-  and `lib/scroll-lock.ts` (reference-counted `lockScroll`/`unlockScroll`;
-  `resetScrollLock()` on `astro:after-swap` so locks never leak across view
-  transitions). `.focus-ring` utility for custom focusables outside the
-  ring-based form controls.
+- Overlay building blocks (for menus/dialogs a fork adds):
+  `lib/overlay/trap-focus.ts` (`cycleFocus` — call from the container's keydown,
+  Tab wraps at both ends) and `lib/overlay/scroll-lock.ts` (reference-counted
+  `lockScroll`/`unlockScroll`; `resetScrollLock()` on `astro:after-swap` so locks
+  never leak across view transitions). `.focus-ring` utility for custom
+  focusables outside the ring-based form controls.
+- **Focus after a client-side navigation** (`lib/a11y/route-focus.ts`, bound once
+  in the layout). `<ClientRouter />` announces the new page through its own live
+  region, but restores focus only inside `[data-astro-transition-persist]`
+  subtrees — the template has none, so the swap destroys the focused node and
+  focus falls back to `<body>`: every keyboard and screen-reader user restarts
+  from the top of the document on every navigation (WCAG 2.4.3). The binder moves
+  focus to `<main>` on `astro:after-swap`, skipping the case where the URL
+  carries a hash (the anchor is where the user asked to land). Deliberately not
+  `createMotionBinding`: that factory also runs on the first script execution,
+  and stealing focus on a cold load is its own bug.
+
+## Named view transitions (when a fork adds them)
+
+The template ships `<ClientRouter />` with its default cross-fade and **no named
+groups** — that default is clean on its own, and pages with no shared element
+between them need nothing more. What follows is the shape that works once a fork
+starts naming elements, because each rule below is a failure that is easier to
+inherit than to rediscover.
+
+**Surfaces and text are two behaviours, not one.**
+
+- *Surfaces* (bands, cards, covers) cross-fade **simultaneously and
+  complementarily** while they morph: same duration, same easing, opposite
+  keyframes, so the two opacities always sum to 1. Sequencing the fades (old out,
+  *then* new in) reopens the blank flash. The fade isn't decoration — it hides
+  the fact that two snapshots of different proportions can't line up while the
+  group interpolates; without it the scaling reads as a tear.
+- *Text and chrome* must **not** cross-fade: old discarded on the first frame,
+  new opaque from the first frame. Cross-fading text prints two *different*
+  headings on top of each other. A band's heading also skips the geometric morph
+  — it has to land in place, not fly in from wherever it sat on the previous page.
+- Consequence: **a new band is split into two groups**, one for the surface and
+  one for the text container. Keeping them in a single group is what produces the
+  smeared double heading.
+
+Rules that keep it from breaking:
+
+- **A duplicated `view-transition-name` on one page invalidates the entire
+  transition.** Per-slug names are safe only while each slug appears once — a
+  "related items" list must exclude the current one.
+- **Declare the stacking, don't inherit it.** Paint order defaults to the capture
+  DOM, which isn't comparable between two different pages: a full-width band ends
+  up over the very thing flying into it. Order from the bottom: root, band
+  surfaces, everything that travels page to page, band text, chrome.
+- **Guard named elements that are off-screen.** Leaving a scrolled page, a named
+  element is captured out of view and its group slides it in on the new page.
+  Clear the name on `astro:before-preparation` for elements outside the viewport.
+- **Static names only, never per-slug lists in CSS.** A per-slug name can't carry
+  a behaviour in the stylesheet. For a title that flies, assign one static name
+  at click time to the clicked source only.
+- **`transition:persist` is not the alternative for chrome.** A header that
+  changes classes per page would keep the previous page's paint. Astro's
+  `transition:animate="none"` doesn't help either: it emits into `@layer astro`,
+  which loses against non-layered wildcards.
 
 ## UI primitives (`src/components/ui/`)
 

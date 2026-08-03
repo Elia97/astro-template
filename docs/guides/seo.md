@@ -108,6 +108,13 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
   list. A robots-blocked URL still in the sitemap is a Search Console warning —
   the crawler is told to fetch what it is also told not to read.
   Both ship **empty**: whether a fork's legal pages belong in search is its call.
+- **Matching is by subtree, and has to stay that way.** A listed path covers
+  everything under it: `/area-riservata` also covers `/area-riservata/documenti`,
+  with or without a trailing slash. The lists name *sections*, and the children
+  are the part that leaks — an exact match would apply the rule to the one path
+  someone spot-checks and to nothing below it, silently. Both lists ship empty,
+  so `matchesSubtree` is exported and tested directly: that is the only place the
+  rule can be held to its contract before a fork adds its first path.
 - `X-Robots-Tag` from `src/middleware.ts` also reads `NOINDEX_PATHS`, but only
   ever reaches a **non-HTML SSR response** (a generated feed, a JSON endpoint)
   where no meta tag can exist. It does not run for a prerendered page.

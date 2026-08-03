@@ -37,6 +37,25 @@ propagates to the client at typecheck time.
 - Every action schema spreads `honeypotShape` (see Abuse protection): the decoy
   is part of the contract, not something the handler reads off the raw body.
 
+**[HARD] Every message comes from the dictionary.** Zod's own errors are English
+("Invalid email") and they reach the user verbatim — `applyFieldErrors()` prints
+them straight into the field slots. Build fields from
+`src/lib/forms/form-fields.ts` (`requiredText`, `emailField`, `consentField`),
+which carry `error:` messages resolved through `useTranslations()`;
+`form-fields.test.ts` holds each one to the dictionary so a field can't quietly
+fall back to the default.
+
+The schema is module-level, outside any request, so messages resolve at the
+**default locale**. A second language means building the schema inside the action
+handler, where `Astro.currentLocale` is known.
+
+**[HARD] `required` in the markup means required in the schema.** The form is
+`novalidate` — the browser's bubbles would otherwise report the first invalid
+field in its own wording and styling, ahead of the schema, without setting
+`aria-invalid` or filling a slot. That makes the schema the only gate that runs:
+a field marked `required` but defaulted to `''` accepts an empty submit from
+anything that isn't a browser. `form-fields.test.ts` pins that parity per field.
+
 ## Error policy (fail-loud where it matters)
 
 Pick the policy from the action's **shape**:

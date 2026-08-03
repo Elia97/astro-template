@@ -96,9 +96,23 @@ exact source list per directive, not a superset — so adding a vendor is a
 deliberate two-file change (the policy and the test), never a side effect of
 pasting a snippet.
 
+The rule that decides whether a vendor touches the CSP at all:
+
+- **Server-only vendor → no CSP change.** Brevo is called from an Astro Action on
+  the server; nothing about it reaches the browser, so `connect-src` stays out of
+  it. Adding an origin "to be safe" widens the policy for nothing.
+- **Client-side vendor → one directive per behavior**, added explicitly. Never a
+  wildcard when the vendor documents concrete hosts.
+- **Consent doesn't enter the decision.** An origin contacted regardless of what
+  the visitor chooses (an image CDN, say) belongs in the policy either way. The
+  gate decides *when* a script runs, never whether its origin is allowed.
+
 - Adding a vendor: widen the *specific* directive it needs (`script-src`,
   `connect-src`, `img-src`, `frame-src`), never `default-src`, and update the
   test in the same commit.
+- One missing entry fails **silently** in a way local dev cannot show: `astro
+  dev` never reads `vercel.json`. Deploy a preview and watch the console on both
+  the accept and the reject path before calling it done.
 - `'unsafe-inline'` on `script-src` is load-bearing today: the theme script must
   run before first paint to avoid a flash, so it can't be an external module. The
   upgrade path is per-page SHA-256 hashes computed at build time by an
@@ -106,6 +120,66 @@ pasting a snippet.
 - `'unsafe-eval'` is refused and nothing here needs it.
 - BotID needs **no** CSP entry: its challenge is proxied same-origin through the
   `vercel.json` rewrites, which is also what keeps ad-blockers out of the way.
+
+## Tracking & Consent Mode v2
+
+Off unless configured. `getTrackingConfig()` (`src/lib/analytics/tracking.ts`)
+returns `null` unless **both** `PUBLIC_GTM_ID` and `PUBLIC_IUBENDA_SITE_ID` are
+set — with `null` the layout renders no CMP, no tags and no cookie, which is how
+the template ships and how dev always runs.
+
+**[HARD]** Nothing reaches Google before the visitor opts in. The order inside
+`src/components/head/tracking.astro` is normative, not stylistic:
+
+1. the `is:inline` Consent Mode defaults — all four keys `denied`, plus
+   `wait_for_update: 500`, `ads_data_redaction` and `url_passthrough`. It must be
+   the first thing that touches `dataLayer`, or a tag can queue ahead of the
+   defaults and run unrestricted;
+2. the inline config block, which publishes the ids on `window`;
+3. the module scripts, which register `bootstrapAnalytics()` on the gate and then
+   boot the CMP. The GTM container is appended **inside**
+   `onConsent('measurement')`, never before.
+
+Consequences worth stating outright:
+
+- **[HARD]** No `<noscript>` GTM iframe. The standard snippet's second half loads
+  the container unconditionally, which is precisely the invariant above. A
+  vendor checklist asking for it does not override this.
+- GA4 is configured **inside the GTM container**, not in the app. New events are
+  `dataLayer` pushes (`src/lib/analytics/data-layer.ts`) plus GTM-side config —
+  adding a tag is not a code change.
+- Consent Mode is the **basic** shape, deliberately: advanced sends cookieless
+  pings for modeling, which needs roughly 1k daily events on each side of the
+  consent split to produce anything — traffic a site this size won't have.
+- `mapPreferenceToConsentMode()` is fail-safe by construction: anything not
+  explicitly `true` maps to `denied`. Purpose ids `4` (measurement) and `5`
+  (marketing) are iubenda's numbering — don't renumber them.
+- `consentOnContinuedBrowsing: false` **[HARD]** — scroll or continued browsing
+  is not valid consent under the Garante's 2021 cookie guidelines.
+  `floatingPreferencesButtonDisplay: false` is acceptable only because consent
+  stays revocable through the footer's `.iubenda-cs-preferences-link`. Keep that
+  link if you keep the flag.
+- Only `iubenda_cs.js` loads — no autoblocking, no GPP stub. Autoblocking would
+  add a parser-blocking request and a second source of truth for a gate the app
+  already owns.
+- Turning any of this on **requires widening the CSP**. The exact source lists
+  are in the header comment of `src/components/head/tracking.astro`; the rules
+  for editing them are in § Content-Security-Policy above.
+
+## Rebuilding the legal pages after a policy change
+
+The privacy and cookie policies are fetched from iubenda **at build time**
+(`src/lib/legal/documents.ts`, prerendered pages). An edit made in the iubenda
+dashboard is therefore invisible to the live site until someone redeploys, and
+nothing warns anyone that the two have drifted.
+
+- Publish the change on iubenda, then trigger a production deploy.
+- Without a policy id configured, the pages serve their placeholder draft
+  instead. That fallback is silent by design on the page, but never in the log:
+  a failed fetch prints to the build output — check there when a page shows the
+  draft you didn't expect.
+- Whoever maintains the policy has to know this. It's a handover item, not a
+  technical control.
 
 ## After every release
 
@@ -146,7 +220,11 @@ Production is live and broken:
   form that "succeeds" while dropping the lead is worse than an error.
 - On Vercel, create build-time-readable variables as **Plain**, not Sensitive:
   the build reads env at `vercel pull` time, and a Sensitive value isn't
-  available there (`BOTID_ENFORCE` is the live example).
+  available there (`BOTID_ENFORCE` is the live example). A Sensitive variable
+  doesn't fail loudly either — it arrives as the literal string `[SENSITIVE]`,
+  which is why the iubenda ids are validated as numeric before use
+  (`src/lib/analytics/tracking.ts`, `src/lib/legal/documents.ts`) rather than
+  spliced into an API URL.
 - Feature flags default to the safe side and are flipped in the provider once
   verified on a real deploy — `BOTID_ENFORCE=false` ships observe-only because a
   false positive silently costs a lead (`forms-email.md` § Abuse protection has
@@ -183,3 +261,17 @@ Production is live and broken:
 7. A real browser submit of the contact form seen arriving; then consider
    `BOTID_ENFORCE=true`.
 8. `pnpm smoke:prod` green against the apex.
+9. **DPA signed with every processor that touches personal data** — hosting
+   (Vercel), the email/CRM vendor (Brevo), the CMP (iubenda), plus anything else
+   the project added. The client's legal contact is the signatory, not you.
+10. **Every credential used during development rotated.** Anything that lived in
+    a `.env`, a shared note or a preview environment is burned: issue new values,
+    set them in production, revoke the old ones. Same for the repo secrets.
+11. **Consent flows verified on a preview**, both accept and reject, with GA4
+    Realtime open: no Google request before opt-in, events flowing after. This
+    is also the only place a missing CSP entry shows up.
+12. **Security headers verified on a preview** — no CSP violation on any page
+    type, HSTS present, `X-Robots-Tag` on `*.vercel.app` and absent on the
+    production host.
+13. **Whoever maintains the iubenda policy knows the rebuild runbook** above: an
+    edit there is invisible until a redeploy, and nothing warns them.

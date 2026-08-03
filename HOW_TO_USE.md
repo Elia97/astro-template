@@ -58,7 +58,14 @@ This repo is a personal/freelance starting point — start fresh from it for eac
   (`/contatti`). Conventions in `docs/guides/forms-email.md`; env setup below.
 - **Error & legal pages**: 404/500, plus placeholder `privacy`,
   `cookie-policy` and `termini` built on the `legal-*` components — every
-  page carries a "draft, needs legal review" alert until reviewed.
+  page carries a "draft, needs legal review" alert until reviewed. Configure an
+  iubenda policy id and `privacy`/`cookie-policy` serve the real hosted document
+  instead, fetched and sanitized at build time.
+- **Consent + analytics, off until configured**: an iubenda CMP and a GTM
+  container behind a consent gate that holds every measurement/marketing script
+  until the visitor opts in, with Google Consent Mode v2 defaults denied. Set no
+  env and none of it exists — no banner, no tags, no cookie. See "Consent and
+  analytics setup" below.
 - **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
   Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
   pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast.
@@ -78,6 +85,29 @@ client no-ops loudly and the form still "succeeds"). To send real email:
    project settings (it's a server-only secret — never in git).
 3. Verify the sender domain's DKIM/SPF/DMARC in Brevo before go-live: without
    it production refuses to send (by design — no silently dropped leads).
+
+## Consent and analytics setup
+
+Nothing ships until you configure it: with no env set the site renders no cookie
+banner, loads no tag and sets no non-essential cookie. To turn it on:
+
+1. Create the iubenda site + cookie policy for the client, and the GTM container.
+2. Set `PUBLIC_GTM_ID`, `PUBLIC_IUBENDA_SITE_ID` and
+   `PUBLIC_IUBENDA_COOKIE_POLICY_ID` — on Vercel as **Plain** variables, never
+   Sensitive (a Sensitive var reaches the build as the literal `[SENSITIVE]`).
+   They are public ids that ship in the bundle, not secrets.
+3. **Widen the CSP in `vercel.json`** and the matching assertions in
+   `src/vercel-headers.test.ts`. The exact source lists are in the header comment
+   of `src/components/head/tracking.astro`. Skipping this is the failure worth
+   knowing about: `astro dev` never reads `vercel.json`, so everything looks fine
+   locally and production shows no banner at all.
+4. Verify on a preview, accept and reject both, with GA4 Realtime open: nothing
+   should reach Google before opt-in.
+
+The same policy id also switches `/privacy` and `/cookie-policy` from their
+placeholder drafts to the hosted iubenda documents. Those are fetched at build
+time, so a policy edited on iubenda only reaches the site on the next deploy —
+`docs/guides/deploy-ops.md` § Rebuilding the legal pages is the runbook.
 
 ## Adding a webfont
 
