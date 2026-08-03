@@ -8,6 +8,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
 - **Rendering**: `output: "server"` — pages are SSR by default. Pages that must stay static have `export const prerender = true` explicit in the frontmatter.
 - **Deploy**: Vercel, via `@astrojs/vercel`.
+- **Reading the tree**: `docs/ARCHITECTURE.md` § Repository layout labels every path `machinery` / `config` / `chrome` / `example`. Machinery is about two thirds of the codebase and exists to work, not to be restructured — touch it to fix a defect, not to tidy. `example` is the worked reference a fork rewrites: extend the pattern there rather than inventing a second one.
 - **Comments**: keep only what the code can't say itself — normative constraints/invariants, non-obvious warnings/gotchas, security/env notes, `TODO`/`FIXME`, `[HARD]` markers, and functional directives (`@vitest-environment`, `@ts-expect-error`, `biome-ignore`, …). Drop prose that restates the code, "what it does" narration, and pointers to `docs/`/guides/legacy. Match the surrounding (deliberately low) comment density, not a verbose baseline.
 
 ## Workflow [HARD]

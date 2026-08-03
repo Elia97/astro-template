@@ -14,15 +14,37 @@
 
 ## Repository layout
 
+Every path carries one of four roles. The labels exist for what they let you
+**skip**: machinery is roughly two thirds of the tree and a fork never edits it.
+
+- `machinery` — the template working. Open it when something breaks, not before.
+- `config` — the shape stays, the values are yours.
+- `chrome` — page furniture you keep and restyle.
+- `example` — a worked reference to rewrite or delete.
+
 ```text
 src/
-  pages/       # file-based routing
-  layouts/     # document shells (main.astro: lang, head, chrome)
-  components/  # .astro components; layout/ holds the page chrome (header, footer, skip-link)
-  lib/         # logic without markup: site.ts (SSoT), motion/ — leaf layers
-  actions/     # Astro Actions; handlers exported by name so the orchestration is testable
-  styles/      # design tokens (3 tiers) + globals orchestrator
-test/          # test-only infra, never bundled
+  pages/       # file-based routing                                     example
+               #   robots.txt, site.webmanifest, 404, 500               machinery
+  layouts/     # main.astro: document shell (lang, head, chrome)        chrome
+  components/
+    head/      # metadata, icons, manifest link, pre-paint scripts      machinery
+    ui/        # design system (cva + cn), zero client JS               machinery
+    forms/     # submit binder, field errors, honeypot, BotID           machinery
+    layout/    # header, footer, mobile nav, skip-link                  chrome
+    contact/   # worked reference: an action-backed form                example
+    legal/     # worked reference: a legal page                         example
+    home/      # a homepage section                                     example
+  lib/         # logic without markup — leaf layers, mixed roles (below)
+  i18n/        # href/path/route-segments/translate/ui                  machinery
+               #   strings/<locale>.ts                                  config
+  actions/     # the contact action; handlers exported by name so the
+               #   orchestration is testable                            example
+  content/     # collection data                                        example
+  styles/      # tokens.css — the rebrand surface                       config
+               #   light/dark/globals                                   machinery
+  middleware.ts # X-Robots-Tag for non-HTML SSR responses               machinery
+test/          # test-only infra, never bundled                         machinery
   stubs/       # the astro:* virtual modules, resolved through vitest aliases
   helpers/     # shared fixtures and mocks (action handlers)
   container.ts # Container API render helpers for .astro components
@@ -39,6 +61,21 @@ plopfile.mjs   # CLI harness: `pnpm gen` / `pnpm gen:<name>`
   agents/      # vertical subagent definitions
   commands/    # /milestone (seed issues) + /pr (implement one) commands
 ```
+
+`src/lib/` is the one directory that genuinely mixes roles, so it stays flat and
+is read by name rather than by folder:
+
+- **config** — `site.ts` (SSoT for name/url/nav/CTA/legal/theme colours),
+  `company.ts` (the single legal entity behind JSON-LD and the legal pages).
+- **machinery** — `utils.ts`, `seo.ts`, `manifest.ts`, `crawl-policy.ts`,
+  `localized-sections.ts`, `rate-limit.ts`, `trap-focus.ts`, `scroll-lock.ts`,
+  `honeypot.ts` + `honeypot-schema.ts`, `motion/`, `vendor/`.
+- **example** — `contact.ts`, `homepage.ts`, `schemas/`.
+
+**[HARD]** The roles are a reading aid, not an import boundary: `example` code
+imports `machinery` freely, and the layering rules in the next section are what
+actually constrain the direction. Don't turn a label into a lint rule — the
+labels describe intent for a human, and intent is exactly what a fork changes.
 
 ## Source layering
 
