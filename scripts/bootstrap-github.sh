@@ -1,45 +1,45 @@
 #!/usr/bin/env bash
-# Bootstrap GitHub — prerequisiti che i file di config NON coprono.
-# Eseguire UNA volta dopo aver creato il repo su GitHub, da dentro il repo, con
-# `gh` autenticato (gh auth status).
+# Bootstrap GitHub — the prerequisites config files do NOT cover.
+# Run it once after creating the repo on GitHub, from inside the repo, with `gh`
+# authenticated (gh auth status).
 #
 #   bash scripts/bootstrap-github.sh
 #
-# Idempotente: rieseguibile quando serve (`--force` sulle label, PUT sulla ruleset
-# se esiste già).
+# Idempotent: re-run it whenever (`--force` on the labels, PUT on the ruleset
+# when it already exists).
 set -euo pipefail
 
-echo "==> 1/4 Label dependabot (senza, ogni PR dependabot logga 'label could not be found')"
+echo "==> 1/4 Dependabot labels (without them every dependabot PR logs 'label could not be found')"
 gh label create dependencies --color 0366D6 --description "Dependency updates" --force
 gh label create github-actions --color 000000 --description "GitHub Actions updates" --force
 
-echo "==> 2/4 Merge policy: SOLO squash (1 commit/PR su main); titolo=PR, body vuoto"
-# [HARD] Il body dello squash DEVE restare vuoto: release-please parsa anche le righe del
-# body, e GitHub lo omette solo se è byte-identico al titolo della PR — una maiuscola o un
-# backtick di differenza bastano a far comparire la stessa modifica due volte nel CHANGELOG.
-# `--squash-merge-commit-message pr-title` → `squash_merge_commit_message=BLANK` lato API.
-# Un solo flag — gh ha rimosso `--squash-merge-commit-title`; il titolo è implicito nel
-# valore `pr-title*`. Conseguenza: un breaking change va marcato con `!` nel titolo della PR
-# (`feat(ui)!: …`), perché un footer `BREAKING CHANGE:` non arriverebbe più a release-please.
+echo "==> 2/4 Merge policy: squash ONLY (1 commit/PR on main); title=PR, body empty"
+# [HARD] The squash body MUST stay empty: release-please parses body lines too, and GitHub
+# omits the body only when it is byte-identical to the PR title — one capital letter or one
+# backtick of difference is enough to list the same change twice in the CHANGELOG.
+# `--squash-merge-commit-message pr-title` → `squash_merge_commit_message=BLANK` API-side.
+# One flag only — gh dropped `--squash-merge-commit-title`; the title is implied by the
+# `pr-title*` value. Consequence: a breaking change has to be marked with `!` in the PR title
+# (`feat(ui)!: …`), because a `BREAKING CHANGE:` footer would no longer reach release-please.
 gh repo edit \
   --enable-squash-merge \
   --enable-merge-commit=false \
   --enable-rebase-merge=false \
   --squash-merge-commit-message pr-title
 
-echo "==> 3/4 Permessi Actions: consenti a release-please di aprire le release PR"
+echo "==> 3/4 Actions permissions: let release-please open the release PRs"
 gh api -X PUT "repos/{owner}/{repo}/actions/permissions/workflow" \
   -f default_workflow_permissions=write \
   -F can_approve_pull_request_reviews=true \
-  || echo "   (se fallisce: Settings → Actions → General → Workflow permissions → ☑ Allow GitHub Actions to create and approve pull requests)"
+  || echo "   (if it fails: Settings → Actions → General → Workflow permissions → ☑ Allow GitHub Actions to create and approve pull requests)"
 
-echo "==> 4/4 Ruleset su main: la CI diventa un cancello, non un segnale"
-# [HARD] Senza, la CI gira ma non lega niente: un push diretto su main o un merge con il
-# check rosso arrivano in produzione al primo tag. Il required check è `ci` — unico job di
-# ci.yml, quindi un solo context copre Biome + astro check + vitest + build.
-# bypass_actors vuoto di proposito, admin inclusi: l'unica uscita d'emergenza è disattivare
-# la ruleset da Settings → Rules, che resta nell'audit log. release-please non ha bisogno di
-# bypass: apre una PR, e crea tag e release solo DOPO il merge.
+echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
+# [HARD] Without it CI runs but binds nothing: a direct push to main, or a merge with the
+# check red, reaches production at the next tag. The required check is `ci` — the only job in
+# ci.yml, so one context covers Biome + astro check + vitest + build + bundle budget.
+# bypass_actors is empty on purpose, admins included: the only emergency exit is disabling
+# the ruleset from Settings → Rules, which stays in the audit log. release-please needs no
+# bypass: it opens a PR, and cuts tag and release only AFTER the merge.
 ruleset_payload=$(cat << 'JSON'
 {
   "name": "main",
@@ -71,26 +71,26 @@ ruleset_payload=$(cat << 'JSON'
 }
 JSON
 )
-# POST creerebbe un duplicato a ogni run: se la ruleset c'è già la si aggiorna.
+# A plain POST would create a duplicate on every run: update the ruleset when it exists.
 ruleset_id=$(gh api "repos/{owner}/{repo}/rulesets" --jq '[.[] | select(.name == "main") | .id] | first // empty')
 if [ -n "$ruleset_id" ]; then
   echo "$ruleset_payload" | gh api -X PUT "repos/{owner}/{repo}/rulesets/$ruleset_id" --input - > /dev/null
-  echo "   ruleset 'main' aggiornata (id $ruleset_id)"
+  echo "   ruleset 'main' updated (id $ruleset_id)"
 else
   echo "$ruleset_payload" | gh api -X POST "repos/{owner}/{repo}/rulesets" --input - > /dev/null
-  echo "   ruleset 'main' creata"
+  echo "   ruleset 'main' created"
 fi
-echo "   da ora main accetta solo PR con check 'ci' verde — il push diretto viene rifiutato"
+echo "   from now on main only accepts PRs with a green 'ci' check — direct pushes are refused"
 
 cat << 'EOF'
 
-==> DA FARE A MANO (secret/impostazioni non automatizzabili in sicurezza qui):
+==> TO DO BY HAND (secrets/settings that cannot safely be automated here):
 
-  1. RELEASE_PLEASE_TOKEN — PAT fine-grained (contents:write + pull_requests:write).
-     Serve perché la CI giri sulle release PR (con GITHUB_TOKEN NON parte).
+  1. RELEASE_PLEASE_TOKEN — fine-grained PAT (contents:write + pull_requests:write).
+     Needed for CI to run on the release PRs (with GITHUB_TOKEN it does NOT).
        gh secret set RELEASE_PLEASE_TOKEN
 
-  2. Secret Vercel (deploy prod automatico su release):
+  2. Vercel secrets (automatic production deploy on release):
        gh secret set VERCEL_TOKEN
        gh secret set VERCEL_ORG_ID
        gh secret set VERCEL_PROJECT_ID
@@ -98,9 +98,9 @@ cat << 'EOF'
   3. Vercel → Settings → Build & Deployment → Ignored Build Step →
      "Run my Bash script" → bash scripts/vercel-ignore-build.sh
 
-  4. (Auto-deploy su release attivo) l'environment 'production' viene creato al
-     primo run del workflow; opzionale: Settings → Environments → production →
-     required reviewers, se in futuro vuoi un gate manuale sul deploy.
+  4. (With release auto-deploy active) the 'production' environment is created on
+     the workflow's first run; optional: Settings → Environments → production →
+     required reviewers, if you ever want a manual gate on the deploy.
 
 EOF
-echo "✓ Bootstrap GitHub completato."
+echo "✓ GitHub bootstrap complete."
