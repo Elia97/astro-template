@@ -1,9 +1,5 @@
 # Content collections
 
-Three archetypes (*Choosing the archetype*, next). The homepage-sections
-pattern is the worked reference for the first; the other two are documented
-here to wire the same way on demand.
-
 ## Choosing the archetype
 
 Three shapes — pick by the content's structure, not its topic.
@@ -16,9 +12,9 @@ Three shapes — pick by the content's structure, not its topic.
 - **Flat shared-schema** — many entries sharing ONE schema shape, each a full
   page/record. Read them directly (`getCollection` for the listing, `getEntry`
   for one), keyed on the file's `generateId` (the slug); no data-access layer.
-- **Document** (`document: true`) — the only form with a renderable `body`
-  (MDX/MD). Frontmatter is a flat schema like the shared-schema form; the body
-  renders via `render(entry)` → `<Content />`.
+- **Document** (`gen:collection` document mode) — the only form with a
+  renderable `body` (MDX/MD). Frontmatter is a flat schema like the
+  shared-schema form; the body renders via `render(entry)` → `<Content />`.
 
 Decision rule: reach for a **dedicated collection only when you have many
 interchangeable entries**. A fixed, one-off block on a singleton page is a
@@ -57,11 +53,10 @@ interchangeable entries**. A fixed, one-off block on a singleton page is a
   `getHomepageSections` is prerendered (`export const prerender = true`). A
   future SSR consumer would turn these throws into runtime 500s — keep
   homepage routes prerendered (see `rendering-performance.md`).
-- The collection uses a custom `generateId` (raw relative path minus
-  extension). Don't remove it: the default one slugifies segments
-  (`en-US/` → `en-us/`), honors a top-level `slug` key in the YAML and strips
-  `/index` — each of which breaks the locale filter or lets content silently
-  land in the wrong locale.
+- **Don't drop the collection's custom `generateId`** — the default one
+  slugifies segments and honors a YAML `slug` key, which lets content land
+  silently in the wrong locale (reasons pinned at the loader in
+  `src/content.config.ts`).
 - **Local-cache gotcha (verified)**: with a warm content-layer store, deleting
   a content file may NOT fail a local `pnpm run build` — the stale entry is
   served from `node_modules/.astro/data-store.json`. CI is always cold, so the
@@ -69,10 +64,6 @@ interchangeable entries**. A fixed, one-off block on a singleton page is a
   adding/removing content files, clear `node_modules/.astro` (and `.astro/`).
 
 ## Flat shared-schema collections
-
-Every entry validates against one schema; each file is a full page/record
-keyed by its `generateId` (slug). Pages read entries directly — no data-access
-layer, because there's nothing to assemble (the schema already is the shape).
 
 - Make sub-sections beyond the first and last block **optional**, so a lighter
   entry (e.g. an index page reusing only the opening block and the closing
@@ -127,9 +118,7 @@ inside. Two properties make it unit-testable:
 
 Route every consumer through **one** shared helper (listing filter, detail
 `getStaticPaths`, anything downstream) so the rule can't drift between call
-sites. That single filter is what earns *draft = 404 for free* above: the same
-check that hides a draft in the listing keeps its route out of
-`getStaticPaths`.
+sites.
 
 ## Schema-shape conventions
 

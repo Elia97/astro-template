@@ -24,15 +24,13 @@ Production ships **only from a release tag**, never from a push to `main`:
 - The job is gated on `check-vercel-secrets`: with `VERCEL_TOKEN` /
   `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` unset it emits a notice and skips — a
   fresh fork never fails CI just because it isn't connected to Vercel yet.
-- The Vercel CLI is **version-pinned** (`pnpm dlx vercel@58`) in the job and in
-  every runbook below. `pnpm dlx` without a version resolves whatever is latest
-  at release time, and Dependabot doesn't watch it — bump the major in both
-  places in the same PR.
+- The Vercel CLI is **version-pinned** (`pnpm dlx vercel@58`) in the `deploy`
+  job — Dependabot doesn't watch `pnpm dlx`, so bump it deliberately.
 
-Not configured here, worth a deliberate decision per fork: `regions` in
-`vercel.json`. The default is `iad1` (US East); a build emits a single `_render`
-function reached by `/_actions`, `/_image` and `/_server-islands`, so if the
-audience is elsewhere, pin the region near it. Prerendered pages are unaffected —
+`regions` in `vercel.json` is `fra1`, and is worth a deliberate decision per
+fork: a build emits a single `_render` function reached by `/_actions`,
+`/_image` and `/_server-islands`, so pin the region near the audience (left
+unset, Vercel defaults to `iad1`, US East). Prerendered pages are unaffected —
 static files off the CDN, whatever the function region.
 
 ## The gate chain
@@ -46,25 +44,23 @@ Four gates, each covering a moment the others don't:
 | `pnpm perf:bundle` | `ci.yml`, after the build | client JS per route |
 | `pnpm smoke:prod` | `deploy` job, after the deploy | what the edge actually serves |
 
-- One required context covers Biome + `astro check` + vitest + build + bundle
-  budget, because `ci.yml` runs all of it in a single `ci` job.
 - **`pnpm run ci` on the tag is not redundant.** `vercel build` is `astro build`:
   it type-checks nothing and runs no test.
 - **The ruleset sets `strict_required_status_checks_policy: true`** — a branch has
   to be up to date with `main` before it can merge. Without it, two PRs each green
-  against an older `main` both land and leave `main` red on their combination. That
-  is not theoretical: two dependabot PRs squashed 92 seconds apart had their
-  `pnpm-lock.yaml` auto-merged into a hybrid with a duplicated key — unparsable
-  YAML, every CI job down, and dependabot unable to run until it was fixed by hand.
-  The cost is a rebase per open PR whenever `main` moves, which is why
+  against an older `main` both land and leave `main` red on their combination. The
+  cost is a rebase per open PR whenever `main` moves, which is why
   `.github/dependabot.yml` groups each ecosystem into a single PR.
 - `perf:bundle` stays out of the `deploy` job: it reads `dist/client`, which
   `vercel build` never emits.
 
-**[HARD]** Nobody bypasses the ruleset — `bypass_actors` is empty, admins
-included. The emergency exit is disabling it in Settings → Rules, which the audit
-log records; there is no silent path around it. release-please needs no bypass:
-it opens a PR like everyone else, and cuts the tag only after the merge.
+**[HARD]** Nobody bypasses the ruleset on a client project — `bypass_actors` is
+empty, admins included; the emergency exit is disabling it in Settings → Rules,
+which the audit log records. (`ADMIN_BYPASS=1` on `scripts/bootstrap-github.sh`
+opts the admin role back in — for a repo maintained by direct pushes to `main`,
+this template's own being the case it exists for, never for a client's.)
+release-please needs no bypass: it opens a PR like everyone else, and cuts the
+tag only after the merge.
 
 ## `vercel.json` is the only place for headers, redirects and rewrites
 
@@ -86,8 +82,7 @@ wins**, so the `SAMEORIGIN` override for the BotID path has to sit *after* the
 global `DENY`.
 
 Preview deploys are noindexed by a `has: host` header rule, not by
-`src/middleware.ts`: a page with `export const prerender = true` is a static file
-and never reaches middleware. See `seo.md` § Preview deploys.
+`src/middleware.ts` — see `seo.md` § Preview deploys.
 
 ## Content-Security-Policy
 
@@ -178,8 +173,6 @@ nothing warns anyone that the two have drifted.
   instead. That fallback is silent by design on the page, but never in the log:
   a failed fetch prints to the build output — check there when a page shows the
   draft you didn't expect.
-- Whoever maintains the policy has to know this. It's a handover item, not a
-  technical control.
 
 ## After every release
 
@@ -187,10 +180,8 @@ nothing warns anyone that the two have drifted.
 the served routes, the security headers, the absence of `X-Robots-Tag` on the
 production host, and that the BotID challenge really is proxied.
 
-It hits the **apex**, not the `*.vercel.app` URL `vercel deploy` prints: on that
-host the noindex is there by construction, so the check would report the opposite
-of the truth. Pass a URL explicitly to smoke anything else:
-`pnpm smoke:prod https://…`.
+It hits the **apex**, not the `*.vercel.app` URL `vercel deploy` prints. Pass a
+URL explicitly to smoke anything else: `pnpm smoke:prod https://…`.
 
 ## Rollback
 
@@ -229,11 +220,9 @@ Production is live and broken:
   verified on a real deploy — `BOTID_ENFORCE=false` ships observe-only because a
   false positive silently costs a lead (`forms-email.md` § Abuse protection has
   the promotion path).
-- Repo secrets for the release pipeline (`gh secret set <NAME>`, or Settings →
-  Secrets and variables → Actions): `VERCEL_TOKEN`, `VERCEL_ORG_ID`,
-  `VERCEL_PROJECT_ID`, plus `RELEASE_PLEASE_TOKEN` when CI has to run on
-  release-please's own PR — with only `GITHUB_TOKEN`, GitHub's anti-recursion
-  safeguard means that PR gets no CI at all. The full list is printed by
+- Repo secrets for the release pipeline: `VERCEL_TOKEN`, `VERCEL_ORG_ID`,
+  `VERCEL_PROJECT_ID`, plus `RELEASE_PLEASE_TOKEN` — scopes and rationale in
+  `HOW_TO_USE.md` § Release secrets. The full list is printed by
   `scripts/bootstrap-github.sh` when it finishes.
 
 ## Release flow

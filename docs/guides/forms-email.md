@@ -4,10 +4,6 @@ Conventions established by the action-backed form stack — the contact form is
 the reference. Cross-ref: `ui-components.md` (Field/Select primitives), `seo.md`
 (page-level meta).
 
-The same layering carries any number of action-backed forms on **one shared
-vendor client** and **one shared submit binder**: add a form by reusing both,
-never by reinventing the submit lifecycle or the vendor transport.
-
 ## Layered architecture (one concern per module)
 
 | Layer | File | Owns |
@@ -91,9 +87,8 @@ submission that already looks human:
 2. **Rate limit** — the in-memory window above.
 3. **Bot check** — Vercel BotID Basic (free on every plan, invisible, no visible
    challenge). Three pieces that must stay in sync: the `vercel.json` rewrites
-   (same-origin proxy for the challenge script — that's what keeps ad-blockers
-   and the CSP out of the way, which is why enabling it needed no `script-src`
-   entry; guarded by `src/vercel-botid.test.ts`), `initFormBotId()`
+   (same-origin proxy for the challenge script, guarded by
+   `src/vercel-botid.test.ts`), `initFormBotId()`
    (`src/components/forms/botid.ts`) declaring `/_actions/contact`, and
    `checkBotId()` in the handler. **A path missing from the client list always
    reads as a bot server-side.**
@@ -235,12 +230,9 @@ green while the guard order or the error policy is inverted — so it's covered 
   `defineAction`. Since `resetModules` re-instantiates that stub, the thrown
   class is never the one a test file imported: assert on `type`/`code`, never
   `instanceof` (`rejectionOf` in the helper does exactly that).
-- **What the tests pin down**, i.e. what to re-check before touching the handler:
-  fail-loud only on the owner notification, autoreply and CRM upsert logged and
-  swallowed; `TOO_MANY_REQUESTS` on the sixth submission with independent windows
-  per address; the honeypot short-circuit running before the rate limit; BotID
-  off outside PROD, observe-by-default, `FORBIDDEN` when enforcing, fail-open
-  when it throws.
+- **What the tests pin down** (re-check before touching a handler): the error
+  policy and guard order above, plus `TOO_MANY_REQUESTS` on the sixth submission
+  with independent windows per address and `FORBIDDEN` when BotID enforces.
 
 ## Extending
 

@@ -71,8 +71,7 @@ Header/footer/skip-link structure comes from `src/lib/site.ts` (`SITE`): nav,
 CTA, legal links, socials. Copy is NOT there — entries carry i18n dictionary
 keys resolved via `useTranslations(Astro.currentLocale)`
 (`src/i18n/strings/<locale>.ts`). No hardcoded labels in components; internal
-links go through `localizedHref()` so they localize with the site
-(HOW_TO_USE.md → "Adding a locale").
+links go through `localizedHref()` so they localize with the site.
 
 ## Tailwind v4 idioms adopted (don't regress to v3 habits)
 
@@ -102,33 +101,24 @@ links go through `localizedHref()` so they localize with the site
   `<main id="main-content" tabindex="-1">` (tabindex is what makes real focus
   move). Hidden via `sr-only`, restored with `focus:`-prefixed utilities —
   remember `not-sr-only` resets padding, so padding must also be focus-prefixed.
-- `<html>` carries `scroll-pt-20` so anchor jumps clear the 64px sticky header.
 - Icon glyphs are `aria-hidden` with the label on the control; text-presentation
   variation selector (`&#xFE0E;`) on codepoints WebKit would render as emoji.
 - Overlay building blocks (for menus/dialogs a fork adds):
   `lib/overlay/trap-focus.ts` (`cycleFocus` — call from the container's keydown,
   Tab wraps at both ends) and `lib/overlay/scroll-lock.ts` (reference-counted
   `lockScroll`/`unlockScroll`; `resetScrollLock()` on `astro:after-swap` so locks
-  never leak across view transitions). `.focus-ring` utility for custom
-  focusables outside the ring-based form controls.
+  never leak across view transitions).
 - **Focus after a client-side navigation** (`lib/a11y/route-focus.ts`, bound once
-  in the layout). `<ClientRouter />` announces the new page through its own live
-  region, but restores focus only inside `[data-astro-transition-persist]`
-  subtrees — the template has none, so the swap destroys the focused node and
-  focus falls back to `<body>`: every keyboard and screen-reader user restarts
-  from the top of the document on every navigation (WCAG 2.4.3). The binder moves
-  focus to `<main>` on `astro:after-swap`, skipping the case where the URL
-  carries a hash (the anchor is where the user asked to land). Deliberately not
-  `createMotionBinding`: that factory also runs on the first script execution,
-  and stealing focus on a cold load is its own bug.
+  in the layout). `<ClientRouter />` restores focus only inside
+  `[data-astro-transition-persist]` subtrees and the template has none, so without
+  this every navigation drops focus to `<body>` (WCAG 2.4.3). The hash exception
+  and why it is not `createMotionBinding` are documented at the binder.
 
 ## Named view transitions (when a fork adds them)
 
 The template ships `<ClientRouter />` with its default cross-fade and **no named
-groups** — that default is clean on its own, and pages with no shared element
-between them need nothing more. What follows is the shape that works once a fork
-starts naming elements, because each rule below is a failure that is easier to
-inherit than to rediscover.
+groups**. Once a fork starts naming elements, each rule below is a failure that is
+easier to inherit than to rediscover.
 
 **Surfaces and text are two behaviours, not one.**
 
@@ -191,14 +181,10 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
 - New primitives follow the same recipe; keep variant strings on semantic
   tokens only (never raw palette values) and `focus-visible:outline-hidden`
   (see the idioms above).
-- Layout lives in two primitives, never hand-written: `Container` (Tailwind's
-  `container` utility — breakpoint-snapped width so every section aligns
-  vertically; auto centering + responsive gutter are added once via
-  `@utility container` in globals.css) and `Section` (vertical rhythm,
-  `spacing` none/compact/default/spacious, semantic `<section>`). Page sections
-  compose `<Section><Container>…</Container></Section>`; generator templates
-  must emit this shape. Rare narrower blocks nest an inner
-  `mx-auto max-w-*` wrapper inside Container instead of changing its width.
+- Layout lives in `Container` + `Section` only, never hand-written: page sections
+  compose `<Section><Container>…</Container></Section>` and generator templates
+  must emit that shape. Both primitives document the width/rhythm rationale and
+  the rare narrower block's nested `max-w-*` escape hatch in their own headers.
 - Button sizes are one t-shirt scale, `sm/md/lg/xl` plus square `icon-*`
   twins (`md` is the default — no `default` size key; variant names DO keep
   shadcn's `default`). Beyond the shadcn set: `variant="soft"` is a low-emphasis
@@ -208,11 +194,8 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
 - Form fields compose the `Field` compound (`ui/field/`: `Field` +
   `FieldLabel` + `FieldContent` + `FieldError`, vertical/horizontal
   orientation) around the flat controls (`input.astro`, `textarea.astro`,
-  `select.astro`). `FieldError` is the only part with behaviour attached: it
-  renders an empty `[data-field-error]` slot that the submit binder fills, and
-  the control points at it with a static `aria-describedby` — see
-  `forms-email.md` § Validation surface for the contract and the test that
-  guards it.
+  `select.astro`). `FieldError` is the only part with behaviour attached — see
+  `forms-email.md` § Validation surface for its contract and the test guarding it.
 - `Select` is the reference progressive-enhancement primitive: the native
   `<select>` renders first and stays the form-facing source of truth; the
   script layer (`select-behavior.ts`) swaps in a styled trigger + listbox
@@ -225,13 +208,10 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
   `stroke-width={1}`, size via Tailwind (`size-4`/`size-5`), `aria-hidden` by
   default with the accessible label on the control.
 
-No React in the base scaffold. If a fork needs a genuinely stateful component
-(Dialog, Calendar, …), see the islands gotchas in `ARCHITECTURE.md`.
+If a fork needs a genuinely stateful component (Dialog, Calendar, …), see the
+islands gotchas in `ARCHITECTURE.md`.
 
 ## Page-section layout patterns
-
-Patterns for opinionated page sections (heroes, banners, footers, feature grids),
-reusable across pages — distinct from the unopinionated `ui/` primitives above.
 
 ### Full-bleed bands — break out of `Container`
 
@@ -263,8 +243,7 @@ reach for a shell precisely when the structure is fixed and shared, for a compou
 never substitute a generic fallback icon — and put the accessible label on the
 enclosing link (`aria-label`), not on the `aria-hidden` glyph. Each network needs its
 own path; don't share one placeholder across networks. Host it in a
-`<Button as="a" variant="soft" size="icon-*">` slot rather than a hand-built `<a>`:
-`soft` carries no text color, so the glyph inherits `currentColor`.
+`<Button as="a" variant="soft" size="icon-*">` slot rather than a hand-built `<a>`.
 
 ### Presentational shells — content or backend still pending
 
@@ -287,10 +266,9 @@ mobile columns keep their natural flow.
 
 ### Accessible disclosure (expandable cards)
 
-Recipe for an expandable card — or a grid of them — that toggles a collapsed summary
-against expanded detail, vanilla and no framework. Use `aria-expanded` (this is a
-disclosure), NOT `aria-pressed` (that's a toggle-button state). When several may be
-open at once, each toggle is its own tab stop — no roving tabindex.
+Vanilla, no framework. Use `aria-expanded` (this is a disclosure), NOT
+`aria-pressed` (that's a toggle-button state). When several may be open at once,
+each toggle is its own tab stop — no roving tabindex.
 
 - **Don't wrap a semantic card in a `<button>`.** A button flattens its subtree
   (descendants go presentational), so an inner `<h3>`, role and text lose their

@@ -2,9 +2,6 @@
 
 ## Rendering policy
 
-- `output: 'server'` — pages are SSR by default. Pages that don't depend on
-  per-request data opt into static rendering with an explicit
-  `export const prerender = true` in the frontmatter (the homepage does).
 - View transitions are on: `<ClientRouter />` in the layout's `<head>` (that's
   the documented placement — it emits meta tags). Consequences for scripts:
   inline scripts don't re-run on navigation (listen to `astro:after-swap`, as
@@ -35,9 +32,6 @@ the route's budget. Exit code 1 fails the job.
 - **SSR pages are outside the budget** by construction (no HTML to measure) and
   are listed in a `NOTE` at the end of the report, not counted as failures.
 
-The pure logic lives in `scripts/lib/bundle-budget.ts` and is unit-tested; the
-script itself keeps the filesystem, the gzip sizing and the exit code.
-
 ### What the budget does not see
 
 It measures emitted chunks, so anything that never becomes one is invisible to
@@ -60,12 +54,9 @@ script that pulls a heavy library in with it. A module-level call like
 `z.string()` is **not** tree-shakeable — importing a single constant from that
 file ships the whole library.
 
-The worked example is the honeypot, deliberately split in two:
-`src/lib/forms/honeypot.ts` holds the constant and the predicate and imports nothing;
-`src/lib/forms/honeypot-schema.ts` holds the zod shape. The form behaviour imports
-only the first. Merging them back together was measured: `/contatti` goes from
-9.8 to 22.1 KB gz and fails the budget, because all of Zod (~12 KB gz) lands on
-every page carrying a form.
+The worked example is the honeypot, split across `src/lib/forms/honeypot.ts`
+(constant + predicate, zero imports) and `honeypot-schema.ts` (the zod shape).
+Merging them back was measured: `/contatti` 9.8 → 22.1 KB gz, budget failed.
 
 The rule that follows: **a module a client script imports may hold constants,
 types and pure functions, but no module-level call into a dependency.** When a
@@ -99,11 +90,8 @@ a project without tracking emits none at all. Rules for adding more:
 
 ## Motion system (`src/lib/motion/`)
 
-- Module layout: `index.ts` is the barrel and the ONLY import point for
-  consumers (`@/lib/motion`); internals live in leaf modules — `binding.ts`
-  (bind-once factory), `media-queries.ts` (environment guards), `reveal.ts`
-  (reveal-on-scroll setup). Internal modules import siblings directly, never
-  the barrel (cycle risk).
+- `index.ts` is the ONLY import point for consumers (`@/lib/motion`); internal
+  modules import siblings directly, never the barrel (cycle risk).
 - **[HARD]** `prefers-reduced-motion: reduce` disables ALL motion. The guards
   (`prefersReducedMotion()`, `isDesktopViewport()`, `hasFinePointer()`) are
   SSR-safe; `prefersReducedMotion()` is the first line of every motion setup.
@@ -127,16 +115,9 @@ a project without tracking emits none at all. Rules for adding more:
   is set pre-paint by `src/components/head/js-flag.astro`, deliberately separate
   from the theme script) and `@media (prefers-reduced-motion: no-preference)`
   (reduced → static).
-- Cascade variant without the wrapper component: `data-reveal-stagger` on any
-  container + `style="--i: {index}"` on each child transitions the children in
-  sequence; `--reveal-stagger` overrides the 0.08s step. Same double gate, same
-  observers (the container gets `data-reveal-ready`, children inherit delays).
 - Two observers: the primary uses `rootMargin '0px 0px -15% 0px'`; elements that
   can never cross that shrunk boundary (bottom ~15% of the page at max scroll)
   go to a no-margin fallback — without it they'd stay hidden forever.
-- A `matchMedia` change listener re-arms reveals if the user turns
-  reduced-motion off mid-session (the CSS gate starts hiding content that no
-  observer would ever reveal).
 - Extending motion: build on `createMotionBinding` + the guards; keep the CSS
   initial state gated the same way. No animation library in the base scaffold.
 
@@ -144,19 +125,17 @@ a project without tracking emits none at all. Rules for adding more:
 
 - A **one-shot** effect (a reveal) is irreversible once it fires: its
   `prefers-reduced-motion` change listener only needs to gate *future* setups —
-  don't arm reveals that haven't happened yet.
+  don't arm reveals that haven't happened yet. It must still re-arm them when
+  "reduce" goes off mid-session, or the CSS gate hides content no observer will
+  ever reveal.
 - An **ongoing/live** effect (scroll pinning, parallax, a running rAF loop) needs
   a **bidirectional** reduced-motion gate: the change listener tears the effect
   down live if the user switches "reduce" on mid-session, and re-wires it if
   switched off — not just a gate on future setups. **[HARD]** "reduce" disables
   ALL motion, including motion already running.
-- Both use the same `createMotionBinding(setup, cleanup)` contract: `setup` stays
-  idempotent (it can run twice on a cold load); `cleanup` on `astro:before-swap`
-  destroys any instances the third-party library created (observers, rAF loops,
-  scroll controllers) before the DOM swap, or they leak across navigations.
-- **Bundle budget**: heavy animation/scroll libraries stay confined to the bundle
-  of the page that uses them — never imported into the global/critical bundle.
-  None ships in the base scaffold.
+- `cleanup` must destroy whatever the third-party library created (observers, rAF
+  loops, scroll controllers) — the binding contract guarantees cleanup runs, not
+  that the library tore itself down.
 - **Testing**: when an effect depends on real layout/rAF/geometry (which
   happy-dom can't provide), mock the third-party library rather than internal
   modules and assert the lifecycle contract against call counts — created on

@@ -81,11 +81,6 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
   the browser chrome and the page disagree at the seam. It's hex, not oklch:
   `<meta name="theme-color">` is parsed by the browser UI layer, where support
   is narrower than in CSS.
-- **The two theme-color metas ship with a `prefers-color-scheme` media query**,
-  which is the right no-JS default but ignores the theme toggle.
-  `head/theme-script.astro` flips their `media` between `all` and `not all` so the
-  chrome follows the theme actually applied. Drop that and the mismatch is
-  visible the moment someone switches theme.
 
 ## Sitemap & robots
 
@@ -97,24 +92,16 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
 - `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
   reads its disallow list from `crawl-policy.ts`: per-response indexing control
   does NOT belong there (crawlers cache robots.txt).
-- **`src/lib/seo/crawl-policy.ts` is the single source of truth.** It has two lists
-  and they mean different things:
-  - `ROBOTS_DISALLOWED_PATHS` — blocked at the crawler, for thin or duplicate
-    pages with no search value. The page is never fetched.
-  - `NOINDEX_PATHS` — crawlable but kept out of the index. The page still has to
-    pass `noindex` to the layout: **the meta tag is what carries the signal**,
-    and it is the only mechanism that works on a prerendered page.
-  Both feed `SITEMAP_EXCLUDED_PATHS`, so the sitemap `filter` needs no separate
-  list. A robots-blocked URL still in the sitemap is a Search Console warning —
-  the crawler is told to fetch what it is also told not to read.
-  Both ship **empty**: whether a fork's legal pages belong in search is its call.
-- **Matching is by subtree, and has to stay that way.** A listed path covers
-  everything under it: `/area-riservata` also covers `/area-riservata/documenti`,
-  with or without a trailing slash. The lists name *sections*, and the children
-  are the part that leaks — an exact match would apply the rule to the one path
-  someone spot-checks and to nothing below it, silently. Both lists ship empty,
-  so `matchesSubtree` is exported and tested directly: that is the only place the
-  rule can be held to its contract before a fork adds its first path.
+- **`src/lib/seo/crawl-policy.ts` is the single source of truth**, feeding
+  `robots.txt`, the sitemap `filter` and the middleware. Two lists:
+  `ROBOTS_DISALLOWED_PATHS` (blocked at the crawler, never fetched) and
+  `NOINDEX_PATHS` (crawlable, kept out of the index — the page still has to pass
+  `noindex` to the layout: **the meta tag is what carries the signal**, and the
+  only mechanism that works on a prerendered page). Both feed
+  `SITEMAP_EXCLUDED_PATHS`, both ship empty, and matching is by subtree and has
+  to stay that way — `/area-riservata` covers `/area-riservata/documenti`. An
+  exact match would leave every child indexable while nothing fails, which is
+  why `matchesSubtree` carries a `[HARD]` note.
 - `X-Robots-Tag` from `src/middleware.ts` also reads `NOINDEX_PATHS`, but only
   ever reaches a **non-HTML SSR response** (a generated feed, a JSON endpoint)
   where no meta tag can exist. It does not run for a prerendered page.

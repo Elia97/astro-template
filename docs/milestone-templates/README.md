@@ -1,10 +1,7 @@
 # Milestone templates
 
-Reusable milestone blueprints — versioned, portable across every project forked
-from this template. Same "stable, reusable" status `CLAUDE.md` already gives
-`docs/guides/*.md`. Consumed by `/milestone <template-name>` (see
-`.claude/commands/milestone.md`), which turns one of these into a native GitHub
-Milestone plus one issue per sub-task.
+Reusable milestone blueprints, consumed by `/milestone <template-name>`
+(`.claude/commands/milestone.md`).
 
 ## File format
 
