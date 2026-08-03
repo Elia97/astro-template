@@ -1,6 +1,4 @@
-// Shared fixtures for the action-handler tests (src/actions/*.test.ts, covering
-// src/actions/index.ts). The vendor and BotID mocks live here so each test file
-// only has to register them:
+// The vendor and BotID mocks live here; each test file has to register them itself:
 //   vi.mock('@/lib/vendor/brevo', () => brevoMock)
 //   vi.mock('botid/server', () => botidMock)
 import { vi } from 'vitest'

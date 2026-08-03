@@ -42,11 +42,8 @@
     }
   }
 
-  // On first load this script runs in <head> before the rest of the document
-  // exists: no [data-theme-toggle] yet, and no theme-color metas either — those
-  // ship in head/icons.astro, which the parser hasn't reached. Both syncs have
-  // to run again once the DOM is there, or the browser chrome keeps following
-  // the system preference instead of the applied theme.
+  // First load: this runs in <head> before the toggles and the theme-color
+  // metas exist, so both syncs must run again once the DOM is there.
   function syncFromDom() {
     syncThemeToggles()
     syncThemeColor(document.documentElement.classList.contains('dark'))

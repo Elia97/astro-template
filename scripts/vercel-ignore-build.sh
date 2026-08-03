@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
-# Vercel "Ignored Build Step".
-#
-# Production ships ONLY from the `deploy` job in .github/workflows/release-please.yml
-# (on the release tag), never from Vercel's git integration. Hence:
-#   - SKIP the build (exit 0) on `main` and on the internal `release-please--*` branches
-#   - PROCEED with the build (exit 1) on every other branch → preview deployment
-#
-# Configure it in Vercel: Settings → Build & Deployment → Ignored Build Step →
-# "Run my Bash script" → `bash scripts/vercel-ignore-build.sh`.
+# Vercel "Ignored Build Step" — production ships ONLY from the `deploy` job in
+# .github/workflows/release-please.yml (on the release tag), never from Vercel's git
+# integration. Vercel's contract is inverted: exit 0 SKIPS the build, exit 1 proceeds.
 set -euo pipefail
 
 branch="${VERCEL_GIT_COMMIT_REF:-}"

@@ -1,7 +1,4 @@
-// Generator: new homepage section — schema + YAML + component, then injection
-// into the three hook points (union, data layer, index.astro markers).
-// Neutral/generic output. No image() option yet: no real image section exists
-// to derive it from (same reasoning the plan applies to form/motion-effect).
+// No image() option yet: no real image section exists to derive it from.
 import { isValidIdentifier } from './identifier.mjs'
 import { assertSectionInjectable, injectSection } from './inject-section.mjs'
 import { postGenAction } from './post-gen.mjs'
@@ -27,8 +24,6 @@ export default function sectionGenerator(plop) {
       },
     ],
     actions: [
-      // Pre-flight FIRST: all three hook points and every collision are
-      // asserted before any file is written.
       (a, _config, api) => {
         assertSectionInjectable({
           root,

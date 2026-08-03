@@ -27,8 +27,7 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 {
   config && (
     <>
-      {/* Resource hints, split by gate — see docs/guides/rendering-performance.md
-          § Resource hints.
+      {/* Resource hints, split by gate.
 
           [HARD] dns-prefetch, never preconnect, for googletagmanager: preconnect
           opens TCP+TLS, which sends SNI and the visitor's IP to Google BEFORE
@@ -37,10 +36,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 
           iubenda is different: the CMP loads on every page by definition,
           pre-consent, so warming the connection costs nothing that isn't spent
-          anyway. Its preconnect is paired with a dns-prefetch as a fallback for
-          browsers that ignore the former; those honouring both drop the dupe.
-          No `crossorigin` on either: these load as plain scripts, and an
-          anonymous connection wouldn't be reused. */}
+          anyway. No `crossorigin` on either: these load as plain scripts, and
+          an anonymous connection wouldn't be reused. */}
       <link rel="preconnect" href="https://cdn.iubenda.com" />
       <link rel="dns-prefetch" href="https://cdn.iubenda.com" />
       <link rel="dns-prefetch" href="https://cs.iubenda.com" />
@@ -71,9 +68,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
         gtag('set', 'url_passthrough', true)
       </script>
 
-      {/* Plain data, no logic: the bootstraps below are real modules — bundled,
-          typed and tested — and read their configuration off the window. This
-          inline block is the only seam where server-resolved env reaches them. */}
+      {/* The only seam where server-resolved env reaches the bundled bootstraps
+          below — plain data, no logic. */}
       <script
         is:inline
         define:vars={{

@@ -10,10 +10,9 @@ import {
   SITEMAP_EXCLUDED_PATHS,
 } from '@/lib/seo/crawl-policy'
 
-// @astrojs/sitemap hands the filter absolute URLs built from the emitted routes,
-// which carry a trailing slash regardless of `trailingSlash: 'never'`. The lists
-// are written the way a person writes a path, so the normalizer is where the two
-// conventions meet — and the only place in this module a bug can hide.
+// The normalizer is the only place in this module where a bug can hide: the
+// lists are written as a person writes a path, while @astrojs/sitemap hands over
+// absolute URLs with a trailing slash regardless of `trailingSlash: 'never'`.
 describe('crawlPathname', () => {
   it('takes the pathname out of an absolute sitemap entry', () => {
     expect(crawlPathname('https://example.com/privacy')).toBe('/privacy')
@@ -96,9 +95,8 @@ describe('isExcludedFromSitemap', () => {
     }
   })
 
-  // The template ships both lists empty, so this is what the filter does today:
-  // nothing. It is still worth pinning — a stray entry landing in either list
-  // would silently drop a page out of the sitemap.
+  // A stray entry landing in either list would silently drop a page out of the
+  // sitemap.
   it('lets through anything not listed', () => {
     for (const url of ['https://example.com/', 'https://example.com/contatti', 'https://example.com/privacy/']) {
       expect(isExcludedFromSitemap(url), url).toBe(matchesSubtree(crawlPathname(url), SITEMAP_EXCLUDED_PATHS))

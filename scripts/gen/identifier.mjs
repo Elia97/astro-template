@@ -1,7 +1,6 @@
-// Shared identifier validation for the code generators (gen:collection,
-// gen:section): a generated const/schema name must be a valid ASCII JS
-// identifier and not a reserved word, else it produces a syntactically broken
-// content.config.ts / schema.
+// A generated const/schema name must be a valid ASCII JS identifier and not a
+// reserved word, else the generator leaves a syntactically broken
+// content.config.ts / schema on disk.
 const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
 const RESERVED = new Set([

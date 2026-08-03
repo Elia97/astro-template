@@ -49,8 +49,6 @@ describe('web manifest', () => {
 })
 
 describe('SITE.themeColor', () => {
-  // A `<meta name="theme-color">` is parsed by the browser UI layer, where
-  // oklch support is narrower than in CSS — hex is the portable form.
   it('is hex on both themes', () => {
     expect(SITE.themeColor.light).toMatch(/^#[0-9a-f]{6}$/)
     expect(SITE.themeColor.dark).toMatch(/^#[0-9a-f]{6}$/)

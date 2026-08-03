@@ -1,11 +1,7 @@
 #!/usr/bin/env node
-// Runtime smoke test against the live production host. The `deploy` job in
-// .github/workflows/release-please.yml runs it right after `vercel deploy --prod`
-// and fails on it; run it by hand (`pnpm smoke:prod [url]`) after a rollback.
-//
-// This is the runtime half of what src/vercel-*.test.ts checks declaratively:
-// those pin what vercel.json SAYS, this one is the only place that sees what the
-// edge actually serves.
+// Runtime smoke against the live production host — the only check that sees
+// what the edge actually serves, where src/vercel-*.test.ts only pins what
+// vercel.json says. Run it by hand after a rollback: `pnpm smoke:prod [url]`.
 
 import process from 'node:process'
 
@@ -23,8 +19,7 @@ if (process.argv[2] === undefined && new URL(SITE.url).host === 'example.com') {
 
 const PAGES = [
   { path: '/', type: 'text/html' },
-  // Prerendered like every other page, but past the home: covers a route served
-  // off the CDN from a nested path rather than the root.
+  // Not the root: a prerendered route served off the CDN from a nested path.
   { path: '/contatti', type: 'text/html' },
   { path: '/robots.txt', type: 'text/plain' },
   { path: '/sitemap-index.xml', type: 'xml' },
@@ -42,8 +37,7 @@ const SECURITY_HEADERS = {
   'permissions-policy': null,
 }
 
-// Same-origin proxy for the BotID challenge. The declarative test pins the
-// rewrite; only a live request shows whether the edge honours it.
+// Same-origin proxy for the BotID challenge.
 const BOTID_CHALLENGE = '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js'
 
 const failures = []

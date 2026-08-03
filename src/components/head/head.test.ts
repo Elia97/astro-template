@@ -3,11 +3,10 @@ import { describe, expect, it } from 'vitest'
 
 import Head from './head.astro'
 
-// Markup contract of the head, as opposed to head-seo.test.ts, which covers the
-// pure URL/meta resolution behind it. The `noindex` prop is the reason this file
-// exists: it is the ONLY per-path noindex that reaches a prerendered page
-// (src/middleware.ts can't — see the note there), and nothing else would catch
-// the tag silently disappearing.
+// Markup contract of the head (./seo.test.ts covers the URL/meta resolution
+// behind it). The `noindex` prop is why this file exists: it is the ONLY
+// per-path noindex that reaches a prerendered page (src/middleware.ts can't),
+// and nothing else would catch the tag silently disappearing.
 
 const props = { title: 'Page title', description: 'Page description' }
 

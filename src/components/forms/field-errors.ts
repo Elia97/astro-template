@@ -31,9 +31,8 @@ export function clearFieldErrors(form: HTMLFormElement): void {
 }
 
 /**
- * Maps each `error.fields` entry onto its own slot. The honeypot is dropped
- * rather than reported: surfacing its error would tell a bot which field gave
- * it away (docs/guides/forms-email.md § Abuse protection).
+ * The honeypot is dropped rather than reported: surfacing its error would tell
+ * a bot which field gave it away.
  */
 export function applyFieldErrors(
   form: HTMLFormElement,

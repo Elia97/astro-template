@@ -42,8 +42,7 @@ describe('applyFieldErrors', () => {
     expect(control('message')?.hasAttribute('aria-invalid')).toBe(false)
   })
 
-  // Reporting it would tell a bot which field gave it away — the whole point of
-  // the decoy is that a filled submission looks like it succeeded.
+  // Reporting it would tell a bot which field gave it away.
   it('never surfaces a honeypot error, in a slot or form-level', () => {
     const result = applyFieldErrors(form, { [HONEYPOT_FIELD]: ['Campo non valido'] })
     expect(result).toEqual({ matched: false, unmatched: [] })

@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# Bootstrap GitHub — the prerequisites config files do NOT cover.
-# Run it once after creating the repo on GitHub, from inside the repo, with `gh`
-# authenticated (gh auth status).
-#
-#   bash scripts/bootstrap-github.sh
-#
-# Idempotent: re-run it whenever (`--force` on the labels, PUT on the ruleset
-# when it already exists).
+# Bootstrap GitHub — the prerequisites config files do NOT cover. Run it once after creating
+# the repo on GitHub, from inside it, with `gh` authenticated (gh auth status). Idempotent:
+# re-run it whenever.
 set -euo pipefail
 
 echo "==> 1/4 Dependabot labels (without them every dependabot PR logs 'label could not be found')"

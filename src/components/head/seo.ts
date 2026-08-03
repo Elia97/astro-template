@@ -1,6 +1,5 @@
 // Pure SEO-meta resolution for head.astro — no Astro component context, so
-// canonical/hreflang policy is unit-testable (head-seo.test.ts). URL policy
-// notes live in docs/guides/seo.md.
+// canonical/hreflang policy is unit-testable (./seo.test.ts).
 import { i18n } from 'astro:config/client'
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
 

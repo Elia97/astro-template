@@ -1,9 +1,6 @@
 ---
-// Centralized head: single place for title/meta/canonical/OG/Twitter/JSON-LD.
 // The layout (`@/layouts/main.astro`) forwards SEO props here; pages talk to
-// the layout, never to this component directly. Thin orchestrator: URL/meta
-// resolution is pure (./head-seo.ts), rendering is split per concern
-// (./head-{alternates,og,twitter,json-ld}.astro).
+// the layout, never to this component directly.
 import HeadAlternates from './alternates.astro'
 import HeadIcons from './icons.astro'
 import HeadJsonLd from './json-ld.astro'

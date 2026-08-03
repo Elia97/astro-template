@@ -32,8 +32,7 @@ function header(key: string): string {
   return entry.value
 }
 
-// Parsed once: the assertions are about policy, not about the order or the
-// spacing of one long string.
+// Assertions are about policy, not the order or spacing of one long string.
 const directives = new Map(
   header('Content-Security-Policy')
     .split(';')
@@ -109,9 +108,7 @@ describe('Content-Security-Policy', () => {
   // `'unsafe-inline'` above is load-bearing, not an oversight: the theme script
   // has to run before first paint to avoid a flash, so it cannot be an external
   // module, and Astro emits its own inline block too. The upgrade path is
-  // per-page SHA-256 hashes computed at build time, which also lets
-  // `'unsafe-inline'` be dropped — until then this test states the trade-off
-  // rather than leaving it implicit.
+  // per-page SHA-256 hashes computed at build time.
   it('still refuses eval, which no inline script here needs', () => {
     expect(sources('script-src')).not.toContain("'unsafe-eval'")
   })

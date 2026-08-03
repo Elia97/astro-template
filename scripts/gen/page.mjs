@@ -4,7 +4,6 @@
 // src/pages/legal/privacy.astro).
 import { postGenAction } from './post-gen.mjs'
 
-/** '/'-separated input → dash-cased segments; empty segments dropped. */
 function pathSegments(plop, value) {
   const dash = plop.getHelper('dashCase')
   return String(value)

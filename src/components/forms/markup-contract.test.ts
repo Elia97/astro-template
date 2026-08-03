@@ -17,9 +17,8 @@ import { fieldErrorId } from './field-errors'
 // Rendered, not grepped: the slot names only exist for real once the components
 // have run, and a wrong `aria-describedby` is invisible in the source.
 
-// Declared exclusions, never implicit:
-// - the honeypot is a decoy, and a slot would tell a bot which field it is;
-//   applyFieldErrors drops its errors for the same reason.
+// Declared exclusions, never implicit: a slot would tell a bot which field the
+// decoy is.
 const WITHOUT_SLOT: readonly string[] = [HONEYPOT_FIELD]
 
 const expectedFields = Object.keys(contactSchema.shape).filter((field) => !WITHOUT_SLOT.includes(field))

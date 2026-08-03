@@ -9,7 +9,7 @@ export const SITE = {
   url: 'https://example.com',
   description: '<DESCRIPTION>',
   defaultOgImage: '/og-default.png',
-  // Browser-chrome colour per theme (head-icons.astro) and the manifest's
+  // Browser-chrome colour per theme (head/icons.astro) and the manifest's
   // background/theme colour. ⚠️ Keep equal to `--background` in
   // styles/light.css / dark.css, or the chrome and the page disagree at the
   // seam. Hex, not oklch: a `<meta name="theme-color">` is parsed by the browser
@@ -25,7 +25,6 @@ export const SITE = {
     { key: 'nav.home', href: '/' },
     { key: 'nav.contact', href: '/contatti' },
   ],
-  // Header primary CTA.
   cta: { key: 'nav.cta', href: '/contatti' },
   // Legal links (universal for EU sites).
   legal: [

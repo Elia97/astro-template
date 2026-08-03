@@ -28,8 +28,6 @@ function focusMain(): void {
 let bound = false
 
 /**
- * Binds the post-swap focus reset.
- *
  * - Deliberately NOT `createMotionBinding`: that factory also runs `setup()` on
  *   the first <script> execution, and stealing focus on a cold load is a bug —
  *   the user hasn't navigated anywhere yet.

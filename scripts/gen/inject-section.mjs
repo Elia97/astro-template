@@ -1,15 +1,8 @@
-// Injection for gen:section — AST (ts-morph) on the two .ts hook points,
-// marker-splice on index.astro (ts-morph can't parse .astro files).
-//
-// CONTRACT (see docs/guides/content-collections.md), three hook points:
-//   1. src/lib/schemas/homepage/index.ts — the z.discriminatedUnion call
-//      inside the homepageCollectionSchema function
-//   2. src/lib/homepage.ts — getHomepageSections's return object literal
-//   3. src/pages/index.astro — the `// @gen:home-imports` and
-//      `{/* @gen:home-sections */}` markers (insertion goes ABOVE the marker:
-//      Biome's organizeImports would otherwise adopt and relocate it)
-// Every lookup that can fail throws a DESCRIPTIVE error — a broken or renamed
-// hook point must abort the generator, never silently no-op.
+// Injection for gen:section — ts-morph on the two .ts hook points, marker splice on
+// src/pages/index.astro (ts-morph can't parse .astro). Insertion goes ABOVE each marker:
+// below it, Biome's organizeImports adopts the marker as leading trivia of the new import
+// and relocates it into the sorted block. Every lookup that can fail throws a DESCRIPTIVE
+// error — a broken or renamed hook point must abort the generator, never silently no-op.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Project, SyntaxKind } from 'ts-morph'
 
@@ -76,11 +69,8 @@ function readIndexPage(root) {
   return src
 }
 
-/**
- * Pre-flight: assert all three hook points and every collision (including the
- * identifiers the injection will introduce) WITHOUT touching anything.
- * Called as the generator's first action, before any file is written.
- */
+/** Pre-flight: assert all three hook points and every collision — including the
+ *  identifiers the injection will introduce — WITHOUT touching anything. */
 export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   const project = new Project()
   const { barrel, union } = locateUnionArray(project, root)

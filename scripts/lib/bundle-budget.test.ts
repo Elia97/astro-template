@@ -26,9 +26,7 @@ describe('parseEdges', () => {
     expect([...edges.dynamic].sort()).toEqual(['c.js', 'd.js'])
   })
 
-  // The distinction the whole budget rests on: counting a deferred chunk as
-  // static would report a page as heavier than it is, and — worse — the reverse
-  // mistake would hide a library sitting on the critical path.
+  // Getting this backwards would hide a library sitting on the critical path.
   it('does not count a dynamic import as a static edge', () => {
     expect([...parseEdges('await import("./heavy.abc.js")').static]).toEqual([])
   })
@@ -96,7 +94,6 @@ describe('expectedRoutes', () => {
     expect(expected.patterns[0]?.pattern.test('/blog/a/b')).toBe(false)
   })
 
-  // The regex is line-anchored precisely so this file doesn't read as prerendered.
   it('ignores the word prerender inside prose', () => {
     const source = '// this page is intentionally not prerender = true\n'
     expect(expectedRoutes([{ file: 'src/pages/x.astro', source }], 'src/pages').ssr).toEqual(['src/pages/x.astro'])

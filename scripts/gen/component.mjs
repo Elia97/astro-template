@@ -1,6 +1,4 @@
-// Generator: new native Astro component following the ui-primitives recipe
-// (cva variants + cn(), see docs/guides/ui-components.md). No .tsx island
-// option: the base scaffold has no React runtime to generate against.
+// No .tsx island option: the base scaffold has no React runtime to generate against.
 import { postGenAction } from './post-gen.mjs'
 
 // The template emits `export const {{camelCase name}}Variants`, so the

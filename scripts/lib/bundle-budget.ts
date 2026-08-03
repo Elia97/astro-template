@@ -1,6 +1,5 @@
-// Pure logic behind scripts/bundle-budget.mjs — see docs/guides/rendering-performance.md
-// § Bundle budget. Data in, data out: the filesystem, the gzip sizing, the report
-// and the exit code stay in the script, so everything here is unit-testable.
+// Data in, data out: the filesystem, the gzip sizing, the report and the exit code
+// stay in scripts/bundle-budget.mjs, so everything here is unit-testable.
 
 export type Chunk = { gzip: number; static: Set<string>; dynamic: Set<string> }
 
@@ -14,16 +13,10 @@ export type Expectations = {
   ssr: string[]
 }
 
-// Budgets are on the STATIC closure only — what the page has to parse before it
-// can interact — and in gzip bytes, the same unit as the report. First match
-// wins. The starter's heaviest route is /contatti at ~10 KB gz (ClientRouter +
-// mobile-nav + the contact form), so 20 KB leaves room for another component
-// script but not for a library. That is what this catches: a dependency entering
-// the critical path, not single KBs.
-//
-// A route class that legitimately costs more goes IN FRONT of the default with
-// its own `matches` — e.g. the pages that mount an animation library:
-//   { label: 'motion', matches: (route) => route === '/', maxGzip: 74 * 1024 },
+// STATIC closure only — what the page parses before it can interact — in gzip bytes,
+// first match wins. Sized to catch a dependency entering the critical path, not single
+// KBs: the starter's heaviest route is /contatti at ~10 KB gz. A route class that
+// legitimately costs more goes IN FRONT of the default with its own `matches`.
 const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip: 20 * 1024 }
 
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]

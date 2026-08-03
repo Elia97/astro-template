@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-// Bundle budget gate over dist/client — see docs/guides/rendering-performance.md
-// § Bundle budget. Run after `astro build`; CI runs it on every PR. The pure
-// logic (edges, closures, budgets, expected routes) lives in
-// ./lib/bundle-budget.ts, which is what the unit tests exercise.
+// Bundle budget gate over dist/client — run after `astro build`. The pure logic
+// lives in ./lib/bundle-budget.ts, which is what the unit tests exercise.
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -33,7 +31,6 @@ function walk(dir, extension) {
   })
 }
 
-/** Every emitted chunk with its size and its static/dynamic edges. */
 function readChunks() {
   const chunks = new Map()
   for (const name of readdirSync(ASSETS).filter((f) => f.endsWith('.js'))) {

@@ -1,7 +1,6 @@
 // Single source of truth for the paths kept out of search, read by robots.txt,
 // the sitemap filter and the middleware. Adding a path here propagates to all
-// three; before this module each of them carried its own copy and a comment
-// asking you to keep them in sync by hand.
+// three.
 //
 // [HARD] Keep it import-free. astro.config.mjs loads before Vite resolves the
 // `@/` alias, so only modules with no imports are reachable from there — the
@@ -56,8 +55,6 @@ export function isExcludedFromSitemap(url: string): boolean {
   return matchesSubtree(url, SITEMAP_EXCLUDED_PATHS)
 }
 
-/** The middleware's half of the same policy — see the note in src/middleware.ts
- *  for why it only ever reaches non-HTML SSR responses. */
 export function isNoindexPath(pathname: string): boolean {
   return matchesSubtree(pathname, NOINDEX_PATHS)
 }

@@ -1,7 +1,3 @@
-// Generator: new content collection (YAML data, or MD documents with a
-// renderable body) + AST injection into content.config.ts (import +
-// defineCollection + entry in `collections`), failing loud on any broken
-// hook point.
 import { isValidIdentifier } from './identifier.mjs'
 import { assertInjectable, injectCollection } from './inject-config.mjs'
 import { postGenAction } from './post-gen.mjs'
@@ -33,8 +29,7 @@ export default function collectionGenerator(plop) {
       },
     ],
     actions: (answers) => [
-      // Pre-flight FIRST: every contract/collision check runs before any file
-      // is written, so a duplicate name can't plant files inside a live
+      // Pre-flight FIRST: a duplicate name must not plant files inside a live
       // collection's content directory.
       (a, _config, api) => {
         assertInjectable({

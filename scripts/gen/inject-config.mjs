@@ -1,9 +1,6 @@
-// AST injection into src/content.config.ts (ts-morph).
-//
-// CONTRACT (see docs/guides/content-collections.md): the file must contain
-// `export const collections = { … }` — exported, initialized with an object
-// literal. Every lookup that can fail throws a DESCRIPTIVE error — a broken
-// or renamed hook point must abort the generator, never silently no-op.
+// AST injection into src/content.config.ts (ts-morph). Every lookup that can fail
+// throws a DESCRIPTIVE error — a broken or renamed hook point must abort the
+// generator, never silently no-op.
 import { Project, SyntaxKind } from 'ts-morph'
 
 import { isNameTaken } from './ts-morph-utils.mjs'
@@ -54,10 +51,7 @@ function locateContract(cfg, { camel, kebab }) {
   return { statement, object }
 }
 
-/**
- * Pre-flight: run every contract/collision check WITHOUT touching anything.
- * Called as the generator's first action, before any file is written.
- */
+/** Pre-flight: every contract/collision check, WITHOUT touching anything. */
 export function assertInjectable({ root, camel, kebab }) {
   locateContract(loadConfig(root), { camel, kebab })
 }
