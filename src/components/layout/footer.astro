@@ -1,6 +1,7 @@
 ---
 import Container from '@/components/ui/container.astro'
 
+import { getTrackingConfig } from '@/lib/analytics/tracking'
 import { SITE } from '@/lib/site'
 
 import { localizedHref } from '@/i18n/href'
@@ -9,6 +10,11 @@ import { useTranslations } from '@/i18n/translate'
 const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
 const year = new Date().getFullYear()
+
+// [HARD] This link is how consent stays revocable: the CMP's own floating badge
+// is disabled (src/lib/consent/iubenda.ts). Rendered only when the CMP is
+// configured — otherwise it would be a dead control opening nothing.
+const hasCmp = getTrackingConfig() !== null
 ---
 
 <footer class="border-border/60 border-t bg-background">
@@ -27,6 +33,18 @@ const year = new Date().getFullYear()
               {t(link.key)}
             </a>
           ))
+        }
+        {
+          hasCmp && (
+            /* iubenda binds the click by class name — the href is a fallback for
+               the moment before its script has loaded. */
+            <a
+              href="#"
+              class="iubenda-cs-preferences-link text-muted-foreground text-sm transition-colors hover:text-foreground"
+            >
+              {t('legal.cookiePreferences')}
+            </a>
+          )
         }
       </nav>
     </div>

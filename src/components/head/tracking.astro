@@ -1,0 +1,100 @@
+---
+// CMP + analytics, or nothing at all. getTrackingConfig() returns null unless
+// BOTH the GTM container and the iubenda site id are configured, so dev and any
+// deploy without those env vars render no script, set no cookie, and show no
+// banner — the template's default state.
+//
+// [HARD] Turning this on requires widening the CSP in vercel.json. `astro dev`
+// never reads that file, so a policy that blocks the CMP looks fine locally and
+// fails in production by showing no cookie banner at all — a silent GDPR
+// problem, not a visible error. Add to the global rule, and to the exact source
+// lists pinned in src/vercel-headers.test.ts:
+//
+//   script-src   https://www.googletagmanager.com https://cdn.iubenda.com https://cs.iubenda.com
+//   style-src    https://cdn.iubenda.com
+//   img-src      https://www.googletagmanager.com https://*.google-analytics.com https://cdn.iubenda.com
+//   connect-src  https://www.googletagmanager.com https://*.google-analytics.com
+//                https://*.analytics.google.com https://*.iubenda.com
+//   frame-src    https://www.googletagmanager.com
+import { i18n } from 'astro:config/client'
+
+import { getTrackingConfig } from '@/lib/analytics/tracking'
+
+const config = getTrackingConfig()
+const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
+---
+
+{
+  config && (
+    <>
+      {/* Resource hints, split by gate — see docs/guides/rendering-performance.md
+          § Resource hints.
+
+          [HARD] dns-prefetch, never preconnect, for googletagmanager: preconnect
+          opens TCP+TLS, which sends SNI and the visitor's IP to Google BEFORE
+          opt-in — the exact invariant the consent gate exists to hold. A DNS
+          lookup only asks the visitor's own resolver.
+
+          iubenda is different: the CMP loads on every page by definition,
+          pre-consent, so warming the connection costs nothing that isn't spent
+          anyway. Its preconnect is paired with a dns-prefetch as a fallback for
+          browsers that ignore the former; those honouring both drop the dupe.
+          No `crossorigin` on either: these load as plain scripts, and an
+          anonymous connection wouldn't be reused. */}
+      <link rel="preconnect" href="https://cdn.iubenda.com" />
+      <link rel="dns-prefetch" href="https://cdn.iubenda.com" />
+      <link rel="dns-prefetch" href="https://cs.iubenda.com" />
+      <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+      {/* [HARD] Consent Mode defaults, and they must be the FIRST thing to touch
+          dataLayer — a tag that queues ahead of them runs unrestricted. Hence
+          is:inline and this position: it has to execute synchronously, before
+          the module scripts below and before the CMP.
+
+          All four keys start denied; `wait_for_update` gives the CMP 500ms to
+          answer before tags act on the default. The gate then sends
+          `consent: update` (src/lib/consent/gate.ts) once the user chooses. */}
+      <script is:inline>
+        window.dataLayer = window.dataLayer || []
+        function gtag() {
+          window.dataLayer.push(arguments)
+        }
+        window.gtag = gtag
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          wait_for_update: 500,
+        })
+        gtag('set', 'ads_data_redaction', true)
+        gtag('set', 'url_passthrough', true)
+      </script>
+
+      {/* Plain data, no logic: the bootstraps below are real modules — bundled,
+          typed and tested — and read their configuration off the window. This
+          inline block is the only seam where server-resolved env reaches them. */}
+      <script
+        is:inline
+        define:vars={{
+          consentConfig: { siteId: config.iubendaSiteId, cookiePolicyId: config.cookiePolicyId, lang },
+          analyticsConfig: { gtmId: config.gtmId },
+        }}
+      >
+        window.__consentConfig = consentConfig
+        window.__analyticsConfig = analyticsConfig
+      </script>
+
+      <script>
+        import { bootstrapAnalytics } from '@/lib/analytics/bootstrap'
+        import { bootstrapIubenda } from '@/lib/consent/iubenda'
+
+        // Order matters only in intent, not in time: registering the analytics
+        // callback first guarantees it is queued before any stored preference
+        // can drain the queue.
+        bootstrapAnalytics()
+        bootstrapIubenda()
+      </script>
+    </>
+  )
+}

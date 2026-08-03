@@ -6,13 +6,14 @@ import { getViteConfig } from 'astro/config'
 // plugins, which are what compile `.astro` — without them a Container API render
 // (test/container.ts) fails at parse.
 //
-// `astro:env/server`, `astro:config/client`, `astro:i18n`, `astro:content` and
-// `astro:actions` are virtual modules that only exist inside the Astro runtime —
-// unit tests resolve them to stubs (process.env reads / mirrored config values /
-// minimal URL model / mockable collection loaders / the error classes and guards
-// the action layer throws). The aliases keep winning over Astro's own
-// resolution.
+// `astro:env/server`, `astro:env/client`, `astro:config/client`, `astro:i18n`,
+// `astro:content` and `astro:actions` are virtual modules that only exist inside
+// the Astro runtime — unit tests resolve them to stubs (process.env reads /
+// mirrored config values / minimal URL model / mockable collection loaders / the
+// error classes and guards the action layer throws). The aliases keep winning
+// over Astro's own resolution.
 const astroEnvServerStub = fileURLToPath(new URL('./test/stubs/astro-env-server.ts', import.meta.url))
+const astroEnvClientStub = fileURLToPath(new URL('./test/stubs/astro-env-client.ts', import.meta.url))
 const astroConfigClientStub = fileURLToPath(new URL('./test/stubs/astro-config-client.ts', import.meta.url))
 const astroI18nStub = fileURLToPath(new URL('./test/stubs/astro-i18n.ts', import.meta.url))
 const astroContentStub = fileURLToPath(new URL('./test/stubs/astro-content.ts', import.meta.url))
@@ -25,6 +26,7 @@ export default getViteConfig({
   resolve: {
     alias: {
       'astro:env/server': astroEnvServerStub,
+      'astro:env/client': astroEnvClientStub,
       'astro:config/client': astroConfigClientStub,
       'astro:i18n': astroI18nStub,
       'astro:content': astroContentStub,

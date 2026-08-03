@@ -80,6 +80,29 @@ export default defineConfig({
         access: 'public',
         default: false,
       }),
+      // Consent + analytics (src/lib/consent, src/lib/analytics). All three are
+      // public ids, not secrets — create them Plain on Vercel, never Sensitive:
+      // a Sensitive var reaches a prebuilt pull as the literal "[SENSITIVE]".
+      //
+      // Optional, and gated as a set: with no GTM container and no iubenda site
+      // id nothing is emitted — no CMP banner, no tags, no cookie. That is the
+      // template's default state, and a fork that never adds tracking never has
+      // to remove anything.
+      PUBLIC_GTM_ID: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
+      PUBLIC_IUBENDA_SITE_ID: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
+      PUBLIC_IUBENDA_COOKIE_POLICY_ID: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
     },
   },
 })

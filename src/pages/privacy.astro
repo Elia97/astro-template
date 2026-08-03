@@ -4,11 +4,18 @@
 // legal review per project before go-live. Content is default-locale copy
 // owned by this page — not i18n dictionary material.
 import LegalControllerSection from '@/components/legal/legal-controller-section.astro'
+import LegalDocPage from '@/components/legal/legal-doc-page.astro'
 import LegalPage from '@/components/legal/legal-page.astro'
 import LegalSectionList from '@/components/legal/legal-section-list.astro'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
+import { getLegalDoc } from '@/lib/legal/documents'
+
 export const prerender = true
+
+// The real document, fetched from iubenda at build time once a policy id is
+// configured. null keeps the placeholder draft below serving.
+const hostedDoc = await getLegalDoc('privacy')
 
 const title = 'Privacy'
 const description = 'Informativa sul trattamento dei dati personali ai sensi del Regolamento UE 2016/679 (GDPR).'
@@ -41,21 +48,27 @@ const sections = [
 ]
 ---
 
-<LegalPage {title} {description}>
-  <Alert variant="muted" class="mt-6">
-    <AlertDescription>
-      Questa informativa è una bozza segnaposto, strutturalmente completa ma non ancora sottoposta a revisione legale:
-      va rivista e adattata al progetto prima della pubblicazione definitiva del sito.
-    </AlertDescription>
-  </Alert>
+{
+  hostedDoc !== null ? (
+    <LegalDocPage {title} {description} html={hostedDoc} />
+  ) : (
+    <LegalPage {title} {description}>
+      <Alert variant="muted" class="mt-6">
+        <AlertDescription>
+          Questa informativa è una bozza segnaposto, strutturalmente completa ma non ancora sottoposta a revisione
+          legale: va rivista e adattata al progetto prima della pubblicazione definitiva del sito.
+        </AlertDescription>
+      </Alert>
 
-  <LegalSectionList sections={sections}>
-    <LegalControllerSection
-      heading="Titolare del trattamento"
-      intro="Il Titolare del trattamento dei dati personali raccolti tramite questo sito è"
-      addressIntro="con sede in"
-      contactIntro="Per qualsiasi richiesta relativa al trattamento dei dati personali è possibile contattare il Titolare all'indirizzo email"
-      italyLabel="Italia"
-    />
-  </LegalSectionList>
-</LegalPage>
+      <LegalSectionList sections={sections}>
+        <LegalControllerSection
+          heading="Titolare del trattamento"
+          intro="Il Titolare del trattamento dei dati personali raccolti tramite questo sito è"
+          addressIntro="con sede in"
+          contactIntro="Per qualsiasi richiesta relativa al trattamento dei dati personali è possibile contattare il Titolare all'indirizzo email"
+          italyLabel="Italia"
+        />
+      </LegalSectionList>
+    </LegalPage>
+  )
+}
