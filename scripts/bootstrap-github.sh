@@ -47,6 +47,8 @@ echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
 # down, and dependabot itself unable to run until the lockfile was repaired by hand. The cost
 # of strict is a rebase per open PR whenever main moves; the single-group dependabot config in
 # .github/dependabot.yml is what keeps that cost to one PR per ecosystem per cycle.
+# required_linear_history is redundant while the repo stays squash-only, and is here as defence
+# in depth: re-enabling merge commits in Settings is one click, undoing this rule is not.
 ruleset_payload=$(cat << 'JSON'
 {
   "name": "main",
@@ -56,6 +58,7 @@ ruleset_payload=$(cat << 'JSON'
   "rules": [
     { "type": "deletion" },
     { "type": "non_fast_forward" },
+    { "type": "required_linear_history" },
     {
       "type": "pull_request",
       "parameters": {
