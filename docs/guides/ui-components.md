@@ -114,8 +114,13 @@ clsx + tailwind-merge) — shadcn's API shape without the React/Radix runtime:
   inherits `currentColor`), and a `shape` axis (`default`/`pill`) swaps only the box
   radius (`pill` = `rounded-full`).
 - Form fields compose the `Field` compound (`ui/field/`: `Field` +
-  `FieldLabel` + `FieldContent`, vertical/horizontal orientation) around the
-  flat controls (`input.astro`, `textarea.astro`, `select.astro`).
+  `FieldLabel` + `FieldContent` + `FieldError`, vertical/horizontal
+  orientation) around the flat controls (`input.astro`, `textarea.astro`,
+  `select.astro`). `FieldError` is the only part with behaviour attached: it
+  renders an empty `[data-field-error]` slot that the submit binder fills, and
+  the control points at it with a static `aria-describedby` — see
+  `forms-email.md` § Validation surface for the contract and the test that
+  guards it.
 - `Select` is the reference progressive-enhancement primitive: the native
   `<select>` renders first and stays the form-facing source of truth; the
   script layer (`select-behavior.ts`) swaps in a styled trigger + listbox

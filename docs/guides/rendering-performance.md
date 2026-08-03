@@ -38,6 +38,39 @@ the route's budget. Exit code 1 fails the job.
 The pure logic lives in `scripts/lib/bundle-budget.ts` and is unit-tested; the
 script itself keeps the filesystem, the gzip sizing and the exit code.
 
+### What the budget does not see
+
+It measures emitted chunks, so anything that never becomes one is invisible to
+it. That is not a gap to fix — it's the shape of the measurement, and worth
+knowing before reading a green report as "this page is light":
+
+- **`is:inline` scripts.** The theme script is inlined into every page and Astro
+  passes it through **verbatim** — not bundled, not minified, comments included.
+  It costs bytes on every HTML response and shows up in none of the numbers.
+  Keep it short, and keep its comments free of markup: they land in the document
+  as literal text.
+- **CSS.** The budget is client JS only.
+- **Images and fonts.** Weight there is governed by `astro:assets` and the fonts
+  API, not by this.
+
+### Keeping a shared module client-safe
+
+The one regression the budget reliably catches: a module imported by a client
+script that pulls a heavy library in with it. A module-level call like
+`z.string()` is **not** tree-shakeable — importing a single constant from that
+file ships the whole library.
+
+The worked example is the honeypot, deliberately split in two:
+`src/lib/honeypot.ts` holds the constant and the predicate and imports nothing;
+`src/lib/honeypot-schema.ts` holds the zod shape. The form behaviour imports
+only the first. Merging them back together was measured: `/contatti` goes from
+9.8 to 22.1 KB gz and fails the budget, because all of Zod (~12 KB gz) lands on
+every page carrying a form.
+
+The rule that follows: **a module a client script imports may hold constants,
+types and pure functions, but no module-level call into a dependency.** When a
+shared name is needed on both sides, split the file rather than the name.
+
 ## Motion system (`src/lib/motion/`)
 
 - Module layout: `index.ts` is the barrel and the ONLY import point for

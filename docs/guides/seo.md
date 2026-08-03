@@ -56,6 +56,37 @@ the single company source (`src/lib/company.ts`).
   per fork**, and keep `SITE.defaultOgImage` pointing at a file that exists
   (a dead og:image fails social card validators).
 
+## Icons, manifest & theme-color
+
+`head-icons.astro` carries the document's identity — favicons, the manifest link
+and the browser-chrome colour — and is rendered once from `head.astro`.
+
+- **The manifest is built, not authored.** `src/lib/manifest.ts` derives it from
+  `SITE` (name, description, lang, colours) and
+  `src/pages/site.webmanifest.ts` serves it prerendered, so the installed
+  identity can't drift from the site's own.
+- **`id`, `start_url` and `scope` are pinned at `/`.** Changing `id` makes
+  browsers treat the site as a different app: an existing install stops updating
+  and the prompt comes back.
+- **`manifest.test.ts` holds every declared icon to actually existing.** An icon
+  listed but not shipped is a 404 the browser only reports at install time,
+  where nobody is looking — which is why the list is short rather than
+  aspirational.
+- **Out of the box the manifest is valid but not installable.** It declares the
+  SVG favicon only; Chrome's install prompt wants a raster of at least 192px.
+  A fork adds `/icon-192.png`, `/icon-512.png` and a maskable 512 (content
+  inside the centered 80% safe zone, opaque — Android's adaptive mask clips the
+  rest) and lists them in `ICONS`.
+- **`SITE.themeColor` must equal `--background`** in `light.css`/`dark.css`, or
+  the browser chrome and the page disagree at the seam. It's hex, not oklch:
+  `<meta name="theme-color">` is parsed by the browser UI layer, where support
+  is narrower than in CSS.
+- **The two theme-color metas ship with a `prefers-color-scheme` media query**,
+  which is the right no-JS default but ignores the theme toggle.
+  `theme-script.astro` flips their `media` between `all` and `not all` so the
+  chrome follows the theme actually applied. Drop that and the mismatch is
+  visible the moment someone switches theme.
+
 ## Sitemap & robots
 
 - `@astrojs/sitemap` (astro.config.mjs) emits `sitemap-index.xml` at build
