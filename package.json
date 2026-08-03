@@ -26,11 +26,11 @@
     "prepare": "lefthook install || true"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/vercel": "^11.0.2",
+    "@astrojs/vercel": "^11.0.4",
     "@lucide/astro": "^1.23.0",
-    "astro": "^7.0.6",
+    "astro": "^7.1.6",
     "botid": "^1.5.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
