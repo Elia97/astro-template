@@ -6,7 +6,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - **Node**: version pinned in `.nvmrc` — respect it, don't assume a different version.
 - **Formatter/linter**: Biome only (`biome.json`) — no ESLint/Prettier. Style: 2 spaces, single quotes, no semicolons, trailing commas.
 - **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
-- **Rendering**: `output: "server"` — pages are SSR by default. Pages that must stay static have `export const prerender = true` explicit in the frontmatter.
+- **Rendering**: `output: "static"` — pages are prerendered by default. A page that needs per-request data opts out with `export const prerender = false` explicit in the frontmatter. The server comes from the adapter, not from this setting: actions and on-demand routes work either way.
 - **Deploy**: Vercel, via `@astrojs/vercel`.
 - **Reading the tree**: `docs/ARCHITECTURE.md` § Repository layout labels every path `machinery` / `config` / `chrome` / `seed` / `example`. Touch machinery to fix a defect, not to tidy; extend the `example` pattern rather than inventing a second one, and don't delete a `seed` path — the generators write into it.
 - **Comments**: keep only what the code can't say itself — normative constraints/invariants, non-obvious warnings/gotchas, security/env notes, `TODO`/`FIXME`, `[HARD]` markers, and functional directives (`@vitest-environment`, `@ts-expect-error`, `biome-ignore`, …). Drop prose that restates the code, "what it does" narration, and pointers to `docs/`/guides/legacy. Match the surrounding (deliberately low) comment density, not a verbose baseline.

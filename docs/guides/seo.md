@@ -86,9 +86,9 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
 
 - `@astrojs/sitemap` (astro.config.mjs) emits `sitemap-index.xml` at build
   time — dev never serves it. Its locale map mirrors `SITE.localeTags`.
-- With `output: 'server'` only **prerendered** routes end up in the sitemap:
-  keep indexable pages `prerender = true` (the norm here), or list SSR-only
-  URLs via the integration's `customPages`.
+- Only **prerendered** routes end up in the sitemap: keep indexable pages
+  prerendered (the default), or list on-demand URLs via the integration's
+  `customPages`.
 - `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
   reads its disallow list from `crawl-policy.ts`: per-response indexing control
   does NOT belong there (crawlers cache robots.txt).
@@ -117,8 +117,8 @@ A `has: host` header rule in `vercel.json` sets `X-Robots-Tag: noindex, nofollow
 on every `*.vercel.app` host — preview/branch deploys must never compete with the
 production domain in search indexes. Nothing to configure per fork.
 
-It lives at the edge, **not** in `src/middleware.ts`: a page with
-`prerender = true` is served as a static file and never reaches middleware, so a
-middleware check would have covered only the routes that happened to stay SSR.
+It lives at the edge, **not** in `src/middleware.ts`: for a prerendered page the
+middleware runs once at build time and its response headers are discarded into a
+static file, so a middleware check would have covered only on-demand routes.
 `src/vercel-robots.test.ts` pins the rule and asserts it never matches the custom
 domain — the failure that would drop the live site out of every index.

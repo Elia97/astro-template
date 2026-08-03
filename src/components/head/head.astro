@@ -34,8 +34,9 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 
 <title>{title}</title>
 {description ? <meta name="description" content={description} /> : null}
-{/* The only per-path noindex that reaches a prerendered page: middleware never
-    runs for one, so X-Robots-Tag can't get there (src/middleware.ts). */}
+{/* The only per-path noindex that reaches a prerendered page: middleware runs
+    for one at build time, but its X-Robots-Tag is discarded with the response
+    (src/middleware.ts). */}
 {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 <link rel="canonical" href={canonical} />
 <HeadAlternates localeAlternates={localeAlternates} defaultHref={defaultHref} />

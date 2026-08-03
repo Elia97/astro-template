@@ -11,7 +11,7 @@ import { SITE } from './src/lib/site'
 // https://astro.build/config
 export default defineConfig({
   site: SITE.url,
-  output: 'server',
+  output: 'static',
   // Explicit policy: canonical/hreflang in head.astro normalize to it. The
   // default 'ignore' lets /page and /page/ both resolve with two competing
   // self-canonicals.

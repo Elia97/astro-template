@@ -11,8 +11,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import { getLegalDoc } from '@/lib/legal/documents'
 
-export const prerender = true
-
 // The real document, fetched from iubenda at build time once a policy id is
 // configured. null keeps the placeholder draft below serving.
 const hostedDoc = await getLegalDoc('privacy')

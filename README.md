@@ -7,7 +7,7 @@ Reusable [Astro](https://astro.build) template for personal/freelance projects �
 - **Node** 24 (pinned in `.nvmrc`), **pnpm** via corepack (pinned in `package.json#packageManager`)
 - **Biome** — sole formatter/linter (no ESLint/Prettier)
 - **TypeScript** — `astro/tsconfigs/strictest`
-- **Rendering** — `output: "server"` (SSR by default), static pages opt in via `export const prerender = true`
+- **Rendering** — `output: "static"` (prerendered by default), on-demand pages opt out via `export const prerender = false`
 - **Deploy** — Vercel, via `@astrojs/vercel`; production ships only from a release tag, not from every push (see `scripts/vercel-ignore-build.sh`)
 - **Commits** — Conventional Commits, enforced by commitlint on a lefthook `commit-msg` hook
 

@@ -2,8 +2,6 @@ import type { APIRoute } from 'astro'
 
 import { ROBOTS_DISALLOWED_PATHS } from '@/lib/seo/crawl-policy'
 
-export const prerender = true
-
 // Pairs with the @astrojs/sitemap integration (astro.config.mjs), which emits
 // sitemap-index.xml at build time. The disallow list comes from seo/crawl-policy.ts,
 // the same module the sitemap filter reads — one edit, both sides.

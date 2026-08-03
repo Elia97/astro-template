@@ -77,14 +77,15 @@ describe('routeOf', () => {
 })
 
 describe('expectedRoutes', () => {
-  const prerendered = 'export const prerender = true\n'
+  const prerendered = '// no annotation: prerendered by default\n'
+  const optedOut = 'export const prerender = false\n'
 
   it('splits pages by prerender, keeping dynamic segments as patterns', () => {
     const expected = expectedRoutes(
       [
         { file: 'src/pages/index.astro', source: prerendered },
         { file: 'src/pages/blog/[slug].astro', source: prerendered },
-        { file: 'src/pages/live.astro', source: '// no prerender here\n' },
+        { file: 'src/pages/live.astro', source: optedOut },
       ],
       'src/pages',
     )
@@ -94,9 +95,13 @@ describe('expectedRoutes', () => {
     expect(expected.patterns[0]?.pattern.test('/blog/a/b')).toBe(false)
   })
 
+  // The default is now the measured one, so a miss here is fail-open: prose read
+  // as a declaration would drop a real page out of the budget silently.
   it('ignores the word prerender inside prose', () => {
-    const source = '// this page is intentionally not prerender = true\n'
-    expect(expectedRoutes([{ file: 'src/pages/x.astro', source }], 'src/pages').ssr).toEqual(['src/pages/x.astro'])
+    const source = '// this page is intentionally not prerender = false\n'
+    const expected = expectedRoutes([{ file: 'src/pages/x.astro', source }], 'src/pages')
+    expect(expected.ssr).toEqual([])
+    expect(expected.exact).toEqual([{ route: '/x', file: 'src/pages/x.astro' }])
   })
 
   it('treats a rest segment as matching any depth', () => {
@@ -108,8 +113,8 @@ describe('expectedRoutes', () => {
 describe('missingRouteFailures', () => {
   const expected = expectedRoutes(
     [
-      { file: 'src/pages/index.astro', source: 'export const prerender = true\n' },
-      { file: 'src/pages/blog/[slug].astro', source: 'export const prerender = true\n' },
+      { file: 'src/pages/index.astro', source: '' },
+      { file: 'src/pages/blog/[slug].astro', source: '' },
     ],
     'src/pages',
   )

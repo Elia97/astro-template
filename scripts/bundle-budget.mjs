@@ -84,10 +84,11 @@ for (const page of pages) {
 console.log('\nDEFERRED = reachable only through `await import()` (loaded after paint, behind a runtime guard).')
 
 // Not a failure: an SSR page emits no HTML, so it is outside this budget by
-// construction — `output: 'server'` makes that the default for a new page.
+// construction. Under `output: 'static'` that only happens on a deliberate
+// `prerender = false` — a page that forgets the annotation stays measured.
 if (expected.ssr.length > 0) {
   console.log(
-    `\nNOTE  ${expected.ssr.length} page(s) are SSR and outside this budget (no \`export const prerender = true\`):`,
+    `\nNOTE  ${expected.ssr.length} page(s) opted out with \`export const prerender = false\` and are outside this budget:`,
   )
   for (const file of expected.ssr) console.log(`      - ${file}`)
 }

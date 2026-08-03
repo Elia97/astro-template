@@ -50,9 +50,9 @@ interchangeable entries**. A fixed, one-off block on a singleton page is a
   instead of shipping a broken page. The same throw covers duplicate sections
   within a locale and default-locale files misplaced in a locale folder.
 - The build-time guarantee holds because every consumer of
-  `getHomepageSections` is prerendered (`export const prerender = true`). A
-  future SSR consumer would turn these throws into runtime 500s — keep
-  homepage routes prerendered (see `rendering-performance.md`).
+  `getHomepageSections` is prerendered (the default). A consumer that opted out
+  with `prerender = false` would turn these throws into runtime 500s — keep
+  homepage routes prerendered.
 - **Don't drop the collection's custom `generateId`** — the default one
   slugifies segments and honors a YAML `slug` key, which lets content land
   silently in the wrong locale (reasons pinned at the loader in
@@ -84,8 +84,8 @@ matching `generateId` regex.
   register the `@astrojs/mdx` integration in `astro.config.mjs`. Missing the
   integration fails the build with an **unrecognized-extension** error — not a
   schema error, so don't go debugging the schema.
-- **Rendering the body.** On a prerendered detail route (`prerender = true` +
-  a `getStaticPaths` that enumerates the entries), `const { Content } = await
+- **Rendering the body.** On a prerendered detail route (a `getStaticPaths`
+  that enumerates the entries), `const { Content } = await
   render(entry)` (`render` from `astro:content`, the Content Layer API) yields
   a `<Content />` for the body.
 - **`{…}` is JS in MDX.** Any authoring marker (layout hint on a heading,
@@ -99,9 +99,8 @@ matching `generateId` regex.
   `getStaticPaths` in a prod build and there's no `fallback`, draft slugs are
   never generated → Astro's native `404.astro` serves them. Zero manual 404
   code: a route never enumerated in prod is simply not built. The same
-  contract covers the sitemap — with `output: "server"` only prerendered
-  routes are emitted, so an unbuilt draft URL can't leak in (no sitemap
-  `filter` needed).
+  contract covers the sitemap — only prerendered routes are emitted, so an
+  unbuilt draft URL can't leak in (no sitemap `filter` needed).
 
 ## Testable domain rules
 

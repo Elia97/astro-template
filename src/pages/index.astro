@@ -6,9 +6,8 @@ import MainLayout from '@/layouts/main.astro'
 import { COMPANY } from '@/lib/company'
 import { getHomepageSections } from '@/lib/homepage'
 import { SITE } from '@/lib/site'
-// @gen:home-imports (generators insert new imports ABOVE this line)
 
-export const prerender = true
+// @gen:home-imports (generators insert new imports ABOVE this line)
 
 const content = await getHomepageSections(Astro.currentLocale)
 

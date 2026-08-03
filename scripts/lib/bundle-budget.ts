@@ -74,7 +74,7 @@ export function routeOf(htmlPath: string, dist: string): string {
 
 // Anchored to the start of a line so prose mentioning `prerender` in a comment
 // can't be read as a declaration.
-const PRERENDER = /^\s*export\s+const\s+prerender\s*=\s*true\b/m
+const SSR_OPT_OUT = /^\s*export\s+const\s+prerender\s*=\s*false\b/m
 
 function pageRouteOf(file: string, pagesDir: string): string {
   return (
@@ -91,13 +91,13 @@ function segmentPattern(segment: string): string {
 }
 
 /** What `dist/client` must contain, read off `src/pages` rather than listed by
- *  hand: a page added, or losing `prerender`, moves between the three buckets on
- *  its own. Only `.astro` files belong here — an endpoint (`robots.txt.ts`)
- *  prerenders too but emits no HTML. */
+ *  hand: a page added, or opting out with `prerender = false`, moves between the
+ *  three buckets on its own. Only `.astro` files belong here — an endpoint
+ *  (`robots.txt.ts`) prerenders too but emits no HTML. */
 export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Expectations {
   const expectations: Expectations = { exact: [], patterns: [], ssr: [] }
   for (const { file, source } of pages) {
-    if (!PRERENDER.test(source)) {
+    if (SSR_OPT_OUT.test(source)) {
       expectations.ssr.push(file)
       continue
     }
@@ -123,11 +123,11 @@ export function missingRouteFailures(expected: Expectations, emitted: readonly s
   const failures: string[] = []
   const routes = new Set(emitted)
   for (const { route, file } of expected.exact) {
-    if (!routes.has(route)) failures.push(`missing route ${route} — ${file} is prerender = true but emitted no HTML`)
+    if (!routes.has(route)) failures.push(`missing route ${route} — ${file} is prerendered but emitted no HTML`)
   }
   for (const { pattern, label, file } of expected.patterns) {
     if (emitted.some((route) => pattern.test(route))) continue
-    failures.push(`missing route ${label} — ${file} is prerender = true but getStaticPaths emitted nothing`)
+    failures.push(`missing route ${label} — ${file} is prerendered but getStaticPaths emitted nothing`)
   }
   return failures
 }

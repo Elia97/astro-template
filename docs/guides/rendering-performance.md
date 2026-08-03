@@ -25,12 +25,14 @@ the route's budget. Exit code 1 fails the job.
   (`scripts/lib/bundle-budget.ts`) with its own `matches` — first match wins. A
   page that mounts an animation library belongs there rather than in a raised
   global default, so the rest of the site keeps the tight budget.
-- **Expected routes are read off `src/pages`**, not listed by hand: a page that
-  is `prerender = true` but emits no HTML fails the gate, and an empty
-  `dist/client` fails it too. Without that the per-route checks would be
+- **Expected routes are read off `src/pages`**, not listed by hand: a prerendered
+  page that emits no HTML fails the gate, and an empty `dist/client` fails it
+  too. Without that the per-route checks would be
   fail-open — they iterate the emitted pages, so measuring nothing would pass.
-- **SSR pages are outside the budget** by construction (no HTML to measure) and
-  are listed in a `NOTE` at the end of the report, not counted as failures.
+- **Pages that opt out with `prerender = false`** are outside the budget by
+  construction (no HTML to measure) and are listed in a `NOTE`, not counted as
+  failures. Prerendering being the default is what keeps that hole small: a page
+  that simply forgets to declare anything stays measured.
 
 ### What the budget does not see
 
