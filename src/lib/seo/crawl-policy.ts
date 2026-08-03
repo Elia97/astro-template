@@ -37,6 +37,27 @@ export function crawlPathname(url: string): string {
   return pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname
 }
 
+/** True for a listed path AND everything below it.
+ *
+ *  [HARD] Subtree, never equality: the lists name *sections* to keep out of
+ *  search, and a section's children are the part that leaks. `/area-riservata`
+ *  in NOINDEX_PATHS has to cover `/area-riservata/documenti`, or the rule reads
+ *  as applied while the pages under it stay indexable — silently, since nothing
+ *  fails and the one path spot-checked behaves.
+ *
+ *  Exported because the template ships both lists empty: this is the only seam
+ *  where the matching itself can be held to the contract. */
+export function matchesSubtree(pathname: string, roots: readonly string[]): boolean {
+  const path = crawlPathname(pathname)
+  return roots.some((root) => path === root || path.startsWith(`${root}/`))
+}
+
 export function isExcludedFromSitemap(url: string): boolean {
-  return SITEMAP_EXCLUDED_PATHS.includes(crawlPathname(url))
+  return matchesSubtree(url, SITEMAP_EXCLUDED_PATHS)
+}
+
+/** The middleware's half of the same policy — see the note in src/middleware.ts
+ *  for why it only ever reaches non-HTML SSR responses. */
+export function isNoindexPath(pathname: string): boolean {
+  return matchesSubtree(pathname, NOINDEX_PATHS)
 }
