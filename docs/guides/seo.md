@@ -64,10 +64,23 @@ the single company source (`src/lib/company.ts`).
   keep indexable pages `prerender = true` (the norm here), or list SSR-only
   URLs via the integration's `customPages`.
 - `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
-  allows everything: per-response indexing control does NOT belong there.
-- Excluding a page from search takes BOTH sides: `filter` in the sitemap
-  config AND the path in `NOINDEX_PATHS` (`src/middleware.ts`).
-- That mirror is only for routes that **are** built but must stay unindexed.
+  reads its disallow list from `crawl-policy.ts`: per-response indexing control
+  does NOT belong there (crawlers cache robots.txt).
+- **`src/lib/crawl-policy.ts` is the single source of truth.** It has two lists
+  and they mean different things:
+  - `ROBOTS_DISALLOWED_PATHS` — blocked at the crawler, for thin or duplicate
+    pages with no search value. The page is never fetched.
+  - `NOINDEX_PATHS` — crawlable but kept out of the index. The page still has to
+    pass `noindex` to the layout: **the meta tag is what carries the signal**,
+    and it is the only mechanism that works on a prerendered page.
+  Both feed `SITEMAP_EXCLUDED_PATHS`, so the sitemap `filter` needs no separate
+  list. A robots-blocked URL still in the sitemap is a Search Console warning —
+  the crawler is told to fetch what it is also told not to read.
+  Both ship **empty**: whether a fork's legal pages belong in search is its call.
+- `X-Robots-Tag` from `src/middleware.ts` also reads `NOINDEX_PATHS`, but only
+  ever reaches a **non-HTML SSR response** (a generated feed, a JSON endpoint)
+  where no meta tag can exist. It does not run for a prerendered page.
+- Exclusion is only for routes that **are** built but must stay unindexed.
   A route never enumerated by `getStaticPaths` in production (e.g. a draft
   gated out by a visibility predicate) needs neither side: only prerendered
   routes reach the sitemap, so a URL that's never built can't appear in it —
