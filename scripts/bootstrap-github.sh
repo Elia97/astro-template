@@ -103,7 +103,11 @@ else
   echo "$ruleset_payload" | gh api -X POST "repos/{owner}/{repo}/rulesets" --input - > /dev/null
   echo "   ruleset 'main' created"
 fi
-echo "   from now on main only accepts PRs with a green 'ci' check — direct pushes are refused"
+if [ "${ADMIN_BYPASS:-0}" = "1" ]; then
+  echo "   main now takes PRs with a green 'ci' check — the admin role can still push directly"
+else
+  echo "   from now on main only accepts PRs with a green 'ci' check — direct pushes are refused"
+fi
 
 cat << 'EOF'
 
