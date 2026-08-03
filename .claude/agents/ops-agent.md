@@ -14,9 +14,6 @@ Before acting:
 
 ## Role
 
-The prompt you receive specifies whether you're **implementing** or **reviewing**:
-
-- **Implementation**: apply the requested changes within your scope.
-- **Review**: do NOT modify files. Check the existing configuration against the guide/best practices and report the issues found with severity and file:line. Don't fix them yourself — that's the implementer's job.
+Set by the invoking prompt. **Implement**: apply the changes within your scope. **Review**: do NOT modify files — report each issue with severity and `file:line`; fixing them is the implementer's job.
 
 If the prompt assigns you an explicit scope-path, stay within it: you're working in parallel with other vertical agents on different areas of the same sub-task.

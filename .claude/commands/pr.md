@@ -22,7 +22,7 @@ Model: **one issue = one PR**. Dedicated branch, **one Conventional commit** (ty
    |---|---|---|
    | Content collections, Zod schemas, MDX/Markdown, i18n content | `content-agent` | `src/content/**` |
    | Astro components, interactive islands, markup/a11y | `ui-agent` | `src/components/**` (non-content) |
-   | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/head-seo*`, canonical/hreflang |
+   | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/seo/**`, `src/components/head/**` |
    | Forms, Astro Actions, email | `forms-agent` | `src/actions/**`, `src/emails/**` |
    | Prerender/SSR, images, bundle | `perf-rendering-agent` | `astro.config.mjs`, `prerender` |
    | Vercel/env/deploy | `ops-agent` | `vercel.json`, `scripts/vercel-ignore-build.sh` |
@@ -36,7 +36,7 @@ Model: **one issue = one PR**. Dedicated branch, **one Conventional commit** (ty
 
 Expand the issue body into `.claude/plans/pr-<N>-<slug>.md`: files to touch, vertical-agent breakdown (1-3 agents, **exclusive** scope-paths — only if the surface is wide/parallelizable; otherwise work directly), quality gates, manual checks. `AskUserQuestion` for ambiguities that affect the plan. The user iterates / calls `ExitPlanMode` to approve.
 
-Quality gate to plan for: **`pnpm run ci`** (Biome + typecheck + unit tests: `biome ci . && pnpm run typecheck && pnpm run test`) **→ `pnpm run build`**.
+Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run build`**.
 
 ## Phase 4 — Implementation
 
@@ -50,7 +50,7 @@ Quality gate to plan for: **`pnpm run ci`** (Biome + typecheck + unit tests: `bi
 
 1. **Checklist sync**: once the quality gate is green and every issue checklist item is covered (or explicitly flagged as deferred), `gh issue edit <N>` to check off (`- [x]`) each satisfied `- [ ]` item directly in the issue body — edit only the checkbox markers, keep the rest of the body byte-for-byte identical (fetch with `gh issue view <N> --json body -q .body` first, flip the boxes, write back with `--body-file`). Leave any deferred item unchecked. This is a plain issue-body edit, not covered by the `gh issue close/delete/reopen` ban above — do it directly, no need to ask each time.
 2. Generate `.claude/plans/pr-<N>-<slug>.body.md` from `.github/PULL_REQUEST_TEMPLATE.md`, with **`Closes #<N>`**: what changes, DoD (check only what's verified), reviewer checks, notes.
-3. **Milestone-closing suggestion** (new vs. itajourney): if the issue's JSON has a `milestone`, run `gh issue list --milestone "<milestone title>" --state open --json number`. If the only open issue is `#<N>` itself (or the list is empty), print — **never execute**:
+3. **Milestone-closing suggestion**: if the issue's JSON has a `milestone`, run `gh issue list --milestone "<milestone title>" --state open --json number`. If the only open issue is `#<N>` itself (or the list is empty), print — **never execute**:
    ```bash
    # once this PR is merged (Closes #<N> closes the last open issue in the milestone):
    gh api -X PATCH repos/{owner}/{repo}/milestones/{milestone-number} -f state=closed

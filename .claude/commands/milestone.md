@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, ToolSearch, AskUserQuestion,
 
 Arguments: **$ARGUMENTS** → either the name of a file in `docs/milestone-templates/<name>.md` (without extension), or a milestone number `<N>` matching an existing `## Milestone N` heading in `docs/ROADMAP.md`.
 
-Working model: **`/milestone` only seeds** — it turns a template or a hand-written ROADMAP section into a native GitHub Milestone plus one GitHub issue per sub-task, after a single plan-mode approval covering the whole batch. It never writes application code, never creates a branch, never spawns implementation agents, never commits. Implementation happens later, one issue at a time, via `/pr <issue-number>`.
+Working model: **`/milestone` only seeds.** It never writes application code, never creates a branch, never spawns implementation agents, never commits — `/pr <issue-number>` implements, one issue at a time.
 
 If `$ARGUMENTS` is empty, or doesn't match a template file or an existing ROADMAP milestone number, **stop and show the available options** (list `docs/milestone-templates/*.md` filenames + descriptions, and list ROADMAP milestone numbers not yet fully seeded).
 
@@ -18,12 +18,12 @@ If `$ARGUMENTS` is empty, or doesn't match a template file or an existing ROADMA
 
 1. `git rev-parse --is-inside-working-tree`. If it fails, stop.
 2. Clean working tree (`git status --short`) — the only change this command makes is to `docs/ROADMAP.md`, and it needs a clean base. If dirty, stop and ask.
-3. Current branch should be `main` (this command no longer creates a dedicated branch). If not, warn and ask for confirmation.
+3. Current branch should be `main`. If not, warn and ask for confirmation.
 4. `gh auth status` and `gh repo view --json owner,name` — confirms `gh` is authenticated and the remote resolves. Fail fast with a clear message if not (a freshly-forked project may not have `gh` set up yet).
 5. Parse `$ARGUMENTS`: matches `docs/milestone-templates/<arg>.md` → **template path**; parses as an integer matching an existing `## Milestone <N>` heading → **bespoke path**; neither → stop, list available options.
 6. Idempotency / duplicate guard:
    - Template path: if `docs/ROADMAP.md` already has a section with `**Source:** template <same name>`, stop and ask explicit confirmation before instantiating a second copy.
-   - Bespoke path: if every sub-task in that section already has an issue number recorded, stop and report "already seeded — use `/pr <issue-number>` on the issues listed" instead of re-seeding. If only some sub-tasks have one, proceed but only seed what's missing (safe to re-run, same idempotency spirit as `scripts/bootstrap-github.sh`).
+   - Bespoke path: if every sub-task in that section already has an issue number recorded, stop and report "already seeded — use `/pr <issue-number>` on the issues listed" instead of re-seeding. If only some sub-tasks have one, proceed but only seed what's missing.
 7. Read `docs/DECISIONS.md` — informational only: surface relevant open items in the plan (Phase 3) and the summary (Phase 5), never blocking.
 
 ## Phase 2 — Load the source
@@ -39,13 +39,13 @@ If `$ARGUMENTS` is empty, or doesn't match a template file or an existing ROADMA
 
 **Both paths — parse sub-tasks:**
 - Template path: split on `### <n>. <title>` headings; extract `**Agent:**`, `**Labels:**`, remaining prose+checklist as the issue body.
-- Bespoke path: split on `### N.x <slug>` headings (existing convention); no `**Agent:**` metadata available, so derive it from this domain table (kept identical, verbatim, in `.claude/commands/pr.md`):
+- Bespoke path: split on `### N.x <slug>` headings; no `**Agent:**` metadata available, so derive it from this domain table (kept identical, verbatim, in `.claude/commands/pr.md`):
 
   | Domain | Agent | Signals |
   |---|---|---|
   | Content collections, Zod schemas, MDX/Markdown, i18n content | `content-agent` | `src/content/**` |
   | Astro components, interactive islands, markup/a11y | `ui-agent` | `src/components/**` (non-content) |
-  | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/head-seo*`, canonical/hreflang |
+  | Meta tags, JSON-LD, sitemap/robots, OG | `seo-agent` | `src/lib/seo/**`, `src/components/head/**` |
   | Forms, Astro Actions, email | `forms-agent` | `src/actions/**`, `src/emails/**` |
   | Prerender/SSR, images, bundle | `perf-rendering-agent` | `astro.config.mjs`, `prerender` |
   | Vercel/env/deploy | `ops-agent` | `vercel.json`, `scripts/vercel-ignore-build.sh` |
@@ -92,8 +92,3 @@ Next step: "run `/pr <issue-number>` for each issue above, in any order."
 - **Never** modify `docs/PROJECT.md`.
 - **Never** modify `.env` or read/log its real values.
 - Respect all `[HARD]` rules in `CLAUDE.md`.
-
-## Operational notes
-
-- Files in `.claude/plans/` (including the per-issue `.body.md` files) are local and gitignored.
-- If a sub-task doesn't touch any specific vertical, use `general-purpose` rather than forcing a domain that doesn't fit.
