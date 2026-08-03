@@ -57,6 +57,12 @@ interchangeable entries**. A fixed, one-off block on a singleton page is a
   slugifies segments and honors a YAML `slug` key, which lets content land
   silently in the wrong locale (reasons pinned at the loader in
   `src/content.config.ts`).
+- **[HARD] Content schemas use `z.strictObject`, never `z.object`.** A plain
+  object strips unknown keys, so a typo'd or renamed field disappears from the
+  page with a green build — the one content failure the throws above can't
+  catch, and the one a non-technical editor actually produces. Strictness
+  survives `z.discriminatedUnion` and is pinned in
+  `src/lib/schemas/homepage/hero.test.ts`; both generator templates emit it.
 - **Local-cache gotcha (verified)**: with a warm content-layer store, deleting
   a content file may NOT fail a local `pnpm run build` — the stale entry is
   served from `node_modules/.astro/data-store.json`. CI is always cold, so the

@@ -5,7 +5,7 @@ import { ctaSchema } from '../common'
 // Hero section: the one section universal to (almost) every marketing/lead-gen
 // site. Generic, neutral fields. Add more sections with `pnpm gen:section`.
 export function heroSectionSchema() {
-  return z.object({
+  return z.strictObject({
     section: z.literal('hero'), // union discriminant
     eyebrow: z.string().optional(),
     title: z.string().min(1),

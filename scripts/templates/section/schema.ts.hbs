@@ -4,7 +4,7 @@ import { ctaSchema } from '../common'
 
 // "{{dashCase name}}" section. Neutral placeholder fields: adapt per project.
 export function {{camelCase name}}SectionSchema() {
-  return z.object({
+  return z.strictObject({
     section: z.literal('{{camelCase name}}'), // union discriminant
     title: z.string().min(1),
     body: z.string().optional(),
