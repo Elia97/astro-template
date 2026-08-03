@@ -1,6 +1,6 @@
 import type { CollectionEntry } from 'astro:content'
 
-import { loadLocalizedSections } from '@/lib/localized-sections'
+import { loadLocalizedSections } from '@/lib/content/localized-sections'
 
 // SSoT chain: Zod schema → CollectionEntry<'homepage'>['data'] → HomepageSections → Props.
 type Section = CollectionEntry<'homepage'>['data']

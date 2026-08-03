@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { loadLocalizedSections } from '@/lib/localized-sections'
+import { loadLocalizedSections } from '@/lib/content/localized-sections'
 
 vi.mock('astro:content')
 
