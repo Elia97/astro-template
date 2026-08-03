@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { contactSchema } from '@/lib/contact'
-import { HONEYPOT_FIELD, isHoneypotFilled } from '@/lib/honeypot'
+import { HONEYPOT_FIELD, isHoneypotFilled } from '@/lib/forms/honeypot'
 
 describe('isHoneypotFilled', () => {
   it('reads an empty decoy as a human submission', () => {

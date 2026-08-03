@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 
-import { buildWebManifest } from '@/lib/manifest'
+import { buildWebManifest } from '@/lib/seo/manifest'
 
 export const prerender = true
 

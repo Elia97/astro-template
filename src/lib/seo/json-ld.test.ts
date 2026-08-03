@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildBreadcrumbList, buildItemList } from '@/lib/seo'
+import { buildBreadcrumbList, buildItemList } from '@/lib/seo/json-ld'
 
 const TRAIL = [
   { name: 'Home', url: '/' },

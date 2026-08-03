@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit } from '@/lib/forms/rate-limit'
 
 afterEach(() => {
   vi.useRealTimers()

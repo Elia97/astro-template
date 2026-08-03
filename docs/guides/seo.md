@@ -39,13 +39,13 @@ Pass structured data as objects via the layout's `jsonLd` prop.
 content can't close the script element early. Never `set:html` raw
 `JSON.stringify` output anywhere else. Sitewide schemas (Organization from
 `src/lib/company.ts` + WebSite) live on the homepage only; inner pages build
-their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo.ts`.
+their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo/json-ld.ts`.
 
 For a listing → detail route pair, the **listing** emits `BreadcrumbList` +
 an `ItemList` of its children (the catalog); each **detail** emits the
 single-entity schema (`Service`, `Article`, …) + its own `BreadcrumbList`.
 Don't replicate the full entity on the listing — the authoritative instance
-belongs to its detail URL. Entity builders in `src/lib/seo.ts` absolutize
+belongs to its detail URL. Entity builders in `src/lib/seo/json-ld.ts` absolutize
 their URLs against `SITE.url` and fill `provider`/`author`/`publisher` from
 the single company source (`src/lib/company.ts`).
 
@@ -61,7 +61,7 @@ the single company source (`src/lib/company.ts`).
 `head/icons.astro` carries the document's identity — favicons, the manifest link
 and the browser-chrome colour — and is rendered once from `head.astro`.
 
-- **The manifest is built, not authored.** `src/lib/manifest.ts` derives it from
+- **The manifest is built, not authored.** `src/lib/seo/manifest.ts` derives it from
   `SITE` (name, description, lang, colours) and
   `src/pages/site.webmanifest.ts` serves it prerendered, so the installed
   identity can't drift from the site's own.
@@ -97,7 +97,7 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
 - `src/pages/robots.txt.ts` (prerendered) points crawlers at the sitemap and
   reads its disallow list from `crawl-policy.ts`: per-response indexing control
   does NOT belong there (crawlers cache robots.txt).
-- **`src/lib/crawl-policy.ts` is the single source of truth.** It has two lists
+- **`src/lib/seo/crawl-policy.ts` is the single source of truth.** It has two lists
   and they mean different things:
   - `ROBOTS_DISALLOWED_PATHS` — blocked at the crawler, for thin or duplicate
     pages with no search value. The page is never fetched.

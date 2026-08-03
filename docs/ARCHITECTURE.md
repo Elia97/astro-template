@@ -9,8 +9,8 @@
 - **Deploy**: Vercel. Production ships only from a release tag (see `scripts/vercel-ignore-build.sh`), not from every push to `main` — the Vercel git integration is deliberately disabled for `main` and `release-please--*` branches. The `main` ruleset (`scripts/bootstrap-github.sh`) guards that path by making `ci` a required check on every PR, so nothing reaches a tag without having passed it.
 - **Images**: local assets under `src/assets/**`, optimized at build time by `astro:assets` (Sharp) into static responsive variants — deliberately not the Vercel adapter's `imageService`, to stay portable off-Vercel and off the Image-Optimization quota. Add `sharp` as a devDependency when a fork starts using `astro:assets`.
 - **Quality gates**: four, each covering a moment the others don't — the `main` ruleset (`ci` required on every PR), `pnpm run ci` re-run on the release tag, `pnpm perf:bundle` over `dist/client` after the build, and `pnpm smoke:prod` against the live host after the deploy. Nothing reaches production without passing all four. See `docs/guides/deploy-ops.md` § The gate chain.
-- **Abuse protection**: three layers on the public action, cheapest-first — an in-app honeypot (`src/lib/honeypot.ts`, drops silently), an in-memory rate limit, and Vercel BotID Basic (`botid` dependency, free on every plan) whose verdict is observe-only until `BOTID_ENFORCE=true`. Both BotID halves are gated on `import.meta.env.PROD`; the challenge is proxied same-origin by `vercel.json` rewrites, which is why it needs no CSP entry. See `docs/guides/forms-email.md` § Abuse protection.
-- **Crawl policy**: `src/lib/crawl-policy.ts` is the single source of truth for what stays out of search — read by the sitemap filter, `robots.txt` and the middleware. It is import-free by constraint: `astro.config.mjs` loads before Vite resolves the `@/` alias.
+- **Abuse protection**: three layers on the public action, cheapest-first — an in-app honeypot (`src/lib/forms/honeypot.ts`, drops silently), an in-memory rate limit, and Vercel BotID Basic (`botid` dependency, free on every plan) whose verdict is observe-only until `BOTID_ENFORCE=true`. Both BotID halves are gated on `import.meta.env.PROD`; the challenge is proxied same-origin by `vercel.json` rewrites, which is why it needs no CSP entry. See `docs/guides/forms-email.md` § Abuse protection.
+- **Crawl policy**: `src/lib/seo/crawl-policy.ts` is the single source of truth for what stays out of search — read by the sitemap filter, `robots.txt` and the middleware. It is import-free by constraint: `astro.config.mjs` loads before Vite resolves the `@/` alias.
 
 ## Repository layout
 
@@ -35,7 +35,18 @@ src/
     contact/   # worked reference: an action-backed form                example
     legal/     # worked reference: a legal page                         example
     home/      # a homepage section                                     example
-  lib/         # logic without markup — leaf layers, mixed roles (below)
+  lib/         # logic without markup — leaf layers (rule below)
+    seo/       #   json-ld, crawl-policy, manifest                      machinery
+    forms/     #   honeypot, honeypot-schema, rate-limit                machinery
+    overlay/   #   trap-focus, scroll-lock                              machinery
+    motion/    #   client-side motion lifecycle                         machinery
+    vendor/    #   third-party clients (brevo)                          machinery
+    schemas/   #   content collection schemas                           example
+    site.ts    #   site identity, SSoT                                  config
+    company.ts #   legal entity, SSoT                                   config
+    utils.ts   #   cn()                                                 machinery
+    localized-sections.ts # locale-aware collection reader              machinery
+    contact.ts, homepage.ts # the worked example's domain modules       example
   i18n/        # href/path/route-segments/translate/ui                  machinery
                #   strings/<locale>.ts                                  config
   actions/     # the contact action; handlers exported by name so the
@@ -62,15 +73,22 @@ plopfile.mjs   # CLI harness: `pnpm gen` / `pnpm gen:<name>`
   commands/    # /milestone (seed issues) + /pr (implement one) commands
 ```
 
-`src/lib/` is the one directory that genuinely mixes roles, so it stays flat and
-is read by name rather than by folder:
+`src/lib/` groups machinery by the same domains as the guides and the vertical
+agents — `seo/` ↔ `seo.md`, `forms/` ↔ `forms-email.md`, `motion/` ↔
+`rendering-performance.md`, `overlay/` ↔ `ui-components.md` (which already calls
+those two the "overlay building blocks"). So the path answers which agent owns a
+file. The rule for a new one: **domain machinery goes in its domain folder;
+cross-cutting config and the worked example stay flat.**
 
-- **config** — `site.ts` (SSoT for name/url/nav/CTA/legal/theme colours),
-  `company.ts` (the single legal entity behind JSON-LD and the legal pages).
-- **machinery** — `utils.ts`, `seo.ts`, `manifest.ts`, `crawl-policy.ts`,
-  `localized-sections.ts`, `rate-limit.ts`, `trap-focus.ts`, `scroll-lock.ts`,
-  `honeypot.ts` + `honeypot-schema.ts`, `motion/`, `vendor/`.
-- **example** — `contact.ts`, `homepage.ts`, `schemas/`.
+What stays flat, and why it isn't an oversight:
+
+- `site.ts` and `company.ts` are the two config SSoTs, imported from everywhere —
+  a folder would add a hop to the most-read files in the repo.
+- `utils.ts` is `cn()`, imported by nearly every component.
+- `contact.ts`, `homepage.ts` and `schemas/` are the worked example, and the plop
+  generators inject into the last two **by hardcoded path**. Moving them means
+  editing generator code that has no test of its own — a cost with no matching
+  benefit, since the guides already point at them by name.
 
 **[HARD]** The roles are a reading aid, not an import boundary: `example` code
 imports `machinery` freely, and the layering rules in the next section are what

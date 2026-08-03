@@ -6,7 +6,7 @@ import {
   NOINDEX_PATHS,
   ROBOTS_DISALLOWED_PATHS,
   SITEMAP_EXCLUDED_PATHS,
-} from '@/lib/crawl-policy'
+} from '@/lib/seo/crawl-policy'
 
 // @astrojs/sitemap hands the filter absolute URLs built from the emitted routes,
 // which carry a trailing slash regardless of `trailingSlash: 'never'`. The lists

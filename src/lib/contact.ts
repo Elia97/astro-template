@@ -1,6 +1,6 @@
 import { z } from 'astro/zod'
 
-import { honeypotShape } from '@/lib/honeypot-schema'
+import { honeypotShape } from '@/lib/forms/honeypot-schema'
 
 // Contract of the contact action (src/actions/index.ts). Validation lives
 // here so client and server share one source of truth; extending the form

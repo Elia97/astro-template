@@ -5,7 +5,7 @@ import { actions } from 'astro:actions'
 
 import { createActionFormBinding } from '@/components/forms/action-submit'
 
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 function field(data: FormData, name: string): string {
   return String(data.get(name) ?? '')

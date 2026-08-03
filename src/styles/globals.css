@@ -63,7 +63,7 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
-  /* Scroll lock (lib/scroll-lock.ts toggles the attribute). scrollbar-gutter
+  /* Scroll lock (lib/overlay/scroll-lock.ts toggles the attribute). scrollbar-gutter
      keeps the layout from shifting when the scrollbar disappears. */
   html[data-scroll-locked] {
     overflow: hidden;

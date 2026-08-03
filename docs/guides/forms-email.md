@@ -20,7 +20,7 @@ never by reinventing the submit lifecycle or the vendor transport.
 | Behavior | `contact-form-behavior.ts` | FormData → typed payload (`buildPayload`) |
 | Binder | `src/components/forms/action-submit.ts` | submit lifecycle, feedback, multi-instance binding (shared) |
 | Field errors | `src/components/forms/field-errors.ts` | per-field error slots, `aria-invalid`, focus (shared) |
-| Honeypot | `src/lib/honeypot.ts` + `honeypot-schema.ts` | decoy field name and predicate / its zod shape (shared) |
+| Honeypot | `src/lib/forms/honeypot.ts` + `honeypot-schema.ts` | decoy field name and predicate / its zod shape (shared) |
 
 Layers talk through narrow interfaces: `ContactPayload` derives from the
 action (`Parameters<typeof actions.contact>[0]`), so a schema change
@@ -61,7 +61,7 @@ The action is public and unauthenticated, so the guards are layered in the
 handler **cheapest-first** — the one that costs a network call only runs for a
 submission that already looks human:
 
-1. **Honeypot** — `HONEYPOT_FIELD` (`website`) in `src/lib/honeypot.ts`. The
+1. **Honeypot** — `HONEYPOT_FIELD` (`website`) in `src/lib/forms/honeypot.ts`. The
    schema *accepts* a filled decoy instead of rejecting it: a validation error
    would tell the bot which field gave it away. Filled → `console.warn` +
    `{ ok: true }`, no vendor call. One name shared by the schema shape

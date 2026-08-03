@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import ContactFormFields from '@/components/contact/contact-form-fields.astro'
 
 import { contactSchema } from '@/lib/contact'
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { fieldErrorId } from './field-errors'
 

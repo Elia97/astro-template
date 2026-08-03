@@ -1,13 +1,17 @@
 import { existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import process from 'node:process'
 import { describe, expect, it } from 'vitest'
 
-import { buildWebManifest } from '@/lib/manifest'
+import { buildWebManifest } from '@/lib/seo/manifest'
 import { SITE } from '@/lib/site'
 
 const manifest = buildWebManifest()
 
-const publicFile = (src: string) => fileURLToPath(new URL(`../../public${src}`, import.meta.url))
+// Resolved from the project root (vitest's cwd), not relative to this file:
+// `public/` is a fixed top-level directory, so a path counted in `../` breaks
+// the moment this test moves — which is exactly how it broke once.
+const publicFile = (src: string) => join(process.cwd(), 'public', src)
 
 describe('web manifest', () => {
   // The failure this exists for: an icon listed here but not shipped is a 404

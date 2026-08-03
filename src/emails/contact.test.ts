@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'
 

@@ -5,7 +5,7 @@ import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, envField } from 'astro/config'
 
-import { isExcludedFromSitemap } from './src/lib/crawl-policy'
+import { isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
 import { SITE } from './src/lib/site'
 
 // https://astro.build/config
@@ -29,7 +29,7 @@ export default defineConfig({
   integrations: [
     // Emits sitemap-index.xml at build time; src/pages/robots.txt.ts points
     // crawlers at it. Exclusions are NOT listed here: they live in
-    // src/lib/crawl-policy.ts, the same module robots.txt and the middleware
+    // src/lib/seo/crawl-policy.ts, the same module robots.txt and the middleware
     // read. The locale map mirrors SITE.localeTags so hreflang in the sitemap
     // matches the head.
     sitemap({

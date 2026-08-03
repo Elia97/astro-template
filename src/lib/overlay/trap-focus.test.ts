@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { cycleFocus } from '@/lib/trap-focus'
+import { cycleFocus } from '@/lib/overlay/trap-focus'
 
 function renderButtons(count: number): HTMLButtonElement[] {
   document.body.innerHTML = ''

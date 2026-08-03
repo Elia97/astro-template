@@ -1,5 +1,5 @@
-import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
-import { cycleFocus } from '@/lib/trap-focus'
+import { lockScroll, unlockScroll } from '@/lib/overlay/scroll-lock'
+import { cycleFocus } from '@/lib/overlay/trap-focus'
 
 import { createMotionBinding } from './binding'
 

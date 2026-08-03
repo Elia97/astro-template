@@ -17,7 +17,7 @@ This repo is a personal/freelance starting point — start fresh from it for eac
      the manifest's only icon out of the box, which keeps it valid but **not
      installable**. For the install prompt add `public/icon-192.png`,
      `public/icon-512.png` and a maskable 512 (content inside the centered 80%
-     safe zone, opaque) and list them in `ICONS` (`src/lib/manifest.ts`) —
+     safe zone, opaque) and list them in `ICONS` (`src/lib/seo/manifest.ts`) —
      `manifest.test.ts` holds every declared icon to actually existing;
    - `SITE.themeColor` — the browser-chrome colours; keep them equal to
      `--background` in `light.css`/`dark.css`;

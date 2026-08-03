@@ -1,6 +1,6 @@
 import { z } from 'astro/zod'
 
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 // Server-side half of the honeypot — see the [HARD] note in ./honeypot.ts for
 // why the constant and the schema shape are separate modules.

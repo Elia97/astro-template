@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { lockScroll, resetScrollLock, unlockScroll } from '@/lib/scroll-lock'
+import { lockScroll, resetScrollLock, unlockScroll } from '@/lib/overlay/scroll-lock'
 
 const isLocked = () => document.documentElement.hasAttribute('data-scroll-locked')
 

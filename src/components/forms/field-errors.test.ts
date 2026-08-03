@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { applyFieldErrors, clearFieldErrors, fieldErrorId, focusFirstInvalid } from './field-errors'
 

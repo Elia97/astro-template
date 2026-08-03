@@ -61,8 +61,8 @@ script that pulls a heavy library in with it. A module-level call like
 file ships the whole library.
 
 The worked example is the honeypot, deliberately split in two:
-`src/lib/honeypot.ts` holds the constant and the predicate and imports nothing;
-`src/lib/honeypot-schema.ts` holds the zod shape. The form behaviour imports
+`src/lib/forms/honeypot.ts` holds the constant and the predicate and imports nothing;
+`src/lib/forms/honeypot-schema.ts` holds the zod shape. The form behaviour imports
 only the first. Merging them back together was measured: `/contatti` goes from
 9.8 to 22.1 KB gz and fails the budget, because all of Zod (~12 KB gz) lands on
 every page carrying a form.

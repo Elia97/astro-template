@@ -1,4 +1,4 @@
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 // Per-field validation surface, shared by every action-backed form. The markup
 // contract is one `<FieldError field="…" />` slot per control, wired to it

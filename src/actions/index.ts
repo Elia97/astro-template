@@ -3,8 +3,8 @@ import { BOTID_ENFORCE, CONTACT_FROM_EMAIL, CONTACT_FROM_NAME, CONTACT_TO_EMAIL 
 import { checkBotId } from 'botid/server'
 
 import { type ContactRequest, contactAttributes, contactSchema } from '@/lib/contact'
-import { isHoneypotFilled } from '@/lib/honeypot'
-import { rateLimit } from '@/lib/rate-limit'
+import { isHoneypotFilled } from '@/lib/forms/honeypot'
+import { rateLimit } from '@/lib/forms/rate-limit'
 import { type BrevoResult, sendTransactionalEmail, upsertContact } from '@/lib/vendor/brevo'
 
 import { renderContactAutoreply, renderContactNotification } from '@/emails/contact'

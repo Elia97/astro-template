@@ -6,7 +6,7 @@
 import { vi } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
-import { HONEYPOT_FIELD } from '@/lib/honeypot'
+import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 import type { BrevoResult, SendEmailParams, UpsertContactParams } from '@/lib/vendor/brevo'
 
 export const brevoMock = {
@@ -41,7 +41,7 @@ export interface Env {
 // Env vars are read at module import (test/stubs/astro-env-server.ts), so every
 // case re-imports through a fresh module graph. That also hands each test a
 // clean rate-limit window — the sliding window is module-level state in
-// src/lib/rate-limit.ts.
+// src/lib/forms/rate-limit.ts.
 export async function importActions(env: Env = {}) {
   vi.stubEnv('PROD', env.prod ?? false)
   vi.stubEnv('BOTID_ENFORCE', env.botidEnforce ? 'true' : 'false')

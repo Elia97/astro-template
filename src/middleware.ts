@@ -1,8 +1,8 @@
 import { defineMiddleware } from 'astro:middleware'
 
-import { NOINDEX_PATHS } from '@/lib/crawl-policy'
+import { NOINDEX_PATHS } from '@/lib/seo/crawl-policy'
 
-// X-Robots-Tag for the paths crawl-policy.ts keeps out of the index. In practice
+// X-Robots-Tag for the paths seo/crawl-policy.ts keeps out of the index. In practice
 // this only ever reaches a **non-HTML SSR response** — a generated feed, a JSON
 // endpoint — where there is no <head> to carry a meta tag.
 //
