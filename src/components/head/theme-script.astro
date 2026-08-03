@@ -42,13 +42,21 @@
     }
   }
 
+  // On first load this script runs in <head> before the rest of the document
+  // exists: no [data-theme-toggle] yet, and no theme-color metas either — those
+  // ship in head/icons.astro, which the parser hasn't reached. Both syncs have
+  // to run again once the DOM is there, or the browser chrome keeps following
+  // the system preference instead of the applied theme.
+  function syncFromDom() {
+    syncThemeToggles()
+    syncThemeColor(document.documentElement.classList.contains('dark'))
+  }
+
   applyTheme()
 
   if (!window.__themeInit) {
     window.__themeInit = true
-    // On first load this script runs in <head>, before any [data-theme-toggle]
-    // exists — re-sync aria-pressed once the DOM is there.
-    document.addEventListener('DOMContentLoaded', syncThemeToggles)
+    document.addEventListener('DOMContentLoaded', syncFromDom)
     document.addEventListener('astro:after-swap', applyTheme)
     // Delegated toggle on the document: survives island re-renders and view
     // transitions. Persists the choice in localStorage.
