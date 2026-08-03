@@ -12,10 +12,14 @@ updates:
     cooldown:
       default-days: 2
     groups:
-      astro:
+      # One group = one PR per cycle. Two dependabot PRs merged seconds apart, neither
+      # rebased on the other, auto-merge their pnpm-lock.yaml into a hybrid with a
+      # duplicated key: unparsable YAML, CI down until it is repaired by hand. It also
+      # keeps the ruleset's "branch up to date" rule cheap — one branch to rebase, not
+      # eight. Majors ride along: read the grouped PR before merging it.
+      npm:
         patterns:
-          - 'astro'
-          - '@astrojs/*'
+          - '*'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
@@ -25,3 +29,8 @@ updates:
       - 'github-actions'
     commit-message:
       prefix: 'chore(deps)'
+    groups:
+      # Same reasoning as the npm group: one PR per cycle, not one per action.
+      github-actions:
+        patterns:
+          - '*'

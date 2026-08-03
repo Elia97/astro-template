@@ -23,7 +23,7 @@
     "gen:page": "plop page",
     "gen:component": "plop component",
     "gen:collection": "plop collection",
-    "prepare": "lefthook install || true"
+    "prepare": "lefthook install --reset-hooks-path || true"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",

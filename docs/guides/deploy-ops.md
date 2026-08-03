@@ -49,9 +49,15 @@ Four gates, each covering a moment the others don't:
 - One required context covers Biome + `astro check` + vitest + build + bundle
   budget, because `ci.yml` runs all of it in a single `ci` job.
 - **`pnpm run ci` on the tag is not redundant.** `vercel build` is `astro build`:
-  it type-checks nothing and runs no test. And the ruleset sets
-  `strict_required_status_checks_policy: false`, so two PRs each green against an
-  older `main` can both merge and leave `main` red on their combination.
+  it type-checks nothing and runs no test.
+- **The ruleset sets `strict_required_status_checks_policy: true`** — a branch has
+  to be up to date with `main` before it can merge. Without it, two PRs each green
+  against an older `main` both land and leave `main` red on their combination. That
+  is not theoretical: two dependabot PRs squashed 92 seconds apart had their
+  `pnpm-lock.yaml` auto-merged into a hybrid with a duplicated key — unparsable
+  YAML, every CI job down, and dependabot unable to run until it was fixed by hand.
+  The cost is a rebase per open PR whenever `main` moves, which is why
+  `.github/dependabot.yml` groups each ecosystem into a single PR.
 - `perf:bundle` stays out of the `deploy` job: it reads `dist/client`, which
   `vercel build` never emits.
 

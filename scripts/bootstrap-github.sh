@@ -40,6 +40,13 @@ echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
 # bypass_actors is empty on purpose, admins included: the only emergency exit is disabling
 # the ruleset from Settings → Rules, which stays in the audit log. release-please needs no
 # bypass: it opens a PR, and cuts tag and release only AFTER the merge.
+# strict_required_status_checks_policy=true ("branch up to date before merging") is what keeps
+# two PRs green against an OLDER main from both landing and leaving main red on their
+# combination. Learned the hard way: two dependabot PRs squashed 92 seconds apart auto-merged
+# their pnpm-lock.yaml into a hybrid with a duplicated key — unparsable YAML, every CI job
+# down, and dependabot itself unable to run until the lockfile was repaired by hand. The cost
+# of strict is a rebase per open PR whenever main moves; the single-group dependabot config in
+# .github/dependabot.yml is what keeps that cost to one PR per ecosystem per cycle.
 ruleset_payload=$(cat << 'JSON'
 {
   "name": "main",
@@ -62,7 +69,7 @@ ruleset_payload=$(cat << 'JSON'
     {
       "type": "required_status_checks",
       "parameters": {
-        "strict_required_status_checks_policy": false,
+        "strict_required_status_checks_policy": true,
         "required_status_checks": [{ "context": "ci" }]
       }
     }
