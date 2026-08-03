@@ -16,7 +16,15 @@ describe('isHoneypotFilled', () => {
 // The schema must ACCEPT a filled decoy: rejecting it would tell the bot which
 // field gave it away. Dropping the submission is the action's job.
 describe('honeypot in the contact schema', () => {
-  const contact = { firstName: 'Ada', email: 'ada@example.com', message: 'Ciao', consent: true } as const
+  // Every field the markup marks `required` is filled: the decoy is what these
+  // cases vary, so the rest of the submission has to be one the schema accepts.
+  const contact = {
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    email: 'ada@example.com',
+    message: 'Ciao',
+    consent: true,
+  } as const
 
   it('defaults the decoy to empty when the client omits it', () => {
     const parsed = contactSchema.safeParse(contact)

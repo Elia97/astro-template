@@ -18,6 +18,7 @@ export const it = {
   'legal.privacy': 'Privacy',
   'legal.cookies': 'Cookie Policy',
   'legal.terms': 'Termini e Condizioni',
+  'legal.cookiePreferences': 'Preferenze cookie',
 
   'error.404title': 'Pagina non trovata',
   'error.404description': 'La pagina che cerchi non esiste o è stata spostata.',
@@ -40,6 +41,18 @@ export const it = {
   'contact.success': 'Richiesta inviata. Ti ricontatteremo a breve.',
   'contact.error': 'Invio non riuscito. Riprova tra poco.',
   'contact.genericFieldError': 'Controlla i dati inseriti.',
+
+  // Validation messages: emitted by the Zod schemas (src/lib/forms/form-fields.ts)
+  // and printed raw into each field's error slot. They read as instructions, not
+  // as diagnostics — the user is being told what to do, not what went wrong.
+  'forms.error.firstNameRequired': 'Inserisci il tuo nome.',
+  'forms.error.firstNameTooLong': 'Il nome è troppo lungo (massimo 100 caratteri).',
+  'forms.error.lastNameRequired': 'Inserisci il tuo cognome.',
+  'forms.error.lastNameTooLong': 'Il cognome è troppo lungo (massimo 100 caratteri).',
+  'forms.error.emailInvalid': 'Inserisci un indirizzo email valido.',
+  'forms.error.emailTooLong': 'L’indirizzo email è troppo lungo (massimo 254 caratteri).',
+  'forms.error.messageTooLong': 'Il messaggio è troppo lungo (massimo 2000 caratteri).',
+  'forms.error.consentRequired': 'Devi acconsentire al trattamento dei dati per inviare la richiesta.',
 
   'footer.legalHeading': 'Legale',
   'footer.allRightsReserved': 'Tutti i diritti riservati.',

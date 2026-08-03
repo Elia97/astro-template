@@ -19,8 +19,16 @@ const t = useTranslations(Astro.currentLocale)
     <CardDescription as="p">{t('contact.formIntro')}</CardDescription>
   </CardHeader>
 
-  {/* Pending/error copy travels on data attributes: the behavior module stays copy-free. */}
+  {/* Pending/error copy travels on data attributes: the behavior module stays copy-free.
+
+      novalidate: the browser's own bubbles would report the first invalid field
+      in its own wording and its own styling, before the schema ever runs — two
+      error systems for one form, only one of which sets aria-invalid or fills
+      the field slots. The schema (src/lib/contact.ts) is the single gate; it
+      validates the same fields the `required` attributes mark, and those stay
+      for assistive tech. */}
   <form
+    novalidate
     data-contact-form
     data-i18n-sending={t('contact.sending')}
     data-i18n-submit={t('contact.submit')}
