@@ -37,9 +37,14 @@ echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
 # [HARD] Without it CI runs but binds nothing: a direct push to main, or a merge with the
 # check red, reaches production at the next tag. The required check is `ci` — the only job in
 # ci.yml, so one context covers Biome + astro check + vitest + build + bundle budget.
-# bypass_actors is empty on purpose, admins included: the only emergency exit is disabling
+# bypass_actors is empty by default, admins included: the only emergency exit is disabling
 # the ruleset from Settings → Rules, which stays in the audit log. release-please needs no
 # bypass: it opens a PR, and cuts tag and release only AFTER the merge.
+#
+# ADMIN_BYPASS=1 adds the admin role (repository-role id 5) as an always-bypass actor. That is
+# for a repo maintained by direct pushes to main — this template's own repo is the case it
+# exists for. Do NOT set it on a client project: there the whole point of the ruleset is that
+# `ci` is a gate nobody can walk around, and an admin bypass makes it a suggestion again.
 # strict_required_status_checks_policy=true ("branch up to date before merging") is what keeps
 # two PRs green against an OLDER main from both landing and leaving main red on their
 # combination. Learned the hard way: two dependabot PRs squashed 92 seconds apart auto-merged
@@ -49,7 +54,15 @@ echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
 # .github/dependabot.yml is what keeps that cost to one PR per ecosystem per cycle.
 # required_linear_history is redundant while the repo stays squash-only, and is here as defence
 # in depth: re-enabling merge commits in Settings is one click, undoing this rule is not.
-ruleset_payload=$(cat << 'JSON'
+if [ "${ADMIN_BYPASS:-0}" = "1" ]; then
+  bypass_actors='[{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }]'
+  echo "   ADMIN_BYPASS=1 → the admin role can still push straight to main"
+else
+  bypass_actors='[]'
+fi
+
+# Unquoted heredoc: the only expansion in it is ${bypass_actors}.
+ruleset_payload=$(cat << JSON
 {
   "name": "main",
   "target": "branch",
@@ -77,7 +90,7 @@ ruleset_payload=$(cat << 'JSON'
       }
     }
   ],
-  "bypass_actors": []
+  "bypass_actors": ${bypass_actors}
 }
 JSON
 )
