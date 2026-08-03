@@ -11,6 +11,13 @@ updates:
       prefix-development: 'chore(deps-dev)'
     cooldown:
       default-days: 2
+    ignore:
+      # `astro check` (through @astrojs/language-server) uses the TypeScript programmatic
+      # API, which the native 7.x compiler does not ship yet: with TS 7 installed
+      # `pnpm run ci` dies before checking a single file. Drop this once astro supports
+      # TS 7 — upstream status: https://github.com/withastro/roadmap/discussions/1321
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
     groups:
       # One group = one PR per cycle. Two dependabot PRs merged seconds apart, neither
       # rebased on the other, auto-merge their pnpm-lock.yaml into a hybrid with a
