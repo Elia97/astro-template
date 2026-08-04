@@ -2,10 +2,14 @@
 // Runtime smoke against the live production host — the only check that sees
 // what the edge actually serves, where src/vercel-*.test.ts only pins what
 // vercel.json says. Run it by hand after a rollback: `pnpm smoke:prod [url]`.
+//
+// The checks live in ./lib/smoke-production.ts, which is what the unit tests
+// exercise; everything here is the network, the printing and the exit code.
 
 import process from 'node:process'
 
 import { SITE } from '../src/lib/site.ts'
+import { runChecks, waitForAlias } from './lib/smoke-production.ts'
 
 // The apex, not the *.vercel.app URL `vercel deploy` prints: on that host
 // `X-Robots-Tag: noindex` is there by construction (the `has: host` rule in
@@ -17,139 +21,27 @@ if (process.argv[2] === undefined && new URL(SITE.url).host === 'example.com') {
   process.exit(1)
 }
 
-const PAGES = [
-  { path: '/', type: 'text/html' },
-  // Not the root: a prerendered route served off the CDN from a nested path.
-  { path: '/contatti', type: 'text/html' },
-  { path: '/robots.txt', type: 'text/plain' },
-  { path: '/sitemap-index.xml', type: 'xml' },
-]
-
-// Declared on the global `/(.*)` rule in vercel.json. `null` = presence is the
-// assertion — src/vercel-headers.test.ts already pins the values, and repeating
-// a long CSP here would mean editing two places for one change.
-const SECURITY_HEADERS = {
-  'content-security-policy': null,
-  'strict-transport-security': null,
-  'x-content-type-options': 'nosniff',
-  'x-frame-options': 'DENY',
-  'referrer-policy': null,
-  'permissions-policy': null,
-}
-
-// Same-origin proxy for the BotID challenge.
-const BOTID_CHALLENGE = '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js'
-
-const failures = []
-
-const pass = (check) => console.log(`✓ ${check}`)
-
-const fail = (check, detail) => {
-  failures.push(`${check} — ${detail}`)
-  console.error(`✗ ${check} — ${detail}`)
-}
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-const get = (url) => fetch(url, { redirect: 'manual' })
-
-/** The production alias takes a moment to point at the deployment just uploaded:
- *  without this wait the smoke would photograph the previous one, or a 404. Only
- *  the first request waits — once the alias resolves everything else is served by
- *  the same deployment, and retrying a genuine failure five times just makes a
- *  red job slower. Failures here are not reported: the checks below do that. */
-async function waitForAlias(attempts = 5) {
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      if ((await get(baseUrl)).ok) return
-    } catch {
-      // Network-level failure — the checks below report it with its message.
-    }
-    if (attempt < attempts) await sleep(attempt * 2000)
-  }
-}
-
-async function checkPages() {
-  for (const { path, type } of PAGES) {
-    const check = `GET ${path}`
-    try {
-      const response = await get(`${baseUrl}${path}`)
-      const contentType = response.headers.get('content-type') ?? ''
-      if (response.status !== 200) fail(check, `expected 200, got ${response.status}`)
-      else if (!contentType.includes(type)) fail(check, `expected a ${type} content-type, got "${contentType}"`)
-      else pass(check)
-    } catch (error) {
-      fail(check, error.message)
-    }
-  }
-}
-
-async function checkSecurityHeaders() {
-  let response
-  try {
-    response = await get(baseUrl)
-  } catch (error) {
-    fail('security headers', error.message)
-    return
-  }
-
-  for (const [header, expected] of Object.entries(SECURITY_HEADERS)) {
-    const check = `header ${header}`
-    const value = response.headers.get(header)
-    if (value === null) fail(check, 'missing')
-    else if (expected !== null && value !== expected) fail(check, `expected "${expected}", got "${value}"`)
-    else pass(check)
-  }
-
-  // The `has: host = *.vercel.app` rule must never reach the custom domain: a
-  // noindex here drops the live site out of every search index.
-  const check = 'no x-robots-tag on the production host'
-  const robots = response.headers.get('x-robots-tag')
-  if (robots === null) pass(check)
-  else fail(check, `present on ${baseUrl}: "${robots}"`)
-}
-
-async function checkBotIdChallenge() {
-  const check = 'BotID challenge proxied same-origin'
-  try {
-    const response = await get(`${baseUrl}${BOTID_CHALLENGE}`)
-    if (response.status !== 200) fail(check, `expected 200 from the rewrite, got ${response.status}`)
-    else pass(check)
-  } catch (error) {
-    fail(check, error.message)
-  }
-}
-
-/** The www → apex 308 from vercel.json. The one check that can't run against an
- *  arbitrary base URL: it depends on DNS and on the domain configured on the
- *  Vercel project, not on the deployment under test. */
-async function checkCanonicalHost() {
-  const check = 'www → apex 308'
-  if (baseUrl !== SITE.url) {
-    console.log(`- ${check} (skipped: base URL is not ${SITE.url})`)
-    return
-  }
-  try {
-    const response = await get(`https://www.${new URL(SITE.url).host}/`)
-    const location = response.headers.get('location') ?? ''
-    if (response.status !== 308) fail(check, `expected 308, got ${response.status}`)
-    else if (!location.startsWith(SITE.url)) fail(check, `location "${location}" does not point at ${SITE.url}`)
-    else pass(check)
-  } catch (error) {
-    fail(check, error.message)
-  }
+const context = {
+  get: (url) => fetch(url, { redirect: 'manual' }),
+  baseUrl,
+  siteUrl: SITE.url,
 }
 
 console.log(`\nProduction smoke — ${baseUrl}\n`)
 
-await waitForAlias()
-await checkPages()
-await checkSecurityHeaders()
-await checkBotIdChallenge()
-await checkCanonicalHost()
+await waitForAlias(context, (ms) => new Promise((resolve) => setTimeout(resolve, ms)))
+const results = await runChecks(context)
 
+for (const { check, status, detail } of results) {
+  if (status === 'pass') console.log(`✓ ${check}`)
+  else if (status === 'skip') console.log(`- ${check} (skipped: ${detail})`)
+  else console.error(`✗ ${check} — ${detail}`)
+}
+
+const failures = results.filter(({ status }) => status === 'fail')
 if (failures.length > 0) {
-  console.error(`\n✗ ${failures.length} check(s) failed:\n${failures.map((f) => `  - ${f}`).join('\n')}\n`)
+  console.error(`\n✗ ${failures.length} check(s) failed:`)
+  console.error(`${failures.map(({ check, detail }) => `  - ${check} — ${detail}`).join('\n')}\n`)
   console.error('Production is live and broken. Roll back from the Vercel dashboard:')
   console.error('Deployments → the last known-good production deployment → Promote to Production.\n')
   process.exit(1)
