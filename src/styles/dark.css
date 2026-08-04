@@ -1,5 +1,4 @@
-/* ─── Dark theme: overrides semantic roles (same keys, inverted steps) ───
-   `--destructive`/`--destructive-foreground` are not overridden: they inherit from :root. */
+/* ─── Dark theme: overrides semantic roles (same keys, inverted steps) ─── */
 .dark {
   /* Native UI (form controls, scrollbars) follows the theme */
   color-scheme: dark;
@@ -20,7 +19,14 @@
   --muted-foreground: var(--neutral-200);
   --accent: var(--neutral-700);
   --accent-foreground: var(--neutral-50);
+  /* Lighter red, and the foreground flips with it: `--destructive` is both a
+     text colour (`text-destructive` on the form error) and a fill
+     (`bg-destructive` on the button), and near-white on this red is only 3.65:1. */
+  --destructive: var(--red-500);
+  --destructive-foreground: var(--neutral-950);
+
+  /* See the note in light.css: a divider and a control boundary are two roles. */
   --border: var(--neutral-800);
-  --input: var(--neutral-800);
+  --input: var(--neutral-500);
   --ring: var(--neutral-500);
 }

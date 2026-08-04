@@ -59,6 +59,15 @@ the **worst** stop, not the average one.
 - **Borders may stay alpha** — a solid border turns a field into a filled box —
   but size them against WCAG 1.4.11's 3:1 on *both* sides: the fill inside and
   the background outside.
+- **The flat token pairs already have that test**: `src/styles/contrast.test.ts`
+  parses `tokens.css` + `light.css`/`dark.css` and asserts every
+  foreground/background pair at 4.5:1 and every control boundary at 3:1, in both
+  themes. A rebrand that drops one below the floor fails there. Two consequences
+  of it worth knowing before "tidying" them back together: `--border` and
+  `--input` are different tokens on purpose (a divider vs a control boundary),
+  and `--destructive` needs a lighter step in dark **with the foreground flipped
+  to a dark one**, because the same token is text (`text-destructive`) and fill
+  (`bg-destructive`).
 - **The one derogation is large text** (≥24px, or ≥18.7px bold), where 1.4.3
   asks 3:1 rather than 4.5:1 — and only where the floor is asserted against the
   worst stop. Below that size the derogation doesn't exist.

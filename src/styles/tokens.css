@@ -11,7 +11,10 @@
   --neutral-900: oklch(0.205 0 0);
   --neutral-950: oklch(0.145 0 0);
 
-  /* Non-neutral status color (destructive red) */
+  /* Non-neutral status color (destructive red). Two steps because one cannot
+     clear 4.5:1 on both themes: red-600 is the light-theme value, red-500 the
+     dark-theme one — see src/styles/contrast.test.ts. */
+  --red-500: oklch(0.637 0.237 27.325);
   --red-600: oklch(0.577 0.245 27.325);
 
   --radius: 0.625rem;
