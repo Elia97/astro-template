@@ -91,9 +91,20 @@ function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoRe
 
 // Fail-loud ONLY on the owner notification (the lead would be lost) —
 // autoreply and CRM upsert are best-effort, logged and swallowed.
-function reportContactResults([notified, autoreplied, persisted]: [BrevoResult, BrevoResult, BrevoResult]): void {
+//
+// [HARD] The submission has no other durable sink: all three calls go to the
+// same vendor with the same key, so one Brevo outage loses every trace of it.
+// The recovery line is what makes the lead reachable by grep over the runtime
+// logs — the difference between "we lost it" and "I'll call them back". It
+// carries personal data on purpose, so a fork with a stricter retention policy
+// should say so in its privacy notice or redact `message` here.
+function reportContactResults(
+  input: ContactRequest,
+  [notified, autoreplied, persisted]: [BrevoResult, BrevoResult, BrevoResult],
+): void {
   if (!notified.ok) {
     console.error('[contact] notification failed:', notified.error)
+    console.error('[contact] lead-recovery', JSON.stringify(input))
     throw new ActionError({
       code: 'INTERNAL_SERVER_ERROR',
       message: 'Invio non riuscito, riprova.',
@@ -120,7 +131,7 @@ export async function handleContact(input: ContactRequest, context: ActionContex
   if (droppedByHoneypot(input)) return { ok: true }
   assertNotRateLimited(context.clientAddress)
   await assertNotBot()
-  reportContactResults(await sendContactEmails(input))
+  reportContactResults(input, await sendContactEmails(input))
   return { ok: true }
 }
 

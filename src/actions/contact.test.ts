@@ -74,3 +74,23 @@ describe('contact handler', () => {
     expect(consoleError).toHaveBeenCalledWith('[contact] contact upsert failed:', KO_ERROR)
   })
 })
+
+// Brevo is the only sink the submission ever reaches, so this line is the whole
+// recovery path: without it the visitor gets "riprova" and the lead is gone with
+// no record anywhere.
+describe('lead recovery', () => {
+  it('writes the submission to the log when the notification fails', async () => {
+    const consoleError = spyOnConsoleError()
+    brevoAnswers({ notify: KO })
+    const { handleContact } = await importActions()
+
+    await rejectionOf(handleContact(CONTACT_INPUT, CLIENT))
+
+    const recovery = consoleError.mock.calls.find((call) => call[0] === '[contact] lead-recovery')
+    expect(recovery).toBeDefined()
+    expect(JSON.parse(String(recovery?.[1]))).toMatchObject({
+      email: CONTACT_INPUT.email,
+      message: CONTACT_INPUT.message,
+    })
+  })
+})

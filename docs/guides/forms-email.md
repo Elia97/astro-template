@@ -63,6 +63,13 @@ Pick the policy from the action's **shape**:
 - **Single-call**: the action's one response *is* the outcome — nothing to keep
   best-effort. Invert the policy and fail-loud outright: a non-`ok` result →
   `ActionError`, no swallowing.
+- **[HARD] Fail-loud is not enough on its own — write the payload down.** The
+  submission's only sink is the vendor, so the failure that fires the
+  `ActionError` is exactly the one that destroys it. The handler logs
+  `[contact] lead-recovery` with the parsed input before throwing; keep that line
+  in any action you add, and grep it in the runtime logs after an outage. It
+  carries personal data deliberately: a fork with a stricter retention policy
+  redacts the free-text field rather than dropping the line.
 - Rate limiting: `rateLimit('contact:' + clientAddress)` — in-memory sliding
   window (5/60s), per-instance. Each form gets its **own scope prefix**
   (`'<name>:' + clientAddress`) so the windows stay independent. It resets on
