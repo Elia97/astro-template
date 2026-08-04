@@ -36,8 +36,14 @@ gh api -X PUT "repos/{owner}/{repo}/actions/permissions/workflow" \
 
 echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
 # [HARD] Without it CI runs but binds nothing: a direct push to main, or a merge with the
-# check red, reaches production at the next tag. The required check is `ci` — the only job in
-# ci.yml, so one context covers Biome + astro check + vitest + build + bundle budget.
+# check red, reaches production at the next tag. `ci` is the only job in ci.yml, so one
+# context covers Biome + astro check + vitest + build + bundle budget.
+#
+# "Validate PR title" is required for the same reason, not for tidiness: squash-merge makes
+# the PR title the commit message on main, and release-please reads that title to decide
+# whether anything releases at all. A non-conventional or non-releasable title lands the
+# change on main and it never ships — no error, nothing red, just a deploy that never happens.
+# Left unrequired, the check reports that and cannot stop it.
 # bypass_actors is empty by default, admins included: the only emergency exit is disabling
 # the ruleset from Settings → Rules, which stays in the audit log. release-please needs no
 # bypass: it opens a PR, and cuts tag and release only AFTER the merge.
@@ -87,7 +93,7 @@ ruleset_payload=$(cat << JSON
       "type": "required_status_checks",
       "parameters": {
         "strict_required_status_checks_policy": true,
-        "required_status_checks": [{ "context": "ci" }]
+        "required_status_checks": [{ "context": "ci" }, { "context": "Validate PR title" }]
       }
     }
   ],
