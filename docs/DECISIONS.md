@@ -6,6 +6,13 @@ Informational, not blocking: agents read this as context before starting a miles
 
 Group open decisions under the milestone they gate; keep a trailing **Informativa (non bloccante)** bucket for things agents should know but that don't block any milestone.
 
+Two markers, and only these two:
+
+- **🔴** on what blocks the estimate or the implementation — everything else is ordinary open ground.
+- **the day value**, wherever the answer moves the number (`D1 — what "full-custom" means: 6 days, across M2, M3, M6`). A question without a number is a curiosity; a question with one is a decision the client can actually take.
+
+Only what **changes the code** belongs here. Commercial open points live in the estimate, not in this file.
+
 <!-- TEMPLATE — replace the examples below with real open decisions.
 
 ## Milestone 2

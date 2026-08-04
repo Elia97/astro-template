@@ -40,3 +40,16 @@ pnpm-debug.log*
 
 # vitest coverage (input for `fallow audit`, never committed)
 coverage/
+
+# commercial material, not development work: the repo tracks what gets built, not what gets
+# quoted. These stay on disk — their backup is `backup-locale`, not GitHub, so moving them
+# anywhere else under docs/ takes them out of the backup with no warning.
+# Blueprints for both, and why they can't ship at these paths: docs/proposal-templates/.
+docs/ESTIMATE.md
+docs/MEETING-*.md
+# PDFs generated from the .md next to them (`md2pdf`), never a source. Deliberately NOT
+# recursive: a client PDF under docs/sources/ is a source and stays tracked.
+docs/*.pdf
+
+# office temp files — the client's own brief under docs/sources/ stays tracked: it is the source
+~$*

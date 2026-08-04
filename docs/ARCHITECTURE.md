@@ -73,9 +73,14 @@ test/          # test-only infra, never bundled                         machiner
   helpers/     # shared fixtures and mocks (action handlers)
   container.ts # Container API render helpers for .astro components
 public/        # static assets, served as-is (favicons, og-default.png placeholder)
-docs/          # planning + architecture docs for whichever project is built from this template
+docs/          # planning docs for whichever project is built from this template:
+               #   PROJECT (the client's voice) · DECISIONS · ROADMAP (carries the days)
+               #   ESTIMATE.md and MEETING-*.md sit here too, untracked by design
+  sources/     # the client's own material — brief, attachments, transcripts. Tracked: it is
+               #   what PROJECT.md is read from, and the only defence against re-reading it
   guides/      # domain-specific pattern references, consulted by the vertical agents (see below)
   milestone-templates/ # reusable milestone blueprints (see docs/milestone-templates/README.md)
+  proposal-templates/  # blueprints for the two untracked pre-approval documents
 scripts/       # operational tooling — never imported by src/
   lib/         # pure logic split out of a script so vitest can cover it
   gen/         # plop generators (page/component/collection/section) + ts-morph injection

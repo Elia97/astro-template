@@ -2,30 +2,47 @@
 
 This repo is a personal/freelance starting point — start fresh from it for each new project rather than working directly in `astro-template` itself.
 
-## Bootstrap a new project
+The lifecycle around the repo — reading the client's brief, deriving the estimate, the approval that turns a plan into issues — lives in `~/work/PIPELINE.md`. This file covers what happens *inside* the repo.
+
+## Before approval — the repo, the plan, the estimate
+
+The repo exists before the work is approved: the planning documents get written inside it, which is what puts them on GitHub instead of on a single machine. Nothing is personalized yet, and **no issue is created yet** — `/milestone` previews every issue in plan mode, and on an unsigned plan that preview is the whole point.
 
 1. On GitHub, click **"Use this template" → "Create a new repository"** under the new project's name (not `git clone` — that would drag along this repo's own git history and release tags).
-2. Rename `package.json#name` — it leaks into the changelog that release-please generates, so it should match the new project, not stay `astro-template`.
-3. De-brand the scaffold:
-   - `src/lib/site.ts` — name, url, description, nav/CTA/legal (the chrome
-     renders from here; entries carry i18n keys, not copy);
-   - `src/styles/tokens.css` — the ONLY file to touch for the visual rebrand
-     (raw oklch primitives; the semantic names in `light.css`/`dark.css` stay);
-   - `public/og-default.png` — replace the placeholder (1200×630);
-   - `public/favicon.svg` + `public/favicon.ico` — replace both. The SVG is the
-     manifest's only icon out of the box: valid, but **not installable** —
-     `docs/guides/seo.md` § Icons, manifest & theme-color has what to add for
-     the install prompt;
-   - `SITE.themeColor` — the browser-chrome colours; keep them equal to
-     `--background` in `light.css`/`dark.css`;
-   - `astro.config.mjs` → `i18n.defaultLocale`/`locales` if the project isn't
-     Italian-first (§ Adding a locale below is the full list);
-   - `src/content/homepage/hero.yml` — real homepage copy.
-4. `corepack enable && pnpm install && pnpm dev` — installs dependencies and git hooks (lefthook), starts the dev server.
-5. Create the GitHub repo, then run `bash scripts/bootstrap-github.sh` from inside it (needs `gh` authenticated) — sets up dependabot labels, squash-only merge policy, Actions permissions for release-please, and the `main` ruleset (PR required, `ci` as a required status check, branch up to date before merging, no direct push). Re-run it any time: every step is idempotent.
-6. Connect the repo to a Vercel project, then set **Settings → Build & Deployment → Ignored Build Step** to `bash scripts/vercel-ignore-build.sh` — production only ships from a release tag, not from every push.
-7. Fill in `docs/ROADMAP.md` — either hand-write a `## Milestone N` section, or instantiate one from a reusable blueprint in `docs/milestone-templates/*.md` via `/milestone <template-name>` — and `docs/PROJECT.md`/`docs/DECISIONS.md` if the project needs them — these stay empty scaffolds in the template itself.
-8. `.release-please-manifest.json` starts at `{".": "0.0.0"}`, which release-please treats as "nothing released yet" rather than a real prior version — so the first `release-please` PR proposes `1.0.0` directly, automatically, and stays open, updating on every `feat`/`fix`, until you merge it once the initial batch of milestones is done. No config change needed for this; it's release-please's own default behavior when there's no real prior release.
+2. Clone it, then `corepack enable && pnpm install` — installs dependencies and git hooks (lefthook).
+3. **Pause dependabot**: `open-pull-requests-limit: 0` under both ecosystems in `.github/dependabot.yml`. On a scaffold that isn't personalized and has no CI secrets, its PRs are noise to close by hand. The `foundations` milestone re-enables it.
+4. `bash scripts/bootstrap-github.sh` from inside the clone (needs `gh` authenticated) — sets up dependabot labels, squash-only merge policy, Actions permissions for release-please, and the `main` ruleset (PR required, `ci` as a required status check, branch up to date before merging, no direct push). Re-run it any time: every step is idempotent.
+5. Write the planning documents. The client's own material goes tracked into `docs/sources/`; `docs/PROJECT.md` is their brief in their own words, `docs/DECISIONS.md` what is still open, `docs/ROADMAP.md` the milestones and the days they cost. All three ship as empty scaffolds on purpose.
+6. Derive the estimate from the roadmap — `docs/ESTIMATE.md`, plus `docs/MEETING-<date>.md` if there is a call to prepare. Both are **untracked by design**; their blueprints and the reasoning behind that are in `docs/proposal-templates/README.md`.
+
+## After approval
+
+7. Connect the repo to a Vercel project, then set **Settings → Build & Deployment → Ignored Build Step** to `bash scripts/vercel-ignore-build.sh` — production only ships from a release tag, not from every push.
+8. Set the release secrets (§ Release secrets below) — without `RELEASE_PLEASE_TOKEN` the release PR never gets a `ci` check and can never be merged.
+9. `/milestone 1` seeds Milestone 1 — branding, environments, design system, SEO, forms, consent, real content, transcribed into the roadmap from `docs/milestone-templates/foundations.md` while the plan was written — and `/pr <issue-number>` implements each of its issues. Seed one milestone at a time: a seeded milestone is a frozen plan. **The rebrand happens there**, through PRs and releasable commits; doing it by hand first would land it on `main` as untracked, unreleasable work. § What the rebrand touches, below, is the reference those issues read.
+10. `.release-please-manifest.json` starts at `{".": "0.0.0"}`, which release-please treats as "nothing released yet" rather than a real prior version — so the first `release-please` PR proposes `1.0.0` directly, automatically, and stays open, updating on every `feat`/`fix`, until you merge it once the initial batch of milestones is done. No config change needed for this; it's release-please's own default behavior when there's no real prior release.
+
+## What the rebrand touches
+
+The full surface, in one place — the `foundations` milestone spreads it across three issues:
+
+- `package.json#name` (and `release-please-config.json`) — it leaks into the
+  changelog that release-please generates, so it should match the new project,
+  not stay `astro-template`;
+- `src/lib/site.ts` — name, url, description, nav/CTA/legal (the chrome
+  renders from here; entries carry i18n keys, not copy);
+- `src/styles/tokens.css` — the ONLY file to touch for the visual rebrand
+  (raw oklch primitives; the semantic names in `light.css`/`dark.css` stay);
+- `public/og-default.png` — replace the placeholder (1200×630);
+- `public/favicon.svg` + `public/favicon.ico` — replace both. The SVG is the
+  manifest's only icon out of the box: valid, but **not installable** —
+  `docs/guides/seo.md` § Icons, manifest & theme-color has what to add for
+  the install prompt;
+- `SITE.themeColor` — the browser-chrome colours; keep them equal to
+  `--background` in `light.css`/`dark.css`;
+- `astro.config.mjs` → `i18n.defaultLocale`/`locales` if the project isn't
+  Italian-first (§ Adding a locale below is the full list);
+- `src/content/homepage/hero.yml` — real homepage copy.
 
 ## What the scaffold gives you
 
