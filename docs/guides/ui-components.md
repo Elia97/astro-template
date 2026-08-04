@@ -20,7 +20,8 @@ Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head 
   foreground to a dark one. `src/styles/contrast.test.ts` holds every pair.
 - **`z-*` comes from the ladder in `tokens.css`**, not from a number that
   happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
-  < `--z-skip-link`. Place a new overlay by reading it.
+  < `--z-skip-link`. Place a new overlay by reading it, and reach it through the
+  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`.
 - `src/styles/light.css` / `dark.css` — semantic role mapping (shadcn naming:
   `--background`, `--primary`, `--destructive`, …). **Never rename these keys**;
   components and utilities assume them. Dark overrides the same keys under `.dark`.
