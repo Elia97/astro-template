@@ -56,6 +56,29 @@
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
   ],
+  // Enforces docs/ARCHITECTURE.md § Source layering, which until now was prose
+  // nothing checked. The direction that matters: a component may not reach back
+  // into a layout or a page — it would invert composition and make the component
+  // unusable inside any other layout. `leaf` is lib/i18n/types, which the
+  // rendering tree consumes and never the reverse.
+  "boundaries": {
+    "zones": [
+      { "name": "leaf", "patterns": ["src/lib/**", "src/i18n/**", "src/types/**"] },
+      { "name": "components", "patterns": ["src/components/**"] },
+      { "name": "layouts", "patterns": ["src/layouts/**"] },
+      {
+        "name": "routes",
+        "patterns": ["src/pages/**", "src/actions/**", "src/emails/**", "src/middleware.ts", "src/content.config.ts"]
+      }
+    ],
+    "rules": [
+      { "from": "leaf", "allow": ["leaf"] },
+      { "from": "components", "allow": ["leaf", "components"] },
+      { "from": "layouts", "allow": ["leaf", "components", "layouts"] },
+      { "from": "routes", "allow": ["leaf", "components", "layouts", "routes"] }
+    ]
+  },
+
   "duplicates": {
     // Hide pair-only clones; focus on widespread copy-paste worth
     // refactoring. Lower to 2 to report every duplicate pair. (Known pair:

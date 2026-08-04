@@ -124,6 +124,13 @@ flow one way:
 - `layouts/` compose components into the document shell; `pages/` talk to
   layouts, never to `head.astro` directly.
 
+**[HARD]** This is enforced, not just described: `boundaries` in `.fallowrc.jsonc`
+maps these zones and `pnpm exec fallow dead-code` fails on a crossing. The
+direction that matters is the one prose kept losing — a component may not reach
+back into a layout. Doing so inverts composition and makes the component
+unusable inside any other layout, which is exactly how the legal pages had
+drifted before the check existed.
+
 ## UI primitives — no React/Radix in the base scaffold
 
 `src/components/ui/` holds native `.astro` primitives (button, badge, alert,

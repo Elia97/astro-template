@@ -58,9 +58,11 @@ This repo is a personal/freelance starting point — start fresh from it for eac
 - **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
   Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
   pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast.
-- **Dead-code analysis** (fallow, dev-only): `pnpm exec fallow dead-code` and
-  `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc` documents every
-  intentional ignore. `fallow health` is informational (coverage-driven).
+- **Dead-code and architecture analysis** (fallow, dev-only): `pnpm exec fallow
+  dead-code` and `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc`
+  documents every intentional ignore, and its `boundaries` block turns
+  `docs/ARCHITECTURE.md` § Source layering into a check. `fallow health` is
+  informational (its CRAP scores assume 0% coverage until a report is passed).
 
 Depth and rationale live in `docs/guides/*.md` and `docs/ARCHITECTURE.md`.
 
