@@ -53,10 +53,14 @@ interchangeable entries**. A fixed, one-off block on a singleton page is a
   `getHomepageSections` is prerendered (the default). A consumer that opted out
   with `prerender = false` would turn these throws into runtime 500s — keep
   homepage routes prerendered.
-- **Don't drop the collection's custom `generateId`** — the default one
+- **Don't drop the homepage collection's custom `generateId`** — the default one
   slugifies segments and honors a YAML `slug` key, which lets content land
   silently in the wrong locale (reasons pinned at the loader in
-  `src/content.config.ts`).
+  `src/content.config.ts`). It is archetype-specific, not a house rule:
+  `gen:collection` emits it for a **data** collection, which may be read back by
+  locale folder, and deliberately leaves the default in place for a **document**
+  collection, whose id becomes the route slug and therefore *wants* slugification
+  and a frontmatter `slug`.
 - **[HARD] Content schemas use `z.strictObject`, never `z.object`.** A plain
   object strips unknown keys, so a typo'd or renamed field disappears from the
   page with a green build — the one content failure the throws above can't

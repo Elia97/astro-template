@@ -67,17 +67,28 @@ export function injectCollection({ root, camel, kebab, document }) {
     })
   }
 
+  // The `generateId` override is archetype-specific, not a house style. A
+  // document collection's id BECOMES the URL slug through getStaticPaths, so the
+  // default — which slugifies segments and honors a frontmatter `slug` — is
+  // exactly what a blog wants; overriding it there would put "My First Post",
+  // spaces and all, in a URL. Data collections keep the raw path because a
+  // locale-partitioned one is read back by folder (see the homepage collection).
   const pattern = document ? '**/*.md' : '**/*.{yaml,yml}'
+  const loaderId = document
+    ? `    // Default generateId on purpose: this id becomes the route slug, so it\n` +
+      `    // should slugify segments and honor a frontmatter \`slug\`.\n`
+    : `    // Raw relative path minus extension, like the homepage collection: the\n` +
+      `    // default generateId slugifies segments (en-US → en-us), honors a top-level\n` +
+      `    // \`slug\` key before zod strips it, and drops a trailing /index — all three\n` +
+      `    // break reading entries back by locale folder.\n` +
+      `    generateId: ({ entry }) => entry.replace(/\\.(yaml|yml)$/, ''),\n`
   cfg.insertStatements(
     statement.getChildIndex(),
     `const ${camel} = defineCollection({\n` +
       `  loader: glob({\n` +
       `    pattern: '${pattern}',\n` +
       `    base: './src/content/${kebab}',\n` +
-      `    // Raw relative path minus extension — same rationale as the homepage\n` +
-      `    // collection (default generateId slugifies segments, honors a \`slug\`\n` +
-      `    // key before zod and strips /index).\n` +
-      `    generateId: ({ entry }) => entry.replace(/\\.(${document ? 'md' : 'yaml|yml'})$/, ''),\n` +
+      loaderId +
       `  }),\n` +
       `  schema: ${camel}Schema,\n` +
       `})\n`,

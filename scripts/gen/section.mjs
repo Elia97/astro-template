@@ -3,6 +3,16 @@ import { isValidIdentifier } from './identifier.mjs'
 import { assertSectionInjectable, injectSection } from './inject-section.mjs'
 import { postGenAction } from './post-gen.mjs'
 
+// Deliberately NOT a whole-file `git checkout`: two of the three files it names
+// are ones you are likely mid-edit on while adding a section, and that command
+// would take the rest of your uncommitted work with the injection.
+const ROLLBACK_HINT =
+  'gen:section also MODIFIED three existing files: src/lib/schemas/homepage/index.ts, ' +
+  'src/lib/homepage.ts, src/pages/index.astro. Review them with `git diff`, then discard ONLY ' +
+  'the injected hunks with `git checkout -p` on those paths. Then delete the generated ' +
+  'schema/yml/component files. A re-run without rollback fails pre-flight with ' +
+  '"already in the union".'
+
 export default function sectionGenerator(plop) {
   const root = process.cwd()
   const tpl = 'scripts/templates/section'
@@ -58,13 +68,7 @@ export default function sectionGenerator(plop) {
         })
         return `injected union + pick + index.astro: ${api.getHelper('pascalCase')(a.name)}`
       },
-      postGenAction(
-        root,
-        'gen:section also MODIFIED three existing files — to roll back: ' +
-          '`git checkout src/lib/schemas/homepage/index.ts src/lib/homepage.ts src/pages/index.astro` ' +
-          'and delete the generated schema/yml/component files. A re-run without ' +
-          'rollback fails pre-flight with "already in the union".',
-      ),
+      postGenAction(root, ROLLBACK_HINT),
     ],
   })
 }
