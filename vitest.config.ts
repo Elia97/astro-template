@@ -55,18 +55,30 @@ export default getViteConfig({
     // assumes 0% and a well-tested branchy function scores as untested. The
     // `json` reporter is the one fallow reads (coverage/coverage-final.json).
     //
-    // Scoped to LOGIC. `.astro` files are markup with near-zero cyclomatic
-    // complexity, so covering them cannot move a CRAP score — chasing them to
-    // 100% would buy ~45 render tests to maintain and prevent no bug. Same for
-    // data and config modules: a test that imports them asserts nothing.
-    // What stays in is what CRAP actually gates.
+    // Scoped to LOGIC. MOST `.astro` files are markup with near-zero cyclomatic
+    // complexity, so covering them cannot move a CRAP score — chasing all of them
+    // to 100% would buy ~45 render tests to maintain and prevent no bug. The
+    // exceptions are the two templates branchy enough that fallow flags them, and
+    // both branch on something worth pinning: footer.astro gates the
+    // cookie-preferences link (a [HARD] consent invariant) and hero.astro ranks
+    // its ctas by position. Same for data and config modules: a test that imports
+    // them asserts nothing. What stays in is what CRAP actually gates.
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
       // `scripts/gen/**` is in because it is the opposite case: ts-morph
       // injection is branchy, it edits the repo's own hook points, and its
-      // failure mode is a half-written tree.
-      include: ['src/**/*.ts', 'scripts/lib/**/*.ts', 'scripts/gen/**/*.mjs'],
+      // failure mode is a half-written tree. `test/stubs/**` is in because the
+      // stubs stand in for the Astro runtime — an unexercised path there is
+      // either dead or a lie every test leaning on it inherits.
+      include: [
+        'src/**/*.ts',
+        'scripts/lib/**/*.ts',
+        'scripts/gen/**/*.mjs',
+        'test/stubs/**/*.ts',
+        'src/components/layout/footer.astro',
+        'src/components/home/hero.astro',
+      ],
       exclude: [
         '**/*.test.ts',
         'src/types/**', // ambient declarations
