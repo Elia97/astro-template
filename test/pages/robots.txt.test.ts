@@ -9,7 +9,7 @@ vi.mock('@/lib/seo/crawl-policy', () => ({ ROBOTS_DISALLOWED_PATHS: [] }))
 
 async function get(site?: URL): Promise<{ body: string; type: string | null }> {
   const { GET } = await import('@/pages/robots.txt')
-  const response = (await (GET as unknown as (c: { site?: URL | undefined }) => Response)({ site })) as Response
+  const response = (GET as unknown as (c: { site?: URL | undefined }) => Response)({ site })
   return { body: await response.text(), type: response.headers.get('Content-Type') }
 }
 

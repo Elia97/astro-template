@@ -5,7 +5,7 @@ import { buildWebManifest } from '@/lib/seo/manifest'
 import { GET } from '@/pages/site.webmanifest'
 
 async function get(): Promise<{ body: unknown; type: string | null }> {
-  const response = (await (GET as unknown as () => Response)()) as Response
+  const response = (GET as unknown as () => Response)()
   return { body: JSON.parse(await response.text()), type: response.headers.get('Content-Type') }
 }
 
