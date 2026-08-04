@@ -160,7 +160,7 @@ Release automation (`release-please.yml`) needs these secrets set manually on Gi
 - `VERCEL_TOKEN` — Vercel access token (vercel.com/account/tokens).
 - `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` — from `.vercel/project.json` after running `vercel link` locally once.
 
-Until all three Vercel secrets are set, the `deploy` job in `release-please.yml` skips cleanly (no failure) instead of running.
+Until all three Vercel secrets are set, `deploy.yml` skips cleanly (no failure) instead of running.
 
 ## Day-to-day workflow
 

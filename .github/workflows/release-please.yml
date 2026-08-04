@@ -29,77 +29,12 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  check-vercel-secrets:
+  # Same workflow the manual "Run workflow" button calls, so the release path and
+  # the emergency path can't drift apart.
+  deploy:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    runs-on: ubuntu-latest
-    outputs:
-      configured: ${{ steps.check.outputs.configured }}
-    steps:
-      - id: check
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Vercel secrets not set yet — skipping production deploy. See HOW_TO_USE.md for the setup checklist."
-          fi
-
-  deploy:
-    name: Deploy to Vercel production
-    needs: [release-please, check-vercel-secrets]
-    if: ${{ needs.release-please.outputs.release_created == 'true' && needs.check-vercel-secrets.outputs.configured == 'true' }}
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-    steps:
-      # Checks out the exact released tag, not whatever HEAD of main happens to be at
-      # deploy time — avoids deploying a commit that landed on main after the release.
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
-
-      - run: corepack enable
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      # The binding gate: the tag only becomes production if it passes the same
-      # suite CI runs. `vercel build` below is `astro build` — no Biome, no
-      # astro check, no vitest — and nothing else guards this moment (the `main`
-      # ruleset covers what lands on main, not what ships from a tag).
-      - run: pnpm run ci
-
-      # Version-pinned on purpose: `pnpm dlx vercel` resolves whatever is latest
-      # at release time, and Dependabot doesn't cover `pnpm dlx` — a major bump
-      # would land unannounced, in the middle of a release. Bump it deliberately.
-      - run: pnpm dlx vercel@58 pull --yes --environment=production
-
-      - run: pnpm dlx vercel@58 build --prod
-
-      - name: Deploy to Vercel production
-        id: deploy
-        run: |
-          url=$(pnpm dlx vercel@58 deploy --prebuilt --prod)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Deployed to: $url"
-
-      # Runtime check against the live host: the vercel.json tests are
-      # declarative and astro dev never reads that file, so this is the only
-      # place headers, rewrites and the served routes are exercised for real. It
-      # hits the apex, not $url — see the comment at the top of the script.
-      - name: Smoke test production
-        run: pnpm run smoke:prod
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit

@@ -1,0 +1,135 @@
+name: Deploy
+
+# Two entry points, one gated path. `workflow_call` is the release pipeline on a
+# fresh tag; `workflow_dispatch` is the human one, for the times production has to
+# be rebuilt without a code change — a rotated secret, a republished iubenda
+# policy, a rollback to an older tag. Both run the identical
+# `pnpm run ci` → build → deploy → smoke chain.
+#
+# [HARD] This exists so the emergency route IS the gated route. Without a manual
+# trigger the answer under deadline is `vercel --prod` from a laptop, which walks
+# around all four quality gates at once.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Release tag to deploy'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Release tag to deploy (blank = the most recent tag)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Never two production deploys at once, and never cancel one half-done.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check-vercel-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel secrets not set yet — skipping production deploy. See HOW_TO_USE.md for the setup checklist."
+          fi
+
+  deploy:
+    name: Deploy to Vercel production
+    needs: check-vercel-secrets
+    if: ${{ needs.check-vercel-secrets.outputs.configured == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      # Full history so a blank dispatch input can resolve the most recent tag.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # The input reaches the shell through env, never interpolated into the
+      # script: a `run:` block that splices `${{ inputs.… }}` inline is a command
+      # injection on a workflow anyone with write access can dispatch.
+      - name: Resolve the tag to deploy
+        id: target
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+        run: |
+          ref="$REQUESTED_REF"
+          if [ -z "$ref" ]; then
+            ref=$(git describe --tags --abbrev=0) || {
+              echo "::error::no tag in this repository — production ships from a release tag, so there is nothing to deploy yet"
+              exit 1
+            }
+            echo "::notice::No ref given — deploying the most recent tag ($ref)."
+          fi
+          # Keeps the invariant a dispatch could otherwise break: a branch name
+          # here would ship whatever it points at, bypassing the release.
+          if ! git rev-parse -q --verify "refs/tags/$ref" > /dev/null; then
+            echo "::error::$ref is not a tag — production ships from release tags only"
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+      # Detached at the tag, not at whatever main points to by now.
+      - name: Check out the tag
+        env:
+          TARGET_REF: ${{ steps.target.outputs.ref }}
+        run: git checkout --detach "refs/tags/$TARGET_REF"
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      # The binding gate: the tag only becomes production if it passes the same
+      # suite CI runs. `vercel build` below is `astro build` — no Biome, no
+      # astro check, no vitest — and nothing else guards this moment (the `main`
+      # ruleset covers what lands on main, not what ships from a tag).
+      - run: pnpm run ci
+
+      # Version-pinned on purpose: `pnpm dlx vercel` resolves whatever is latest
+      # at release time, and Dependabot doesn't cover `pnpm dlx` — a major bump
+      # would land unannounced, in the middle of a release. Bump it deliberately.
+      - run: pnpm dlx vercel@58 pull --yes --environment=production
+
+      - run: pnpm dlx vercel@58 build --prod
+
+      - name: Deploy to Vercel production
+        id: deploy
+        run: |
+          url=$(pnpm dlx vercel@58 deploy --prebuilt --prod)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $url"
+
+      # Runtime check against the live host: the vercel.json tests are
+      # declarative and astro dev never reads that file, so this is the only
+      # place headers, rewrites and the served routes are exercised for real. It
+      # hits the apex, not $url — see the comment at the top of the script.
+      - name: Smoke test production
+        run: pnpm run smoke:prod

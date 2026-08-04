@@ -17,10 +17,16 @@ Production ships **only from a release tag**, never from a push to `main`:
   (Settings → Build & Deployment → "Run my Bash script"). It exits 0 (skip) on
   `main` and `release-please--*`, exits 1 (proceed) everywhere else — so the git
   integration only ever produces **preview** deploys.
-- The production deploy is the `deploy` job in
-  `.github/workflows/release-please.yml`: it checks out the released **tag** (not
-  whatever `main` points at by then), then `pnpm run ci` → `vercel pull --prod` →
-  `vercel build --prod` → `vercel deploy --prebuilt --prod` → `pnpm smoke:prod`.
+- The production deploy is `.github/workflows/deploy.yml`: it checks out the
+  released **tag** (not whatever `main` points at by then), then `pnpm run ci` →
+  `vercel pull --prod` → `vercel build --prod` → `vercel deploy --prebuilt --prod`
+  → `pnpm smoke:prod`.
+- **It has two entry points and one path.** `release-please.yml` calls it on a
+  fresh tag; Actions → Deploy → *Run workflow* dispatches it by hand, blank input
+  meaning the most recent tag. Use the button when production must be rebuilt
+  without a code change — a rotated secret, a republished iubenda policy, a
+  rollback to an older tag. It refuses a ref that isn't a tag, so the dispatch
+  can't quietly ship a branch.
 - The job is gated on `check-vercel-secrets`: with `VERCEL_TOKEN` /
   `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` unset it emits a notice and skips — a
   fresh fork never fails CI just because it isn't connected to Vercel yet.
@@ -194,6 +200,11 @@ Production is live and broken:
 3. Then fix forward on a branch. Do **not** delete the bad tag — release-please
    reads the tag history, and removing one desynchronises the next version bump.
    Ship the fix as a new patch release instead.
+
+Promoting reuses the old build as-is. When the fix is *outside* the code — a
+corrected env var, a republished policy — that build has to be made again:
+Actions → Deploy → *Run workflow*, with the tag to rebuild. Same gates, so a
+rebuild can't ship something the release path would have caught.
 
 ## Environment variables
 
