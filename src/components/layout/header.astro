@@ -44,7 +44,13 @@ const navLinkClass = lightChrome
 const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-muted-foreground hover:text-foreground'
 ---
 
-<header class={cn('w-full', headerClass)}>
+{/* Named, NOT `transition:persist`. Persisting would carry this header's DOM —
+    and therefore its classes — into the next page, so a fork that sets
+    `heroOverlay` on one page only would navigate away with a transparent
+    white-on-white header. A name keeps the visual continuity (the chrome morphs
+    instead of cross-fading with the page) while the incoming page still renders
+    its own header with its own props. */}
+<header transition:name="site-header" class={cn('w-full', headerClass)}>
   <Container class="flex h-16 items-center justify-between">
     <a href={href('/')} class={cn('font-semibold text-lg tracking-tight', wordmarkClass)}>{SITE.name}</a>
 
