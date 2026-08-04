@@ -16,6 +16,14 @@ export default defineConfig({
   // default 'ignore' lets /page and /page/ both resolve with two competing
   // self-canonicals.
   trailingSlash: 'never',
+  // Pairs with <ClientRouter />, which is already paid for and without this only
+  // buys a cross-fade — part of the prefetch code ships inside it either way.
+  // `viewport` over the documented `hover` default because hover does nothing on
+  // a phone, which is most of the traffic these sites get; Astro skips links
+  // scrolled past quickly and honours Save-Data, so the waste is bounded. On a
+  // fork whose pages list many links (a blog index), drop back to `hover`.
+  prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
+
   // maxDuration bounds the blast radius of a stuck upstream: the platform default
   // is minutes, and one hanging vendor call would burn all of it while the visitor
   // stares at a spinner. Above the 8s the Brevo client allows itself, far below
