@@ -18,7 +18,7 @@ const { options } = Astro.props
 <ul
   role="listbox"
   data-select-listbox
-  class="absolute z-20 mt-1 hidden max-h-60 w-full overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground text-sm shadow-lg backdrop-blur-md"
+  class="absolute z-[var(--z-dropdown)] mt-1 hidden max-h-60 w-full overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground text-sm shadow-lg backdrop-blur-md"
 >
   {
     options.map((option) => (

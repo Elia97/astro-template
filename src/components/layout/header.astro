@@ -30,8 +30,8 @@ const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
 
 const headerClass = heroOverlay
-  ? 'absolute inset-x-0 top-0 z-50'
-  : 'sticky top-0 z-50 border-border/60 border-b bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
+  ? 'absolute inset-x-0 top-0 z-[var(--z-header)]'
+  : 'sticky top-0 z-[var(--z-header)] border-border/60 border-b bg-background/80 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
 
 const wordmarkClass = lightChrome ? 'text-white' : 'text-foreground'
 

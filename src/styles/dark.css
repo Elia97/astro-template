@@ -11,22 +11,25 @@
   --card-foreground: var(--neutral-50);
   --popover: var(--neutral-900);
   --popover-foreground: var(--neutral-50);
-  --primary: var(--neutral-50);
+  --primary: var(--brand-50);
   --primary-foreground: var(--neutral-900);
   --secondary: var(--neutral-700);
   --secondary-foreground: var(--neutral-50);
   --muted: var(--neutral-700);
   --muted-foreground: var(--neutral-200);
-  --accent: var(--neutral-700);
+  --accent: var(--brand-700);
   --accent-foreground: var(--neutral-50);
   /* Lighter red, and the foreground flips with it: `--destructive` is both a
      text colour (`text-destructive` on the form error) and a fill
      (`bg-destructive` on the button), and near-white on this red is only 3.65:1. */
   --destructive: var(--red-500);
   --destructive-foreground: var(--neutral-950);
+  /* Lighter green, foreground flipped, for the same reason as destructive. */
+  --success: var(--green-600);
+  --success-foreground: var(--neutral-950);
 
   /* See the note in light.css: a divider and a control boundary are two roles. */
   --border: var(--neutral-800);
   --input: var(--neutral-500);
-  --ring: var(--neutral-500);
+  --ring: var(--brand-500);
 }

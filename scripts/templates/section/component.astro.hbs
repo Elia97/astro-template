@@ -1,6 +1,7 @@
 ---
 import Button from '@/components/ui/button.astro'
 import Container from '@/components/ui/container.astro'
+import Heading from '@/components/ui/heading.astro'
 import Section from '@/components/ui/section.astro'
 import type { HomepageSections } from '@/lib/homepage'
 
@@ -11,7 +12,7 @@ const { title, body, buttons } = Astro.props
 
 <Section class="border-b border-border bg-background">
   <Container>
-    <h2 class="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
+    <Heading as="h2" class="text-foreground">{title}</Heading>
     {body && <p class="mt-4 max-w-2xl text-pretty text-muted-foreground">{body}</p>}
     {
       buttons.length > 0 && (

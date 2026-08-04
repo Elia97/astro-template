@@ -5,10 +5,22 @@ Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head 
 
 ## Design tokens — three tiers, one rebrand surface
 
-- `src/styles/tokens.css` — raw oklch primitives + `--radius`. **This is the only
-  file to touch when rebranding a fork.** Token names follow the Tailwind scale
-  step they hold (`--neutral-700` = Tailwind's neutral-700 value; a mislabeled
-  step is a bug, not a taste choice).
+- `src/styles/tokens.css` — raw oklch primitives, the stacking ladder and
+  `--radius`. **This is the only file to touch when rebranding a fork**, and the
+  `--brand-*` ramp is what makes that literally true: `--primary`, `--accent` and
+  `--ring` map onto it rather than onto `--neutral-*`, so giving a client their
+  colour never means editing `light.css`/`dark.css`. It ships holding the neutral
+  values, so the default look is achromatic — replace the steps, not the roles.
+  Token names follow the Tailwind scale step they hold (`--neutral-700` =
+  Tailwind's neutral-700 value; a mislabeled step is a bug, not a taste choice).
+- **Status roles come in two steps, and so does their foreground.** `destructive`
+  and `success` are each a darker step for light and a lighter one for dark,
+  because no single value clears 4.5:1 on both — and since the same token is both
+  text (`text-destructive`) and fill (`bg-destructive`), the dark theme flips its
+  foreground to a dark one. `src/styles/contrast.test.ts` holds every pair.
+- **`z-*` comes from the ladder in `tokens.css`**, not from a number that
+  happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
+  < `--z-skip-link`. Place a new overlay by reading it.
 - `src/styles/light.css` / `dark.css` — semantic role mapping (shadcn naming:
   `--background`, `--primary`, `--destructive`, …). **Never rename these keys**;
   components and utilities assume them. Dark overrides the same keys under `.dark`.

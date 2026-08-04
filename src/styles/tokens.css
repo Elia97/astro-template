@@ -11,11 +11,32 @@
   --neutral-900: oklch(0.205 0 0);
   --neutral-950: oklch(0.145 0 0);
 
-  /* Non-neutral status color (destructive red). Two steps because one cannot
-     clear 4.5:1 on both themes: red-600 is the light-theme value, red-500 the
-     dark-theme one — see src/styles/contrast.test.ts. */
+  /* Brand ramp — THE rebrand surface. Ships as the neutral steps so the default
+     look is achromatic, but `--primary`, `--accent` and `--ring` map onto these
+     rather than onto `--neutral-*`: giving a client their colour is editing this
+     block and nothing else. Replacing a step in light.css/dark.css instead is
+     the thing this exists to make unnecessary. */
+  --brand-50: oklch(0.985 0 0);
+  --brand-100: oklch(0.97 0 0);
+  --brand-500: oklch(0.556 0 0);
+  --brand-700: oklch(0.371 0 0);
+  --brand-900: oklch(0.205 0 0);
+
+  /* Status colors. Two steps each, because one cannot clear 4.5:1 on both
+     themes: the darker step is the light-theme value, the lighter one the
+     dark-theme value — all of it asserted in src/styles/contrast.test.ts. */
   --red-500: oklch(0.637 0.237 27.325);
   --red-600: oklch(0.577 0.245 27.325);
+  --green-600: oklch(0.627 0.194 149.214);
+  --green-700: oklch(0.527 0.154 150.069);
+
+  /* Stacking ladder, in one place so a new overlay can be placed by reading it
+     rather than by guessing a number that happens to work. */
+  --z-raised: 10;
+  --z-dropdown: 20;
+  --z-header: 50;
+  --z-overlay: 60;
+  --z-skip-link: 100;
 
   --radius: 0.625rem;
 }
