@@ -113,3 +113,27 @@ describe('upsertContact', () => {
     )
   })
 })
+
+// `fetch` waits forever by default. Three of these run in parallel inside the
+// action, so an upstream that accepts and stalls would hold the whole function
+// open until the platform kills it — no error path, no lead, just a spinner.
+describe('request deadline', () => {
+  it('aborts the request instead of waiting on the vendor indefinitely', async () => {
+    vi.stubEnv('BREVO_API_KEY', 'secret-key')
+    const fetchMock = stubResolvedFetch(okResponse())
+
+    await sendTransactionalEmail(EMAIL_PARAMS)
+
+    const init = fetchMock.mock.calls[0]?.[1]
+    expect(init?.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('reports a timed-out request as a failure, never as a success', async () => {
+    vi.stubEnv('BREVO_API_KEY', 'secret-key')
+    stubRejectedFetch(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+
+    const result = await sendTransactionalEmail(EMAIL_PARAMS)
+
+    expect(result.ok).toBe(false)
+  })
+})

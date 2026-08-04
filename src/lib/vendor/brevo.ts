@@ -6,6 +6,13 @@ import { getSecret } from 'astro:env/server'
 
 const BREVO_API = 'https://api.brevo.com/v3'
 
+// [HARD] `fetch` has no default timeout. A vendor that accepts the connection and
+// then stalls holds the function open until the platform kills it — the visitor
+// watches a spinner for the whole duration and the action never gets to run its
+// error path. Three calls fire in parallel, so this is also the ceiling on the
+// whole handler. Keep it well under `maxDuration` in vercel.json.
+const REQUEST_TIMEOUT_MS = 8_000
+
 interface EmailAddress {
   email: string
   name?: string
@@ -49,6 +56,7 @@ async function brevoFetch(path: string, body: unknown): Promise<BrevoResult> {
         accept: 'application/json',
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
     if (!res.ok) {
       const detail = await res.text().catch(() => '')

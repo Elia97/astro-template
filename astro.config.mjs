@@ -16,7 +16,12 @@ export default defineConfig({
   // default 'ignore' lets /page and /page/ both resolve with two competing
   // self-canonicals.
   trailingSlash: 'never',
-  adapter: vercel(),
+  // maxDuration bounds the blast radius of a stuck upstream: the platform default
+  // is minutes, and one hanging vendor call would burn all of it while the visitor
+  // stares at a spinner. Above the 8s the Brevo client allows itself, far below
+  // the default. It applies to the single `_render` function, which also serves
+  // /_image and /_server-islands — raise it if a fork puts real work there.
+  adapter: vercel({ maxDuration: 20 }),
   // Native i18n routing: the primary locale keeps unprefixed URLs forever, so
   // adding a language later is additive (new locale entry + content), never a URL change.
   i18n: {
