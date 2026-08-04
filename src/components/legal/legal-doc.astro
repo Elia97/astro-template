@@ -1,17 +1,22 @@
 ---
-// Body of a HOSTED legal document (src/lib/legal/documents.ts). The sibling
-// legal-page.astro is the body for the placeholder copy a fork writes itself —
-// the pages pick between them on whether the fetch returned anything. Neither
-// mounts the layout: see the note in legal-page.astro.
+// Body of a HOSTED legal document (src/lib/legal/documents.ts): the themed
+// document when the fetch returned one, the honest fallback when it did not.
+// The branch lives here rather than in each page so both call sites cannot
+// drift. Does not mount the layout — see the note in legal-page.astro.
 import Container from '@/components/ui/container.astro'
 import Section from '@/components/ui/section.astro'
 
+import type { LegalDocKind } from '@/lib/legal/documents'
+
+import LegalDocFallback from './legal-doc-fallback.astro'
+
 interface Props {
+  kind: LegalDocKind
   /** Sanitized upstream by getLegalDoc — never pass unsanitized HTML here. */
-  html: string
+  html: string | null
 }
 
-const { html } = Astro.props
+const { kind, html } = Astro.props
 
 // The iubenda no-markup HTML is semantic but unthemed (it ships its own h1):
 // these arbitrary-variant selectors apply the project tokens to the injected
@@ -36,7 +41,7 @@ const proseClass = [
 <Section>
   <Container>
     <div class="mx-auto max-w-3xl">
-      <div class={proseClass} set:html={html} />
+      {html !== null ? <div class={proseClass} set:html={html} /> : <LegalDocFallback {kind} />}
     </div>
   </Container>
 </Section>

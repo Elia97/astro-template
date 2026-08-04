@@ -23,6 +23,21 @@ function policyId(): string {
   return id
 }
 
+/**
+ * The public iubenda page for a policy — where the fallback sends people when
+ * the document itself could not be embedded.
+ *
+ * null with no id configured: an empty one builds a generic iubenda URL that is
+ * not the client's policy at all, and a link to the wrong policy is worse than
+ * no link.
+ */
+export function iubendaHostedUrl(kind: LegalDocKind): string | null {
+  const id = policyId()
+  if (id === '') return null
+  const base = `https://www.iubenda.com/privacy-policy/${id}`
+  return kind === 'privacy' ? base : `${base}/cookie-policy`
+}
+
 // no-markup variant: semantic HTML without the iubenda widget's JS/CSS scaffolding,
 // so it renders as our own sanitized markup (no client script, no CSP change).
 function apiUrl(kind: LegalDocKind, id: string): string {

@@ -47,11 +47,12 @@ This repo is a personal/freelance starting point — start fresh from it for eac
 - **Contact form stack**: Astro Action + zod schema + rate limiting + Brevo
   vendor (dev no-op / prod refuse) + transactional emails + accessible form UI
   (`/contatti`). Conventions in `docs/guides/forms-email.md`; env setup below.
-- **Error & legal pages**: 404/500, plus placeholder `privacy`,
-  `cookie-policy` and `termini` built on the `legal-*` components — every
-  page carries a "draft, needs legal review" alert until reviewed. Configure an
-  iubenda policy id and `privacy`/`cookie-policy` serve the real hosted document
-  instead, fetched and sanitized at build time.
+- **Error & legal pages**: 404/500, plus `privacy`, `cookie-policy` and
+  `termini`. The first two are served from iubenda — fetched and sanitized at
+  build time once a policy id is set, and until then they say the document isn't
+  available rather than showing draft prose that reads like a real policy.
+  `termini` has no hosted counterpart, so it ships hand-written placeholder
+  sections behind a "draft, needs legal review" alert.
 - **Consent + analytics, off until configured**: iubenda CMP + GTM behind a
   consent gate, Google Consent Mode v2 defaults denied (§ Consent and analytics
   setup below).

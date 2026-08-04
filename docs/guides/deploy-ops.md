@@ -176,8 +176,9 @@ nothing warns anyone that the two have drifted.
 
 - Publish the change on iubenda, then trigger a production deploy
   (Actions → Deploy → *Run workflow*, no code change needed).
-- **[HARD] Configured means required.** Without a policy id the pages serve their
-  placeholder draft — the template's default state. But once an id IS set, a
+- **[HARD] Configured means required.** Without a policy id the pages state that
+  the document isn't available — the template's default, and deliberately not
+  placeholder legal prose, which on a live page reads as a real policy. But once an id IS set, a
   production build that cannot fetch the policy **fails** rather than falling
   back: the fallback carries a visible "draft, not yet legally reviewed" notice,
   and publishing that in place of a client's real policy over one transient
