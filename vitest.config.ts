@@ -40,8 +40,9 @@ export default getViteConfig({
     // `// @vitest-environment happy-dom` docblock. Component renders must stay
     // on node — see the note in test/container.ts.
     environment: 'node',
-    // `scripts/` is build tooling, never bundled — only the pure logic behind a
-    // script is unit-tested there (scripts/lib/), never the CLI itself.
+    // `scripts/` is build tooling, never bundled. What is unit-tested there is
+    // the logic behind a script (scripts/lib/) and the generators' injection and
+    // wiring (scripts/gen/) — never a CLI entry point.
     //
     // [HARD] `src/pages/**` is the ONE place a test may not sit next to its
     // subject: Astro routes every file there, so `robots.txt.test.ts` builds as
@@ -62,7 +63,10 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
-      include: ['src/**/*.ts', 'scripts/lib/**/*.ts'],
+      // `scripts/gen/**` is in because it is the opposite case: ts-morph
+      // injection is branchy, it edits the repo's own hook points, and its
+      // failure mode is a half-written tree.
+      include: ['src/**/*.ts', 'scripts/lib/**/*.ts', 'scripts/gen/**/*.mjs'],
       exclude: [
         '**/*.test.ts',
         'src/types/**', // ambient declarations
