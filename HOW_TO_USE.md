@@ -144,11 +144,15 @@ The template ships single-locale (`it`) with the i18n rails already in place —
 
 1. `astro.config.mjs` — add the locale code to `i18n.locales`.
 2. `src/lib/site.ts` — add its BCP 47 tag to `localeTags`.
-3. `src/i18n/strings/<locale>.ts` — export a `Record<UIKey, string>`; the compiler forces every key to exist.
-4. `src/i18n/ui.ts` — register the new dictionary in `dictionaries`.
-5. `src/i18n/route-segments.ts` — map the top-level URL segments that change (`contatti` → `contact`); unmapped segments pass through.
-6. Content: add `src/content/<collection>/<locale>/…` files (default-locale content stays flat — the loaders enforce this).
-7. Pages: mirror the default tree under `src/pages/<locale>/…`; `getHomepageSections(Astro.currentLocale)` and `useTranslations(Astro.currentLocale)` already resolve per locale.
+3. `test/stubs/astro-config-client.ts` — mirror the new locale list. It stands in
+   for `astro:config/client` in unit tests, so a stale stub leaves them asserting
+   against the old configuration while staying green.
+   (Steps 1–3 are held together by `src/i18n/locale-config.test.ts`.)
+4. `src/i18n/strings/<locale>.ts` — export a `Record<UIKey, string>`; the compiler forces every key to exist.
+5. `src/i18n/ui.ts` — register the new dictionary in `dictionaries`.
+6. `src/i18n/route-segments.ts` — map the top-level URL segments that change (`contatti` → `contact`); unmapped segments pass through.
+7. Content: add `src/content/<collection>/<locale>/…` files (default-locale content stays flat — the loaders enforce this).
+8. Pages: mirror the default tree under `src/pages/<locale>/…`; `getHomepageSections(Astro.currentLocale)` and `useTranslations(Astro.currentLocale)` already resolve per locale.
 
 Chrome links go through `localizedHref(Astro.currentLocale, path)` (see header/footer), so nav and legal URLs localize without touching components.
 

@@ -17,7 +17,9 @@ export const SITE = {
   themeColor: { light: '#fafafa', dark: '#0a0a0a' },
   // BCP 47 tag per locale (lang/hreflang/og:locale). Keys must match the
   // locale *codes* from `i18n.locales` in astro.config.mjs (for object
-  // entries that's `codes[0]`, not `path`).
+  // entries that's `codes[0]`, not `path`) — held to it by
+  // src/i18n/locale-config.test.ts, since a missing tag only degrades hreflang
+  // to a bare code rather than failing anything.
   localeTags: { it: 'it-IT' },
   // Header navigation. `href` is the default-locale path — components run it
   // through localizedHref(), which localizes prefix and segments per locale.
