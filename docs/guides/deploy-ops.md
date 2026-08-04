@@ -174,11 +174,16 @@ The privacy and cookie policies are fetched from iubenda **at build time**
 dashboard is therefore invisible to the live site until someone redeploys, and
 nothing warns anyone that the two have drifted.
 
-- Publish the change on iubenda, then trigger a production deploy.
-- Without a policy id configured, the pages serve their placeholder draft
-  instead. That fallback is silent by design on the page, but never in the log:
-  a failed fetch prints to the build output — check there when a page shows the
-  draft you didn't expect.
+- Publish the change on iubenda, then trigger a production deploy
+  (Actions → Deploy → *Run workflow*, no code change needed).
+- **[HARD] Configured means required.** Without a policy id the pages serve their
+  placeholder draft — the template's default state. But once an id IS set, a
+  production build that cannot fetch the policy **fails** rather than falling
+  back: the fallback carries a visible "draft, not yet legally reviewed" notice,
+  and publishing that in place of a client's real policy over one transient
+  network error is not a degradation worth accepting. A red build on a flaky
+  iubenda is the cheap outcome; re-run the deploy. Dev still falls back, so a
+  bad connection cannot stop `astro dev`.
 
 ## After every release
 

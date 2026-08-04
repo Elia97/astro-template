@@ -54,8 +54,18 @@ export function sanitizeLegalHtml(html: string): string {
     .replace(/(href|src)\s*=\s*(["']?)\s*javascript:[^"'>\s]*/gi, '$1=$2#')
 }
 
-/** Fetched at build time (the legal pages are prerendered). null → the page
- *  renders its placeholder fallback. */
+/**
+ * Fetched at build time (the legal pages are prerendered). null → the page
+ * renders its placeholder fallback, which is the NOT-CONFIGURED state only.
+ *
+ * [HARD] Configured means required. Falling back on a failed fetch would publish
+ * the visible "draft, not yet legally reviewed" notice in place of the client's
+ * real policy — on the two pages that carry actual legal exposure, from one
+ * transient network error, with nothing but a line in the build log to say so.
+ * A configured policy that will not fetch is a broken build, the same way a
+ * missing content file is. Dev keeps the fallback so a flaky connection cannot
+ * stop `astro dev`.
+ */
 export async function getLegalDoc(kind: LegalDocKind): Promise<string | null> {
   const id = policyId()
   if (id === '') return null
@@ -66,10 +76,13 @@ export async function getLegalDoc(kind: LegalDocKind): Promise<string | null> {
     if (!envelope.success) throw new Error('unexpected API envelope', { cause: envelope.error })
     return sanitizeLegalHtml(envelope.data.content)
   } catch (cause) {
-    // Never swallow: the fallback would otherwise ship a degraded compliance
-    // page with no trace anywhere — the fetch happens at build time, so the
-    // build log is the only place this can surface.
-    console.error(`[legal] ${kind}: iubenda no-markup fetch failed — rendering placeholder fallback:`, cause)
+    if (import.meta.env.PROD) {
+      throw new Error(
+        `[legal] ${kind}: iubenda policy ${id} is configured but could not be fetched — refusing to ship the placeholder draft in place of the real policy`,
+        { cause },
+      )
+    }
+    console.error(`[legal] ${kind}: iubenda fetch failed — dev renders the placeholder fallback:`, cause)
     return null
   }
 }

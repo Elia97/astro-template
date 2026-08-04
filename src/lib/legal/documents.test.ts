@@ -96,8 +96,7 @@ describe('getLegalDoc — fetching', () => {
     expect(fetchSpy.mock.calls[0]?.[0]).toContain(`/${POLICY_ID}/cookie-policy/no-markup`)
   })
 
-  // Build-time failure: the page still ships, but the log has to say so — a
-  // silently degraded compliance page is the outcome worth preventing.
+  // Dev only: a flaky connection must not stop `astro dev`.
   it('falls back to null and logs when the API fails', async () => {
     const getLegalDoc = await loadWith(POLICY_ID)
     mockFetch({}, false)
@@ -114,5 +113,34 @@ describe('getLegalDoc — fetching', () => {
 
     expect(await getLegalDoc('privacy')).toBeNull()
     expect(error).toHaveBeenCalled()
+  })
+})
+
+// The outcome this prevents: one transient network error during a production
+// build publishes the visible "draft, not yet legally reviewed" notice in place
+// of the client's real policy, on the two pages with legal exposure.
+describe('getLegalDoc — a configured policy is required in production', () => {
+  it('throws instead of shipping the placeholder when the API fails', async () => {
+    vi.stubEnv('PROD', true)
+    const getLegalDoc = await loadWith(POLICY_ID)
+    mockFetch({}, false)
+
+    await expect(getLegalDoc('privacy')).rejects.toThrow(/configured but could not be fetched/)
+  })
+
+  it('throws on an unexpected envelope too', async () => {
+    vi.stubEnv('PROD', true)
+    const getLegalDoc = await loadWith(POLICY_ID)
+    mockFetch({ success: true })
+
+    await expect(getLegalDoc('privacy')).rejects.toThrow(/configured but could not be fetched/)
+  })
+
+  // Not configured is the template's honest default, not a failure.
+  it('still returns null when no policy id is configured', async () => {
+    vi.stubEnv('PROD', true)
+    const getLegalDoc = await loadWith('')
+
+    await expect(getLegalDoc('privacy')).resolves.toBeNull()
   })
 })
