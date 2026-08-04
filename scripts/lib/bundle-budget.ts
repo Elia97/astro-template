@@ -67,6 +67,25 @@ export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>
 
 const toPosix = (path: string, prefix: string): string => path.slice(prefix.length).split(/[\\/]/).join('/')
 
+/**
+ * One shared stylesheet for the whole site, so one number rather than a
+ * per-route share — counting it against every route would read as if each page
+ * paid for it, when the second page onwards gets it from cache.
+ *
+ * It is here at all because it is the heaviest thing shipped AND the only
+ * render-blocking one: a `<link rel="stylesheet">` in the head delays first
+ * paint, where every JS chunk this gate measures does not. Tailwind's output
+ * grows with the number of distinct utilities used, so a fork drifts upward one
+ * component at a time without any single change looking expensive.
+ */
+export const CSS_BUDGET_GZIP = 12 * 1024
+
+export function cssBudgetFailure(totalGzip: number, files: readonly string[]): string | null {
+  if (totalGzip <= CSS_BUDGET_GZIP) return null
+  const over = totalGzip - CSS_BUDGET_GZIP
+  return `CSS ${(totalGzip / 1024).toFixed(1)} KB gz > ${(CSS_BUDGET_GZIP / 1024).toFixed(1)} KB (+${(over / 1024).toFixed(1)} KB) across ${String(files.length)} file(s): ${files.join(', ')}`
+}
+
 export function routeOf(htmlPath: string, dist: string): string {
   const route = toPosix(htmlPath, dist).replace(/\/index\.html$/, '')
   return route.replace(/\.html$/, '') || '/'

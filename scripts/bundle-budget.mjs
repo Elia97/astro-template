@@ -8,6 +8,8 @@ import { gzipSync } from 'node:zlib'
 
 import {
   budgetFor,
+  CSS_BUDGET_GZIP,
+  cssBudgetFailure,
   deferredClosure,
   expectedRoutes,
   htmlEntries,
@@ -29,6 +31,14 @@ function walk(dir, extension) {
     if (entry.isDirectory()) return walk(path, extension)
     return entry.name.endsWith(extension) ? [path] : []
   })
+}
+
+// Render-blocking and shared by every page, so it is measured once rather than
+// charged to each route.
+function readStylesheets() {
+  const files = readdirSync(ASSETS).filter((f) => f.endsWith('.css'))
+  const totalGzip = files.reduce((total, name) => total + gzipSync(readFileSync(join(ASSETS, name))).length, 0)
+  return { files, totalGzip }
 }
 
 function readChunks() {
@@ -82,6 +92,13 @@ for (const page of pages) {
   console.log(page.gzip > page.budget.maxGzip ? `${line}  ✗` : line)
 }
 console.log('\nDEFERRED = reachable only through `await import()` (loaded after paint, behind a runtime guard).')
+
+const stylesheets = readStylesheets()
+const cssFailure = cssBudgetFailure(stylesheets.totalGzip, stylesheets.files)
+if (cssFailure) failures.push(cssFailure)
+console.log(
+  `\nCSS (render-blocking, shared by every route)   ${gz(stylesheets.totalGzip).padStart(9)}   ${gz(CSS_BUDGET_GZIP).padStart(9)}${cssFailure ? '  ✗' : ''}`,
+)
 
 // Not a failure: an SSR page emits no HTML, so it is outside this budget by
 // construction. Under `output: 'static'` that only happens on a deliberate

@@ -29,6 +29,11 @@ the route's budget. Exit code 1 fails the job.
   page that emits no HTML fails the gate, and an empty `dist/client` fails it
   too. Without that the per-route checks would be
   fail-open — they iterate the emitted pages, so measuring nothing would pass.
+- **The stylesheet has its own budget**, checked once rather than per route:
+  it is one shared file, so charging it to every page would read as if each one
+  paid for it. It is in the gate because it is both the heaviest asset shipped
+  and the only render-blocking one — Tailwind's output grows one utility at a
+  time, so a fork drifts upward without any single change looking expensive.
 - **Pages that opt out with `prerender = false`** are outside the budget by
   construction (no HTML to measure) and are listed in a `NOTE`, not counted as
   failures. Prerendering being the default is what keeps that hole small: a page
