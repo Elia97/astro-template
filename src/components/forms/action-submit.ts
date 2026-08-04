@@ -12,6 +12,7 @@ function submitLabel(form: HTMLFormElement, pending: boolean): string {
 
 function setPending(form: HTMLFormElement, pending: boolean): void {
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+  /* v8 ignore next -- every action form the template renders carries a submit button */
   if (!submit) return
   submit.disabled = pending
   submit.textContent = submitLabel(form, pending)
@@ -38,6 +39,7 @@ function reportError(form: HTMLFormElement, error: unknown): void {
   const { matched, unmatched } = applyFieldErrors(form, error.fields)
   focusFirstInvalid(form)
   if (matched && unmatched.length === 0) return
+  /* v8 ignore next -- reached only if applyFieldErrors matched nothing AND collected nothing, which its own contract excludes */
   showFeedback(form, 'error', unmatched[0] ?? form.dataset.i18nGenericError)
 }
 
@@ -78,6 +80,7 @@ export function createActionFormBinding<P>(config: {
   async function handleSubmit(event: SubmitEvent): Promise<void> {
     event.preventDefault()
     const form = event.currentTarget
+    /* v8 ignore next -- the listener is bound to the form, so currentTarget is always it */
     if (!(form instanceof HTMLFormElement)) return
     showFeedback(form, 'none')
     clearFieldErrors(form)

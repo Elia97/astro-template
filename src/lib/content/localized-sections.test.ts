@@ -56,3 +56,13 @@ describe('loadLocalizedSections — non-default locale', () => {
     expect(pick('hero')).toEqual({ section: 'hero', headline: 'English' })
   })
 })
+
+describe('error message points at the right folder', () => {
+  it('names the locale subfolder when the miss is in a secondary locale', async () => {
+    mockEntries([{ id: 'en/other', data: { section: 'other' } }])
+
+    const { pick } = await loadLocalizedSections('homepage', 'en')
+
+    expect(() => pick('hero' as never)).toThrow('src/content/homepage/en/')
+  })
+})

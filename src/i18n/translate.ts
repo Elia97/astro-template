@@ -11,6 +11,7 @@ export type { UIKey } from './ui'
  * translation file.
  */
 export function useTranslations(locale?: string): (key: UIKey) => string {
+  /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const dict = dictionaries[locale ?? defaultLocale] ?? dictionaries[defaultLocale]
   if (!dict) {

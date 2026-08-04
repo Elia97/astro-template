@@ -30,6 +30,7 @@ interface HeadSeoParams {
 // Locale entries normalized to codes: Astro's i18n APIs and Astro.currentLocale
 // speak codes (for object entries that's codes[0]), URLs carry paths.
 function configuredLocaleCodes(): string[] {
+  /* v8 ignore next -- object locale entries ({ path, codes }) are an Astro feature this template's single string locale never produces */
   return (i18n?.locales ?? []).map((l) => (typeof l === 'string' ? l : (l.codes[0] ?? l.path)))
 }
 
@@ -44,6 +45,7 @@ function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
 }
 
 export function resolveHeadSeoMeta({ currentLocale, canonicalPath, ogImage }: HeadSeoParams): HeadSeoMeta {
+  /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const locale = currentLocale ?? defaultLocale
   const canonical = localeAgnosticPath(canonicalPath, locale)

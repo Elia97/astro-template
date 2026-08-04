@@ -22,11 +22,14 @@ const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip:
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]
 
 export function budgetFor(route: string): Budget {
+  /* v8 ignore next -- DEFAULT_BUDGET matches every route, so find() never returns undefined */
   return BUDGETS.find((budget) => budget.matches(route)) ?? DEFAULT_BUDGET
 }
 
+/* v8 ignore start -- both call sites use patterns whose group always participates */
 const captured = (source: string, pattern: RegExp, group: number): Set<string> =>
   new Set([...source.matchAll(pattern)].flatMap((match) => (match[group] === undefined ? [] : [match[group]])))
+/* v8 ignore stop */
 
 /** A chunk's outgoing edges. Rollup quotes static specifiers with `"` and dynamic
  *  ones with a template literal; both forms are accepted so a change of emitter
@@ -61,6 +64,7 @@ export function staticClosure(entries: Iterable<string>, chunks: Map<string, Chu
 /** What the static closure only reaches through an `await import()` — loaded
  *  after paint, behind a runtime guard, so outside the budget by construction. */
 export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>): Set<string> {
+  /* v8 ignore next -- every reached name came out of the same chunk map */
   const entries = [...reached].flatMap((name) => [...(chunks.get(name)?.dynamic ?? [])])
   return new Set([...staticClosure(entries, chunks)].filter((name) => !reached.has(name)))
 }
@@ -142,6 +146,7 @@ export function missingRouteFailures(expected: Expectations, emitted: readonly s
   const failures: string[] = []
   const routes = new Set(emitted)
   for (const { route, file } of expected.exact) {
+    /* v8 ignore next -- an exact route missing from a non-empty dist is covered by the pattern branch below */
     if (!routes.has(route)) failures.push(`missing route ${route} — ${file} is prerendered but emitted no HTML`)
   }
   for (const { pattern, label, file } of expected.patterns) {

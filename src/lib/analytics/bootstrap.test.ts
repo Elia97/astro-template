@@ -120,3 +120,13 @@ describe('bootstrapAnalytics — after consent', () => {
     }).not.toThrow()
   })
 })
+
+describe('default dependencies', () => {
+  // The deps object is a test seam; production calls it with nothing and must
+  // reach the real window and the real consent gate.
+  it('falls back to the real globals when called without deps', () => {
+    expect(() => {
+      bootstrapAnalytics()
+    }).not.toThrow()
+  })
+})

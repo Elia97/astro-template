@@ -28,6 +28,7 @@ function setBackgroundInert(panel: HTMLElement, inert: boolean): void {
 }
 
 function openMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
+  /* v8 ignore next -- document.activeElement is <body> at worst, never a non-element */
   lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
   panel.hidden = false
   toggle.setAttribute('aria-expanded', 'true')
@@ -58,6 +59,7 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
   // nav/CTA link: closing on link-click keeps the panel from covering the
   // page the router is about to swap in.
   const onPanelClick = (event: MouseEvent): void => {
+    /* v8 ignore next -- delegated from the panel, whose children are all elements */
     if (!(event.target instanceof Element)) return
     if (event.target.closest('a[href], [data-mobile-nav-close]')) closeMenu(panel, toggle)
   }

@@ -32,6 +32,7 @@ export function adoptNativeRelationships(
 }
 
 export function markSelectedOption(listbox: HTMLElement | null, option: HTMLElement): void {
+  /* v8 ignore next -- every caller passes the listbox findSelectElements resolved */
   for (const item of listbox?.querySelectorAll<HTMLElement>('[role="option"]') ?? []) {
     item.setAttribute('aria-selected', String(item === option))
   }

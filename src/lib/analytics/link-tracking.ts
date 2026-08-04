@@ -22,6 +22,7 @@ function handleClick(event: MouseEvent): void {
   if (!(target instanceof Element)) return
   const link = target.closest('a[href]')
   if (!(link instanceof HTMLAnchorElement)) return
+  /* v8 ignore next -- the selector already required [href] */
   const href = link.getAttribute('href') ?? ''
   const eventName = resolveLinkEvent(href)
   if (eventName === null) return

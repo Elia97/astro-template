@@ -94,3 +94,17 @@ describe('lead recovery', () => {
     })
   })
 })
+
+describe('reply-to without a name', () => {
+  // Both name fields are optional in the schema; an empty display name on the
+  // reply-to header would render as `<>` in some clients.
+  it('sends a bare address when the submission carries no name', async () => {
+    brevoAnswers({})
+    const { handleContact } = await importActions()
+
+    await handleContact({ ...CONTACT_INPUT, firstName: '', lastName: '' }, CLIENT)
+
+    const notification = brevoMock.sendTransactionalEmail.mock.calls.find((call) => call[0].tags?.includes('contact'))
+    expect(notification?.[0].replyTo).toEqual({ email: CONTACT_INPUT.email })
+  })
+})

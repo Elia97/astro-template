@@ -9,6 +9,7 @@
 //   en: { contatti: 'contact', preventivo: 'quote' }
 const SEGMENTS_BY_LOCALE: Record<string, Record<string, string>> = {}
 
+/* v8 ignore next 2 -- dead while SEGMENTS_BY_LOCALE ships empty; it wakes up at locale #2, and applySegmentMap already covers the mapping it delegates to */
 const CANONICAL_BY_LOCALE: Record<string, Record<string, string>> = Object.fromEntries(
   Object.entries(SEGMENTS_BY_LOCALE).map(([locale, segments]) => [
     locale,
@@ -30,14 +31,18 @@ export function applySegmentMap(pathname: string, map: Record<string, string>): 
 
 /** Internal (default-locale) path → public path for `locale`. */
 export function translatePath(pathname: string, locale: string): string {
+  /* v8 ignore start -- same: dead while the map ships empty, alive at locale #2 */
   const segments = SEGMENTS_BY_LOCALE[locale]
   if (!segments) return pathname
   return applySegmentMap(pathname, segments)
+  /* v8 ignore stop */
 }
 
 /** Public path for `locale` → internal (default-locale) path. */
 export function canonicalizePath(pathname: string, locale: string): string {
+  /* v8 ignore start -- same: dead while the map ships empty, alive at locale #2 */
   const canonical = CANONICAL_BY_LOCALE[locale]
   if (!canonical) return pathname
   return applySegmentMap(pathname, canonical)
+  /* v8 ignore stop */
 }

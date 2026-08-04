@@ -30,6 +30,15 @@ export class ActionError extends Error {
   }
 }
 
+// The callable surface a client module binds to at import time
+// (src/components/contact/contact-form-behavior.ts does `submit: actions.contact`).
+// Tests replace the member they exercise with a spy; unstubbed it rejects, so a
+// test that forgets to is loud rather than silently passing.
+export const actions = {
+  contact: (_payload: unknown): Promise<{ error?: unknown }> =>
+    Promise.reject(new Error('astro:actions stub: actions.contact was called without being stubbed')),
+}
+
 // The action wrapper is never invoked under vitest — tests call the exported
 // handlers directly — so this only has to let src/actions/index.ts load.
 export function defineAction<T>(params: T): T {

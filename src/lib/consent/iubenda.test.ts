@@ -132,3 +132,11 @@ describe('bootstrapIubenda — wiring', () => {
     expect(appended[0]?.async).toBe(true)
   })
 })
+
+describe('default dependencies', () => {
+  it('falls back to the real globals when called without deps', () => {
+    expect(() => {
+      bootstrapIubenda()
+    }).not.toThrow()
+  })
+})

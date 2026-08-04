@@ -25,6 +25,7 @@ export function buildWebManifest() {
     name: SITE.name,
     short_name: SITE.name,
     description: SITE.description,
+    /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
     lang: localeTag(i18n?.defaultLocale ?? 'it'),
     dir: 'ltr',
     display: 'standalone',

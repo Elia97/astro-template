@@ -8,6 +8,7 @@ import { type CollectionEntry, getCollection } from 'astro:content'
 // when a fork adds another section-discriminated collection.
 type Sectioned = 'homepage'
 
+/* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
 const DEFAULT_LOCALE = i18n?.defaultLocale ?? 'it'
 
 export async function loadLocalizedSections<C extends Sectioned>(

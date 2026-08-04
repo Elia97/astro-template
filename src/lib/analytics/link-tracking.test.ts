@@ -55,3 +55,25 @@ describe('bindLinkTracking', () => {
     expect(window.dataLayer).toHaveLength(0)
   })
 })
+
+describe('defensive and lifecycle paths', () => {
+  it('ignores a click whose target is not an element', () => {
+    bindLinkTracking()
+
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(window.dataLayer).toHaveLength(0)
+  })
+
+  // The listener sits on `document`, so surviving a view transition would leave
+  // it firing against the next page as well — one click, two events.
+  it('unbinds on astro:before-swap', () => {
+    document.body.innerHTML = '<a href="tel:+390123456789">Chiama</a>'
+    bindLinkTracking()
+
+    document.dispatchEvent(new Event('astro:before-swap'))
+    document.querySelector('a')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(window.dataLayer).toHaveLength(0)
+  })
+})

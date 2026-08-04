@@ -12,6 +12,7 @@ function escapeHtml(value: string): string {
     '"': '&quot;',
     "'": '&#39;',
   }
+  /* v8 ignore next -- the regex only matches keys the map defines */
   return value.replace(/[&<>"']/g, (c) => map[c] ?? c)
 }
 

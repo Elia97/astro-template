@@ -26,6 +26,7 @@ function normalizeTrailingSlash(path: string): string {
  * normalized. The base for canonical URLs and hreflang alternates.
  */
 export function localeAgnosticPath(pathname: string, currentLocale: string): string {
+  /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */
   const defaultLocale = i18n?.defaultLocale ?? 'it'
   const prefix = localePrefix(currentLocale, defaultLocale)
   const unprefixed = stripLocalePrefix(pathname, prefix)

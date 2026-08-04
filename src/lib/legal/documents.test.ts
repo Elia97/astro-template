@@ -144,3 +144,31 @@ describe('getLegalDoc — a configured policy is required in production', () => 
     await expect(getLegalDoc('privacy')).resolves.toBeNull()
   })
 })
+
+// Where the fallback sends people when the document itself can't be embedded.
+describe('iubendaHostedUrl', () => {
+  it('builds the privacy page URL from the configured id', async () => {
+    vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_ID', POLICY_ID)
+    vi.resetModules()
+    const { iubendaHostedUrl } = await import('@/lib/legal/documents')
+
+    expect(iubendaHostedUrl('privacy')).toBe(`https://www.iubenda.com/privacy-policy/${POLICY_ID}`)
+  })
+
+  it('appends the cookie-policy path for the other kind', async () => {
+    vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_ID', POLICY_ID)
+    vi.resetModules()
+    const { iubendaHostedUrl } = await import('@/lib/legal/documents')
+
+    expect(iubendaHostedUrl('cookie-policy')).toBe(`https://www.iubenda.com/privacy-policy/${POLICY_ID}/cookie-policy`)
+  })
+
+  // An empty id builds a generic iubenda URL that is not the client's policy at
+  // all: the fallback omits the link rather than pointing somewhere wrong.
+  it('returns null with no id configured', async () => {
+    vi.resetModules()
+    const { iubendaHostedUrl } = await import('@/lib/legal/documents')
+
+    expect(iubendaHostedUrl('privacy')).toBeNull()
+  })
+})

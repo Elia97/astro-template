@@ -164,3 +164,19 @@ describe('cssBudgetFailure', () => {
     expect(failure).toContain('2 file(s)')
   })
 })
+
+describe('budget selection and edges', () => {
+  it('lands on the default class for a route no other class matches', () => {
+    expect(budgetFor('/nothing-matches-this').label).toBe('default')
+  })
+
+  it('ignores a regex match whose capture group is absent', () => {
+    // `from './x.js'` with an optional group that does not participate.
+    expect(parseEdges("import 'sideeffect'\n").static.size).toBe(0)
+  })
+
+  it('treats an unknown chunk as having no dynamic edges', () => {
+    const chunks = new Map([['a.js', { gzip: 1, static: new Set<string>(), dynamic: new Set(['ghost.js']) }]])
+    expect(deferredClosure(new Set(['a.js']), chunks).has('ghost.js')).toBe(false)
+  })
+})

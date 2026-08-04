@@ -42,15 +42,35 @@ export default getViteConfig({
     environment: 'node',
     // `scripts/` is build tooling, never bundled — only the pure logic behind a
     // script is unit-tested there (scripts/lib/), never the CLI itself.
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    //
+    // [HARD] `src/pages/**` is the ONE place a test may not sit next to its
+    // subject: Astro routes every file there, so `robots.txt.test.ts` builds as
+    // the page `/robots.txt.test` and the prerender crashes on `vi.mock`. Tests
+    // for page endpoints live in `test/pages/` instead.
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'test/**/*.test.ts'],
+    exclude: ['src/pages/**/*.test.ts', 'node_modules/**'],
     // Coverage exists for `fallow audit`, not as a number to chase: its CRAP
     // gate is cyclomatic² × (1 − coverage)³ + cyclomatic, so with no report it
     // assumes 0% and a well-tested branchy function scores as untested. The
     // `json` reporter is the one fallow reads (coverage/coverage-final.json).
+    //
+    // Scoped to LOGIC. `.astro` files are markup with near-zero cyclomatic
+    // complexity, so covering them cannot move a CRAP score — chasing them to
+    // 100% would buy ~45 render tests to maintain and prevent no bug. Same for
+    // data and config modules: a test that imports them asserts nothing.
+    // What stays in is what CRAP actually gates.
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json'],
-      include: ['src/**/*.{ts,astro}', 'scripts/lib/**/*.ts'],
+      include: ['src/**/*.ts', 'scripts/lib/**/*.ts'],
+      exclude: [
+        '**/*.test.ts',
+        'src/types/**', // ambient declarations
+        'src/content.config.ts', // collection definitions, executed by the Astro build
+        'src/lib/company.ts', // registry data
+        'src/i18n/strings/**', // translation dictionaries
+      ],
+      thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },
     },
   },
 })

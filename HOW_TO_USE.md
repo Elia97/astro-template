@@ -58,7 +58,11 @@ This repo is a personal/freelance starting point — start fresh from it for eac
   setup below).
 - **Unit tests** (vitest + happy-dom): `pnpm test`, wired into `pnpm run ci`.
   Astro's virtual modules are stubbed in `test/stubs/` (env, config, i18n) so
-  pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast.
+  pure logic (head/seo, i18n, rate-limit, emails, vendors) tests fast. Coverage
+  of that logic is held at **100%** — the denominator is `.ts` only, since
+  `.astro` markup carries no branches worth a test, and each deliberate gap
+  carries a `v8 ignore` with its reason. It exists to make `fallow audit`'s CRAP
+  gate mean something, not as a number to chase.
 - **Dead-code and architecture analysis** (fallow, dev-only): `pnpm exec fallow
   dead-code` and `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc`
   documents every intentional ignore, and its `boundaries` block turns

@@ -119,3 +119,71 @@ describe('mobile nav across the desktop breakpoint', () => {
     expect(isLocked()).toBe(false)
   })
 })
+
+describe('closing paths', () => {
+  it('closes on the explicit close button', async () => {
+    const { panel, toggle } = renderChrome()
+    await bind()
+    toggle.click()
+
+    panel.querySelector<HTMLElement>('[data-mobile-nav-close]')?.click()
+
+    expect(panel.hidden).toBe(true)
+    expect(isLocked()).toBe(false)
+  })
+
+  it('ignores a click on the panel chrome itself', async () => {
+    const { panel, toggle } = renderChrome()
+    await bind()
+    toggle.click()
+
+    panel.click()
+
+    expect(panel.hidden).toBe(false)
+  })
+
+  it('restores focus to whatever was focused before it opened', async () => {
+    const { toggle } = renderChrome()
+    await bind()
+    const before = document.querySelector<HTMLElement>('#main-content a') as HTMLElement
+    before.focus()
+
+    toggle.click()
+    toggle.click()
+
+    expect(document.activeElement).toBe(before)
+  })
+})
+
+describe('keyboard inside the panel', () => {
+  it('does nothing while the panel is hidden', async () => {
+    const { panel } = renderChrome()
+    await bind()
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+
+    expect(isLocked()).toBe(false)
+  })
+
+  // Tab is delegated to the shared focus trap; the assertion is that it is wired,
+  // not that cycleFocus works — trap-focus.test.ts owns that.
+  it('handles Tab without closing the panel', async () => {
+    const { panel, toggle } = renderChrome()
+    await bind()
+    toggle.click()
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }))
+
+    expect(panel.hidden).toBe(false)
+  })
+
+  it('ignores a key it does not handle', async () => {
+    const { panel, toggle } = renderChrome()
+    await bind()
+    toggle.click()
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', bubbles: true, cancelable: true }))
+
+    expect(panel.hidden).toBe(false)
+  })
+})
