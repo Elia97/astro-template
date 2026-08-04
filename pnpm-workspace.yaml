@@ -5,3 +5,17 @@ allowBuilds:
   sharp: true
 minimumReleaseAgeExclude:
   - '@astrojs/vercel@11.0.1'
+
+# Both entries pin a TRANSITIVE dependency past a published advisory. Neither is
+# a direct dependency, so nothing here is fixable by bumping what we import; the
+# patched version already resolved elsewhere in the tree, and the override
+# collapses the stale duplicate onto it. Drop an entry once the parent ships a
+# release that resolves it on its own — `pnpm why <pkg>` says when.
+overrides:
+  # GHSA-9wv6-86v2-598j — backtracking regex. This one is in the DEPLOYED
+  # function: @astrojs/vercel > @vercel/routing-utils compiles route patterns
+  # and the code is bundled into _render.
+  path-to-regexp@<6.3.0: '>=6.3.0'
+  # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 — unbounded expansion. Dev-only
+  # (ts-morph > @ts-morph/common > minimatch), never in the shipped bundle.
+  brace-expansion@<5.0.9: '>=5.0.9'
