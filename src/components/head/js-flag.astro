@@ -12,4 +12,15 @@
   markJs()
   // View transitions don't re-execute inline scripts on the incoming page.
   document.addEventListener('astro:after-swap', markJs)
+  // `js` answers "is JS enabled", which is NOT the question the reveal CSS needs
+  // answered: what actually clears `opacity: 0` is `data-reveal-ready`, set by a
+  // module that arrives over the network. If that chunk never lands the content
+  // stays invisible forever, with no error and nothing on screen to explain it.
+  // lib/motion/reveal.ts marks the document as soon as it runs; if that mark
+  // hasn't appeared by then, assume it never will and unhide.
+  setTimeout(function () {
+    if (!document.documentElement.hasAttribute('data-reveal-active')) {
+      document.documentElement.classList.add('reveal-failsafe')
+    }
+  }, 3000)
 </script>

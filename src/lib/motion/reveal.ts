@@ -28,6 +28,11 @@ function isBelowRevealLine(el: HTMLElement, maxScrollY: number, revealLine: numb
 }
 
 function setupReveals(): void {
+  // Announced BEFORE the early returns below: this says "the module arrived",
+  // not "it observed something". It is what disarms the failsafe in
+  // head/js-flag.astro, which otherwise assumes the chunk never loaded and
+  // unhides everything.
+  document.documentElement.setAttribute('data-reveal-active', '')
   if (prefersReducedMotion()) return
   const els = queryRevealTargets()
   if (els.length === 0) return

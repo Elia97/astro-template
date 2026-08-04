@@ -84,8 +84,11 @@
 }
 
 /* ─── Reveal-on-scroll ([data-reveal], see components/ui/reveal.astro) ───
-   Initial hidden state is double-gated: `html.js` (JS off → content stays
-   visible) and `prefers-reduced-motion: no-preference` (reduced → static). */
+   Initial hidden state is triple-gated: `html.js` (JS off → content stays
+   visible), `prefers-reduced-motion: no-preference` (reduced → static), and
+   `:not(.reveal-failsafe)` — head/js-flag.astro sets that class when the reveal
+   module never arrived, because `html.js` only proves JS is enabled, not that
+   the chunk which clears `data-reveal-ready` actually loaded. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transition:
@@ -93,21 +96,21 @@
       transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     transition-delay: var(--reveal-delay, 0s);
   }
-  html.js [data-reveal]:not([data-reveal-ready]) {
+  html.js:not(.reveal-failsafe) [data-reveal]:not([data-reveal-ready]) {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));
   }
 
   /* Cascade variant: `data-reveal-stagger` on a container transitions its
      children in sequence — each child sets `--i` (0, 1, 2…), the step is
-     `--reveal-stagger` (default 0.08s). Same double gate as [data-reveal]. */
+     `--reveal-stagger` (default 0.08s). Same gating as [data-reveal]. */
   html.js [data-reveal-stagger] > * {
     transition:
       opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
       transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     transition-delay: calc(var(--i, 0) * var(--reveal-stagger, 0.08s));
   }
-  html.js [data-reveal-stagger]:not([data-reveal-ready]) > * {
+  html.js:not(.reveal-failsafe) [data-reveal-stagger]:not([data-reveal-ready]) > * {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));
   }
