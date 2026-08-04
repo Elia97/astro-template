@@ -33,7 +33,7 @@ pnpm dev
 | `pnpm check` | Format + lint + organize imports with Biome (writes) |
 | `pnpm typecheck` | Run `astro check` |
 | `pnpm ci` | Non-mutating check used in CI: `biome ci` + typecheck |
-| `pnpm audit:diff` | fallow, scoped to the diff — gates on what this branch introduced |
+| `pnpm audit:diff` | fallow, scoped to the diff — gates on what this branch introduced (reads `pnpm test`'s coverage) |
 | `pnpm audit:brief` | the same analysis as an orientation brief; always exits 0 |
 
 ## Planning and workflow

@@ -43,5 +43,14 @@ export default getViteConfig({
     // `scripts/` is build tooling, never bundled — only the pure logic behind a
     // script is unit-tested there (scripts/lib/), never the CLI itself.
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    // Coverage exists for `fallow audit`, not as a number to chase: its CRAP
+    // gate is cyclomatic² × (1 − coverage)³ + cyclomatic, so with no report it
+    // assumes 0% and a well-tested branchy function scores as untested. The
+    // `json` reporter is the one fallow reads (coverage/coverage-final.json).
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'json'],
+      include: ['src/**/*.{ts,astro}', 'scripts/lib/**/*.ts'],
+    },
   },
 })

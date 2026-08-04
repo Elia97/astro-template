@@ -62,8 +62,10 @@ This repo is a personal/freelance starting point — start fresh from it for eac
 - **Dead-code and architecture analysis** (fallow, dev-only): `pnpm exec fallow
   dead-code` and `pnpm exec fallow dupes` must stay clean — `.fallowrc.jsonc`
   documents every intentional ignore, and its `boundaries` block turns
-  `docs/ARCHITECTURE.md` § Source layering into a check. `fallow health` is
-  informational (its CRAP scores assume 0% coverage until a report is passed).
+  `docs/ARCHITECTURE.md` § Source layering into a check. `pnpm audit:diff` gates
+  the same analyses **scoped to a branch's diff** and is what `/pr` runs; it
+  reads the coverage `pnpm test` writes, without which its CRAP threshold would
+  score a well-tested branchy function as if it were untested.
 
 Depth and rationale live in `docs/guides/*.md` and `docs/ARCHITECTURE.md`.
 
