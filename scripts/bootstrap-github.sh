@@ -23,8 +23,14 @@ gh repo edit \
   --squash-merge-commit-message pr-title
 
 echo "==> 3/4 Actions permissions: let release-please open the release PRs"
+# Two independent settings, and only the second one is what release-please needs.
+# The default stays READ: it is the token every workflow gets when it declares
+# nothing, so `write` here would hand repo-write to any workflow a fork adds
+# later — including a third-party action running on a PR. A workflow's own
+# `permissions:` block overrides the default and can still ask for write, which
+# is how release-please.yml gets `contents: write` + `pull-requests: write`.
 gh api -X PUT "repos/{owner}/{repo}/actions/permissions/workflow" \
-  -f default_workflow_permissions=write \
+  -f default_workflow_permissions=read \
   -F can_approve_pull_request_reviews=true \
   || echo "   (if it fails: Settings → Actions → General → Workflow permissions → ☑ Allow GitHub Actions to create and approve pull requests)"
 
