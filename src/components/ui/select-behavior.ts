@@ -4,6 +4,8 @@
 // listeners keep working exactly as with a plain select.
 import { createMotionBinding } from '@/lib/motion'
 
+import { adoptNativeRelationships, markSelectedOption, markSelectedValue } from './select-a11y'
+
 interface SelectElements {
   native: HTMLSelectElement
   trigger: HTMLButtonElement
@@ -42,12 +44,6 @@ function updateNativeValue(native: HTMLSelectElement | null, value: string): voi
   if (!native) return
   native.value = value
   native.dispatchEvent(new Event('change', { bubbles: true }))
-}
-
-function markSelectedOption(listbox: HTMLElement | null, option: HTMLElement): void {
-  for (const item of listbox?.querySelectorAll<HTMLElement>('[role="option"]') ?? []) {
-    item.setAttribute('aria-selected', String(item === option))
-  }
 }
 
 function selectOption(root: HTMLElement, option: HTMLElement): void {
@@ -158,8 +154,10 @@ function findSelectElements(root: HTMLElement): SelectElements | undefined {
   return { native, trigger, listbox }
 }
 
-function activateSelect(root: HTMLElement, { native, trigger }: SelectElements): void {
+function activateSelect(root: HTMLElement, { native, trigger, listbox }: SelectElements): void {
   syncTriggerLabel(root)
+  adoptNativeRelationships(native, trigger, listbox)
+  markSelectedValue(listbox, native.value)
   native.classList.remove('flex')
   native.classList.add('hidden')
   native.setAttribute('aria-hidden', 'true')
