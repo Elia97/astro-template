@@ -5,8 +5,6 @@
 
   --background: var(--neutral-950);
   --foreground: var(--neutral-50);
-  --surface: var(--neutral-900);
-  --surface-foreground: var(--neutral-50);
   --card: var(--neutral-900);
   --card-foreground: var(--neutral-50);
   --popover: var(--neutral-900);
@@ -24,9 +22,8 @@
      (`bg-destructive` on the button), and near-white on this red is only 3.65:1. */
   --destructive: var(--red-500);
   --destructive-foreground: var(--neutral-950);
-  /* Lighter green, foreground flipped, for the same reason as destructive. */
+  /* Lighter green for the same reason as destructive: readable on a dark card. */
   --success: var(--green-600);
-  --success-foreground: var(--neutral-950);
 
   /* See the note in light.css: a divider and a control boundary are two roles. */
   --border: var(--neutral-800);

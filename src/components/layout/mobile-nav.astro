@@ -22,7 +22,7 @@ const href = (path: string) => localizedHref(Astro.currentLocale, path)
   role="dialog"
   aria-modal="true"
   aria-labelledby="mobile-nav-title"
-  class="fixed inset-0 z-[var(--z-overlay)] flex flex-col bg-background md:hidden"
+  class="fixed inset-0 z-overlay flex flex-col bg-background md:hidden"
 >
   <div class="flex h-16 items-center justify-between gap-6 px-4">
     <span id="mobile-nav-title" class="font-semibold text-foreground text-lg tracking-tight">{SITE.name}</span>

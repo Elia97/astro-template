@@ -16,12 +16,44 @@
   }
 }
 
+/* Press feedback: 1% is deliberately below Tailwind's smallest scale step, which
+   is loud enough on a button to read as a bounce rather than a press. */
+@utility scale-press {
+  scale: 0.99;
+}
+
+/* Viewport-fraction block heights, named so a fork can retune them in one place
+   instead of hunting arbitrary values across components. `svh` and not `vh`: on
+   mobile `vh` counts the retracted browser chrome and overflows the screen. */
+@utility min-h-status {
+  min-height: 50svh;
+}
+@utility min-h-banner {
+  min-height: 70svh;
+}
+
+/* Named z-index utilities over `z-[var(--z-…)]`: an arbitrary value is an escape
+   hatch from the scale, and reads as one. The ladder itself lives in tokens.css. */
+@utility z-raised {
+  z-index: var(--z-raised);
+}
+@utility z-dropdown {
+  z-index: var(--z-dropdown);
+}
+@utility z-header {
+  z-index: var(--z-header);
+}
+@utility z-overlay {
+  z-index: var(--z-overlay);
+}
+@utility z-skip-link {
+  z-index: var(--z-skip-link);
+}
+
 /* ─── @theme inline: remaps custom props to Tailwind utilities (--color-… → bg-… / text-… / border-…) ─── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -37,7 +69,6 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -90,7 +121,10 @@
    visible), `prefers-reduced-motion: no-preference` (reduced → static), and
    `:not(.reveal-failsafe)` — head/js-flag.astro sets that class when the reveal
    module never arrived, because `html.js` only proves JS is enabled, not that
-   the chunk which clears `data-reveal-ready` actually loaded. */
+   the chunk which clears `data-reveal-ready` actually loaded.
+   Every part of the gating selectors is load-bearing — `html.js` (no JS reveals
+   everything), `:not(.reveal-failsafe)` (the valve), `:not([data-reveal-ready])`
+   (not yet revealed) — so their complexity is not flattened away. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transition:
@@ -98,6 +132,7 @@
       transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     transition-delay: var(--reveal-delay, 0s);
   }
+  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
   html.js:not(.reveal-failsafe) [data-reveal]:not([data-reveal-ready]) {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));
@@ -106,12 +141,14 @@
   /* Cascade variant: `data-reveal-stagger` on a container transitions its
      children in sequence — each child sets `--i` (0, 1, 2…), the step is
      `--reveal-stagger` (default 0.08s). Same gating as [data-reveal]. */
+  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
   html.js [data-reveal-stagger] > * {
     transition:
       opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
       transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     transition-delay: calc(var(--i, 0) * var(--reveal-stagger, 0.08s));
   }
+  /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
   html.js:not(.reveal-failsafe) [data-reveal-stagger]:not([data-reveal-ready]) > * {
     opacity: 0;
     transform: translateY(var(--reveal-y, 24px));

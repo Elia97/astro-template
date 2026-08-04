@@ -15,7 +15,7 @@ const t = useTranslations(Astro.currentLocale)
 <MainLayout title={`500 — ${t('error.500title')}`} description={t('error.500description')}>
   <Section>
     <Container>
-      <div class="mx-auto flex min-h-[50svh] max-w-2xl flex-col items-center justify-center gap-6 text-center">
+      <div class="mx-auto flex min-h-status max-w-2xl flex-col items-center justify-center gap-6 text-center">
         <p class="font-display font-semibold text-7xl text-foreground">500</p>
         <h1 class="text-foreground text-lg">{t('error.500title')}</h1>
         <p class="text-muted-foreground text-sm leading-relaxed">{t('error.500description')}</p>

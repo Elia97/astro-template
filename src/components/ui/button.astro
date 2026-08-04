@@ -8,7 +8,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 export const buttonVariants = cva(
-  'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring active:scale-press disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -20,7 +20,7 @@ export const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
         accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
         // Low-emphasis fill; no text color baked in, so a slotted glyph inherits currentColor.
-        soft: 'border border-transparent bg-surface-foreground/10 hover:bg-surface-foreground/20',
+        soft: 'border border-transparent bg-foreground/10 hover:bg-foreground/20',
       },
       // One t-shirt scale for text and icon buttons (icon-* are square). `md`
       // is the default — there is deliberately no `default` size key.

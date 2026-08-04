@@ -73,7 +73,6 @@ const TEXT_PAIRS = [
   ['foreground', 'card'],
   ['muted-foreground', 'background'],
   ['muted-foreground', 'card'],
-  ['surface-foreground', 'surface'],
   ['popover-foreground', 'popover'],
   ['primary-foreground', 'primary'],
   ['secondary-foreground', 'secondary'],
@@ -85,7 +84,6 @@ const TEXT_PAIRS = [
   ['destructive-foreground', 'destructive'],
   ['success', 'background'],
   ['success', 'card'],
-  ['success-foreground', 'success'],
 ] as const
 
 // WCAG 1.4.11, boundaries of a UI component.
