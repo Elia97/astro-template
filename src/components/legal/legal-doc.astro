@@ -1,23 +1,17 @@
 ---
-// Shell for a HOSTED legal document (src/lib/legal/documents.ts). The sibling
-// legal-page.astro is the shell for the placeholder copy a fork writes itself —
-// the pages pick between them on whether the fetch returned anything.
+// Body of a HOSTED legal document (src/lib/legal/documents.ts). The sibling
+// legal-page.astro is the body for the placeholder copy a fork writes itself —
+// the pages pick between them on whether the fetch returned anything. Neither
+// mounts the layout: see the note in legal-page.astro.
 import Container from '@/components/ui/container.astro'
 import Section from '@/components/ui/section.astro'
 
-import MainLayout from '@/layouts/main.astro'
-
-// Same prop shape as legal-page.astro, deliberately: the pages switch between
-// the two on one condition, and a difference here would leak into both call
-// sites. A fork keeping legal pages out of search adds `noindex` to both.
 interface Props {
-  title: string
-  description: string
   /** Sanitized upstream by getLegalDoc — never pass unsanitized HTML here. */
   html: string
 }
 
-const { title, description, html } = Astro.props
+const { html } = Astro.props
 
 // The iubenda no-markup HTML is semantic but unthemed (it ships its own h1):
 // these arbitrary-variant selectors apply the project tokens to the injected
@@ -39,12 +33,10 @@ const proseClass = [
 ].join(' ')
 ---
 
-<MainLayout {title} {description}>
-  <Section>
-    <Container>
-      <div class="mx-auto max-w-3xl">
-        <div class={proseClass} set:html={html} />
-      </div>
-    </Container>
-  </Section>
-</MainLayout>
+<Section>
+  <Container>
+    <div class="mx-auto max-w-3xl">
+      <div class={proseClass} set:html={html} />
+    </div>
+  </Container>
+</Section>

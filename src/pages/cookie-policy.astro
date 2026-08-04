@@ -4,10 +4,12 @@
 // below stops being true, since GTM only ships alongside that same config
 // (src/lib/analytics/tracking.ts gates both on the same pair of env vars).
 // Legal review before go-live either way.
-import LegalDocPage from '@/components/legal/legal-doc-page.astro'
+import LegalDoc from '@/components/legal/legal-doc.astro'
 import LegalPage from '@/components/legal/legal-page.astro'
 import LegalSectionList from '@/components/legal/legal-section-list.astro'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+
+import MainLayout from '@/layouts/main.astro'
 
 import { getLegalDoc } from '@/lib/legal/documents'
 
@@ -36,19 +38,21 @@ const sections = [
 ]
 ---
 
-{
-  hostedDoc !== null ? (
-    <LegalDocPage {title} {description} html={hostedDoc} />
-  ) : (
-    <LegalPage {title} {description}>
-      <Alert variant="muted" class="mt-6">
-        <AlertDescription>
-          Questa informativa è una bozza segnaposto allineata alla dotazione di base del sito: va rivista quando si
-          aggiungono strumenti di analisi o marketing, e comunque prima della pubblicazione definitiva.
-        </AlertDescription>
-      </Alert>
+<MainLayout {title} {description}>
+  {
+    hostedDoc !== null ? (
+      <LegalDoc html={hostedDoc} />
+    ) : (
+      <LegalPage {title}>
+        <Alert variant="muted" class="mt-6">
+          <AlertDescription>
+            Questa informativa è una bozza segnaposto allineata alla dotazione di base del sito: va rivista quando si
+            aggiungono strumenti di analisi o marketing, e comunque prima della pubblicazione definitiva.
+          </AlertDescription>
+        </Alert>
 
-      <LegalSectionList sections={sections} />
-    </LegalPage>
-  )
-}
+        <LegalSectionList sections={sections} />
+      </LegalPage>
+    )
+  }
+</MainLayout>

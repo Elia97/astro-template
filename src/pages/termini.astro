@@ -6,6 +6,8 @@ import LegalPage from '@/components/legal/legal-page.astro'
 import LegalSectionList from '@/components/legal/legal-section-list.astro'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
+import MainLayout from '@/layouts/main.astro'
+
 const title = 'Termini e Condizioni'
 const description = 'Termini e condizioni di utilizzo di questo sito.'
 
@@ -33,13 +35,15 @@ const sections = [
 ]
 ---
 
-<LegalPage {title} {description}>
-  <Alert variant="muted" class="mt-6">
-    <AlertDescription>
-      Questo documento è una bozza segnaposto: va adattato al progetto e sottoposto a revisione legale prima della
-      pubblicazione definitiva del sito.
-    </AlertDescription>
-  </Alert>
+<MainLayout {title} {description}>
+  <LegalPage {title}>
+    <Alert variant="muted" class="mt-6">
+      <AlertDescription>
+        Questo documento è una bozza segnaposto: va adattato al progetto e sottoposto a revisione legale prima della
+        pubblicazione definitiva del sito.
+      </AlertDescription>
+    </Alert>
 
-  <LegalSectionList sections={sections} />
-</LegalPage>
+    <LegalSectionList sections={sections} />
+  </LegalPage>
+</MainLayout>
