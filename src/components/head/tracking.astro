@@ -70,9 +70,8 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
         import { bootstrapAnalytics } from '@/lib/analytics/bootstrap'
         import { bootstrapIubenda } from '@/lib/consent/iubenda'
 
-        // Order matters only in intent, not in time: registering the analytics
-        // callback first guarantees it is queued before any stored preference
-        // can drain the queue.
+        // Analytics first: a stored preference drains the queue as soon as iubenda
+        // loads, and a callback registered after that never runs.
         bootstrapAnalytics()
         bootstrapIubenda()
       </script>

@@ -6,32 +6,22 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
-    # [HARD] A releasable type, not `chore`. Production ships only from a release
-    # tag, and release-please bumps the version on `feat`/`fix` alone — hidden
-    # types cut no tag, so under `chore(deps)` a merged CVE patch would sit on
-    # `main` and never reach production. devDependencies get it too: Tailwind and
-    # Vite are devDeps here and they shape the built output.
+    # [HARD] release-please bumps the version on `feat`/`fix` alone, so under
+    # `chore(deps)` a merged CVE patch never cuts a tag and never reaches production.
     commit-message:
       prefix: 'fix(deps)'
       prefix-development: 'fix(deps-dev)'
-    # Long enough for a bad release to be yanked before it reaches a PR here, and
-    # longer still for majors, which is where a regression usually lands.
     cooldown:
       default-days: 7
       semver-major-days: 14
     ignore:
-      # `astro check` (through @astrojs/language-server) uses the TypeScript programmatic
-      # API, which the native 7.x compiler does not ship yet: with TS 7 installed
-      # `pnpm run ci` dies before checking a single file. Drop this once astro supports
-      # TS 7 — upstream status: https://github.com/withastro/roadmap/discussions/1321
+      # TODO: drop when astro supports TS 7. `astro check` uses the TypeScript
+      # programmatic API, which 7.x does not ship. withastro/roadmap#1321
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
     groups:
-      # One group = one PR per cycle. Two dependabot PRs merged seconds apart, neither
-      # rebased on the other, auto-merge their pnpm-lock.yaml into a hybrid with a
-      # duplicated key: unparsable YAML, CI down until it is repaired by hand. It also
-      # keeps the ruleset's "branch up to date" rule cheap — one branch to rebase, not
-      # eight. Majors ride along: read the grouped PR before merging it.
+      # Two ungrouped PRs merged seconds apart once auto-merged their pnpm-lock.yaml
+      # into a hybrid with a duplicated key: unparsable YAML, CI down until repaired.
       npm:
         patterns:
           - '*'
@@ -47,7 +37,6 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     groups:
-      # Same reasoning as the npm group: one PR per cycle, not one per action.
       github-actions:
         patterns:
           - '*'

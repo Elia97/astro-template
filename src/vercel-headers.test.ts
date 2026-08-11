@@ -60,9 +60,8 @@ describe('security headers', () => {
     expect(['strict-origin-when-cross-origin', 'no-referrer', 'same-origin']).toContain(header('Referrer-Policy'))
   })
 
-  // Two years and preload: the value HSTS preload submission requires. Lowering
-  // max-age is the one change here that can't be undone quickly — browsers keep
-  // the old value until it expires.
+  // Two years is what HSTS preload submission requires, and lowering it is slow to
+  // undo: browsers keep the old max-age until it expires.
   it('pins HSTS at a preload-eligible value', () => {
     const hsts = header('Strict-Transport-Security')
     const maxAge = Number(/max-age=(\d+)/.exec(hsts)?.[1])
@@ -104,10 +103,7 @@ describe('Content-Security-Policy', () => {
     }
   })
 
-  // BotID is proxied same-origin (vercel-botid.test.ts pins the rewrites), which
-  // is exactly why it needed no CSP entry. If those rewrites ever go away the
-  // challenge starts loading cross-origin and this policy blocks it — the two
-  // facts belong together.
+  // vercel-botid.test.ts pins the rewrites this depends on.
   it('needs no vendor origin for BotID, because the challenge is same-origin', () => {
     expect(config.rewrites.some((rule) => rule.destination.includes('api.vercel.com'))).toBe(true)
     for (const [, values] of directives) {

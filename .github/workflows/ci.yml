@@ -12,12 +12,11 @@ on:
       - '.github/**/*.md'
       - '.claude/**/*.md'
 
-# Declared rather than inherited: this workflow runs on PRs, so it is the one a
-# third-party action would ride in on. It only reads the checkout.
+# Declared rather than inherited: running on PRs, this is the workflow a third-party
+# action would ride in on.
 permissions:
   contents: read
 
-# On main every push is a candidate release commit, so those are never cancelled.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -68,7 +67,6 @@ jobs:
       - name: fallow review (advisory, always exits 0)
         run: pnpm exec fallow review
 
-      # HARD gate: a component reaching back into a layout inverts the composition
-      # and makes it unusable elsewhere. Nothing else fails on it.
+      # The only gate that fails on a boundary violation.
       - name: fallow boundaries
         run: pnpm exec fallow dead-code --boundary-violations
