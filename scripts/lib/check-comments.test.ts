@@ -28,10 +28,12 @@ describe('report', () => {
     expect(findings[0]).toContain('block of 4 lines')
   })
 
-  it('spares a long block carrying a functional directive', () => {
-    const { findings } = report('src/a.ts', lines('// a', '// b', '// c', '// biome-ignore lint/x: y'))
+  it('exempts a directive line without exempting the prose around it', () => {
+    const withDirective = report('src/a.ts', lines('// a', '// b', '// biome-ignore lint/x: y'))
+    const proseAroundIt = report('src/a.ts', lines('// a', '// b', '// c', '// [HARD] x'))
 
-    expect(findings).toEqual([])
+    expect(withDirective.findings).toEqual([])
+    expect(proseAroundIt.findings[0]).toContain('block of 4 lines')
   })
 
   it('flags a comment narrating the change instead of the code, in either language', () => {

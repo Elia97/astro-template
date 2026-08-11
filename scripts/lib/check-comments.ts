@@ -36,9 +36,11 @@ export function isComment(line: string, hashStyle: boolean): boolean {
   return s.startsWith('//') || s.startsWith('/*') || s.startsWith('*') || s.startsWith('{/*')
 }
 
+// A marker exempts its own line, never the block: one `[HARD]` anywhere used to buy a
+// comment unlimited length, and src/middleware.ts sat at 14 lines reporting clean.
 function blockFinding(file: string, block: Line[]): string | null {
-  if (block.length <= MAX_BLOCK_LINES) return null
-  if (block.some((b) => KEEP.test(b.text))) return null
+  const prose = block.filter((line) => !KEEP.test(line.text))
+  if (prose.length <= MAX_BLOCK_LINES) return null
   return `${file}:${block[0]?.n}  block of ${block.length} lines (max ${MAX_BLOCK_LINES})`
 }
 
