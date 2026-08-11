@@ -14,8 +14,6 @@ describe('heroSectionSchema', () => {
     expect(heroSectionSchema().safeParse(hero).success).toBe(true)
   })
 
-  // The regression this guards: with a non-strict object the typo is dropped and
-  // the page renders without the field, build green.
   it('rejects an unknown key instead of stripping it', () => {
     const result = heroSectionSchema().safeParse({ ...hero, subtitile: 'typo' })
     expect(result.success).toBe(false)

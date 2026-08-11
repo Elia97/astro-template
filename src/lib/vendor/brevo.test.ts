@@ -114,9 +114,6 @@ describe('upsertContact', () => {
   })
 })
 
-// `fetch` waits forever by default. Three of these run in parallel inside the
-// action, so an upstream that accepts and stalls would hold the whole function
-// open until the platform kills it — no error path, no lead, just a spinner.
 describe('request deadline', () => {
   it('aborts the request instead of waiting on the vendor indefinitely', async () => {
     vi.stubEnv('BREVO_API_KEY', 'secret-key')
@@ -139,8 +136,6 @@ describe('request deadline', () => {
 })
 
 describe('production without a key', () => {
-  // Dev no-ops loudly; production refusing is the point — a silently dropped
-  // lead is the worst outcome, so the missing key has to surface as a failure.
   it('refuses to no-op instead of reporting success', async () => {
     vi.stubEnv('PROD', true)
     const fetchMock = stubUncalledFetch()

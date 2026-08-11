@@ -1,15 +1,8 @@
 import { pushToDataLayer } from '@/lib/analytics/data-layer'
 import { createMotionBinding } from '@/lib/motion'
 
-// Opt-in: not mounted by the layout. The starter's chrome has no tel:/mailto:
-// anchors, so binding it by default would cost every page a listener for events
-// that can't fire. Mount it from the layout (`bindLinkTracking()`) once the
-// project has contact links worth measuring.
-//
-// Delegated on the document so it covers anchors rendered anywhere and survives
-// ClientRouter navigations. The dataLayer bridge queues harmlessly until the
-// consent-gated GTM container loads, so emitting here is safe even with
-// tracking off.
+// Opt-in: nothing mounts this — the layout calls bindLinkTracking() once the
+// project has tel:/mailto: links.
 
 export function resolveLinkEvent(href: string): 'click_to_call' | 'click_to_email' | null {
   if (href.startsWith('tel:')) return 'click_to_call'

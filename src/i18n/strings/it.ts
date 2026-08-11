@@ -1,8 +1,3 @@
-// Default-locale UI strings — the source of truth for the `UIKey` union.
-// Additional locales provide every key (`Record<UIKey, string>` in
-// ./strings/<locale>.ts — the compiler enforces completeness). Keys group by
-// surface: `a11y.*` assistive labels, `nav.*` chrome navigation, `legal.*`
-// legal links, `footer.*` footer copy.
 export const it = {
   'a11y.skipToContent': 'Salta al contenuto',
   'a11y.primaryNav': 'Navigazione principale',
@@ -42,9 +37,7 @@ export const it = {
   'contact.error': 'Invio non riuscito. Riprova tra poco.',
   'contact.genericFieldError': 'Controlla i dati inseriti.',
 
-  // Validation messages: emitted by the Zod schemas (src/lib/forms/form-fields.ts)
-  // and printed raw into each field's error slot. They read as instructions, not
-  // as diagnostics — the user is being told what to do, not what went wrong.
+  // Shown to the user verbatim by src/components/forms/field-errors.ts.
   'forms.error.firstNameRequired': 'Inserisci il tuo nome.',
   'forms.error.firstNameTooLong': 'Il nome è troppo lungo (massimo 100 caratteri).',
   'forms.error.lastNameRequired': 'Inserisci il tuo cognome.',

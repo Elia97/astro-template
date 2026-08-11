@@ -1,14 +1,9 @@
-// Throwaway repo trees for the scripts/gen/* injection tests.
-//
-// The hook-point files are COPIED FROM THE REAL REPO, never transcribed here: a
-// frozen copy would keep these tests green after someone renames
-// `homepageCollectionSchema` or drops a `@gen:` marker, while the generator
-// breaks for real. Tests that need a broken hook point override one explicitly.
+// Hook points are copied from the real repo, never transcribed: a frozen copy is a
+// green test over a generator broken by a rename or a dropped `@gen:` marker.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-/** Everything the two injectors read. Copied verbatim into each throwaway root. */
 const HOOK_POINTS = [
   'src/lib/schemas/homepage/index.ts',
   'src/lib/homepage.ts',
@@ -24,10 +19,6 @@ function write(root: string, rel: string, content: string): void {
   writeFileSync(target, content)
 }
 
-/**
- * A temp root holding the real hook points. `overrides` replaces a file's
- * content, or deletes it when the value is `null`.
- */
 export function makeRoot(overrides: Record<string, string | null> = {}): string {
   const root = mkdtempSync(join(tmpdir(), 'gen-fixture-'))
   roots.push(root)

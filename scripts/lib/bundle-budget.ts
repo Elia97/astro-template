@@ -1,6 +1,3 @@
-// Data in, data out: the filesystem, the gzip sizing, the report and the exit code
-// stay in scripts/bundle-budget.mjs, so everything here is unit-testable.
-
 export type Chunk = { gzip: number; static: Set<string>; dynamic: Set<string> }
 
 export type Budget = { label: string; matches: (route: string) => boolean; maxGzip: number }
@@ -13,10 +10,7 @@ export type Expectations = {
   ssr: string[]
 }
 
-// STATIC closure only — what the page parses before it can interact — in gzip bytes,
-// first match wins. Sized to catch a dependency entering the critical path, not single
-// KBs: the starter's heaviest route is /contatti at ~10 KB gz. A route class that
-// legitimately costs more goes IN FRONT of the default with its own `matches`.
+// 20 KB is ~2× the heaviest measured starter route (/contatti, ~10 KB gz).
 const DEFAULT_BUDGET: Budget = { label: 'default', matches: () => true, maxGzip: 20 * 1024 }
 
 const BUDGETS: readonly Budget[] = [DEFAULT_BUDGET]
@@ -31,9 +25,7 @@ const captured = (source: string, pattern: RegExp, group: number): Set<string> =
   new Set([...source.matchAll(pattern)].flatMap((match) => (match[group] === undefined ? [] : [match[group]])))
 /* v8 ignore stop */
 
-/** A chunk's outgoing edges. Rollup quotes static specifiers with `"` and dynamic
- *  ones with a template literal; both forms are accepted so a change of emitter
- *  can't silently turn an edge into a miss (i.e. a green budget). */
+/** Rollup quotes static specifiers with `"` and dynamic ones with a template literal. */
 export function parseEdges(source: string): Pick<Chunk, 'static' | 'dynamic'> {
   return {
     static: captured(source, /(?:from|import)\s*(["'`])\.\/([^"'`]+\.js)\1/g, 2),
@@ -41,12 +33,10 @@ export function parseEdges(source: string): Pick<Chunk, 'static' | 'dynamic'> {
   }
 }
 
-/** The chunks a page pulls in directly, off its own markup. */
 export function htmlEntries(html: string): string[] {
   return [...captured(html, /(?:src|href)="\/_astro\/([^"]+\.js)"/g, 1)]
 }
 
-/** Transitive closure from `entries`, following static edges only. */
 export function staticClosure(entries: Iterable<string>, chunks: Map<string, Chunk>): Set<string> {
   const seen = new Set<string>()
   const queue = [...entries]
@@ -61,8 +51,6 @@ export function staticClosure(entries: Iterable<string>, chunks: Map<string, Chu
   return seen
 }
 
-/** What the static closure only reaches through an `await import()` — loaded
- *  after paint, behind a runtime guard, so outside the budget by construction. */
 export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>): Set<string> {
   /* v8 ignore next -- every reached name came out of the same chunk map */
   const entries = [...reached].flatMap((name) => [...(chunks.get(name)?.dynamic ?? [])])
@@ -71,17 +59,6 @@ export function deferredClosure(reached: Set<string>, chunks: Map<string, Chunk>
 
 const toPosix = (path: string, prefix: string): string => path.slice(prefix.length).split(/[\\/]/).join('/')
 
-/**
- * One shared stylesheet for the whole site, so one number rather than a
- * per-route share — counting it against every route would read as if each page
- * paid for it, when the second page onwards gets it from cache.
- *
- * It is here at all because it is the heaviest thing shipped AND the only
- * render-blocking one: a `<link rel="stylesheet">` in the head delays first
- * paint, where every JS chunk this gate measures does not. Tailwind's output
- * grows with the number of distinct utilities used, so a fork drifts upward one
- * component at a time without any single change looking expensive.
- */
 export const CSS_BUDGET_GZIP = 12 * 1024
 
 export function cssBudgetFailure(totalGzip: number, files: readonly string[]): string | null {
@@ -95,8 +72,6 @@ export function routeOf(htmlPath: string, dist: string): string {
   return route.replace(/\.html$/, '') || '/'
 }
 
-// Anchored to the start of a line so prose mentioning `prerender` in a comment
-// can't be read as a declaration.
 const SSR_OPT_OUT = /^\s*export\s+const\s+prerender\s*=\s*false\b/m
 
 function pageRouteOf(file: string, pagesDir: string): string {
@@ -113,10 +88,7 @@ function segmentPattern(segment: string): string {
   return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/** What `dist/client` must contain, read off `src/pages` rather than listed by
- *  hand: a page added, or opting out with `prerender = false`, moves between the
- *  three buckets on its own. Only `.astro` files belong here — an endpoint
- *  (`robots.txt.ts`) prerenders too but emits no HTML. */
+/** Only `.astro` pages: an endpoint like `robots.txt.ts` prerenders too but emits no HTML. */
 export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Expectations {
   const expectations: Expectations = { exact: [], patterns: [], ssr: [] }
   for (const { file, source } of pages) {
@@ -135,9 +107,7 @@ export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Ex
   return expectations
 }
 
-/** [HARD] Without this the per-route assertions are fail-open: they all iterate
- *  the emitted pages, so an empty `dist/client` would report a green budget
- *  having measured nothing at all. */
+/** [HARD] Fail-open guard: every per-route assertion iterates the emitted pages, so an empty dist asserts nothing. */
 export function missingRouteFailures(expected: Expectations, emitted: readonly string[], dist: string): string[] {
   if (emitted.length === 0) {
     return [`${dist} holds no .html file — no route was measured, so the per-route budgets assert nothing`]

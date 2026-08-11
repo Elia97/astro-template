@@ -11,9 +11,6 @@ import { renderContactAutoreply, renderContactNotification } from '@/emails/cont
 
 const sender = { email: CONTACT_FROM_EMAIL, name: CONTACT_FROM_NAME }
 
-// Cheapest guard, so it runs first: a filled decoy never reaches the vendor, and
-// the caller still gets the success shape — an error would tell the bot which
-// field gave it away.
 function droppedByHoneypot(input: Parameters<typeof isHoneypotFilled>[0]): boolean {
   if (!isHoneypotFilled(input)) return false
   console.warn('[contact] honeypot filled — submission dropped')
@@ -28,10 +25,8 @@ function assertNotRateLimited(clientAddress: string): void {
   })
 }
 
-// BotID reads the request off Vercel's request context, so there's nothing to
-// pass here. Gated on PROD like its client half (src/components/forms/botid.ts):
-// off Vercel the challenge never runs. Fail-open on a thrown check — a guard
-// that breaks must never cost a lead.
+// checkBotId() reads the request off Vercel's request context, so it takes no
+// arguments — and off Vercel the challenge never runs, hence the PROD gate.
 async function detectBot(): Promise<boolean> {
   if (!import.meta.env.PROD) return false
   try {
@@ -43,11 +38,6 @@ async function detectBot(): Promise<boolean> {
   }
 }
 
-// Observe by default (BOTID_ENFORCE=false): the verdict is logged and the
-// submission proceeds, so a misclassified human never loses a lead — the log is
-// what tells us whether enforcing is safe here. Enforcing fails loud rather than
-// faking success, so the user keeps the phone/email fallback in play. That is
-// the opposite of the honeypot, whose whole value is silence.
 async function assertNotBot(): Promise<void> {
   if (!(await detectBot())) return
   if (!BOTID_ENFORCE) {
@@ -89,15 +79,8 @@ function sendContactEmails(input: ContactRequest): Promise<[BrevoResult, BrevoRe
   ])
 }
 
-// Fail-loud ONLY on the owner notification (the lead would be lost) —
-// autoreply and CRM upsert are best-effort, logged and swallowed.
-//
-// [HARD] The submission has no other durable sink: all three calls go to the
-// same vendor with the same key, so one Brevo outage loses every trace of it.
-// The recovery line is what makes the lead reachable by grep over the runtime
-// logs — the difference between "we lost it" and "I'll call them back". It
-// carries personal data on purpose, so a fork with a stricter retention policy
-// should say so in its privacy notice or redact `message` here.
+// [HARD] The lead-recovery line logs personal data on purpose (Brevo is the only
+// sink): a fork declares it in its privacy notice or redacts `message` here.
 function reportContactResults(
   input: ContactRequest,
   [notified, autoreplied, persisted]: [BrevoResult, BrevoResult, BrevoResult],
@@ -118,11 +101,6 @@ function reportContactResults(
   }
 }
 
-// The handler is named and exported so the orchestration — guard order,
-// fail-open, observe vs enforce — can be tested without going through
-// `defineAction` (src/actions/guards.test.ts). Only `clientAddress` is read off
-// the action context: narrowing it here keeps the tests off Astro's internal
-// `ActionAPIContext` type.
 export interface ActionContext {
   clientAddress: string
 }

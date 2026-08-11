@@ -65,8 +65,6 @@ describe('defensive and lifecycle paths', () => {
     expect(window.dataLayer).toHaveLength(0)
   })
 
-  // The listener sits on `document`, so surviving a view transition would leave
-  // it firing against the next page as well — one click, two events.
   it('unbinds on astro:before-swap', () => {
     document.body.innerHTML = '<a href="tel:+390123456789">Chiama</a>'
     bindLinkTracking()

@@ -1,7 +1,4 @@
-// Reference-counted scroll lock: overlays (mobile menu, dialogs) can nest
-// without stealing each other's unlock. The actual locking is pure CSS on
-// `html[data-scroll-locked]` (globals.css) — `overflow: hidden` plus
-// `scrollbar-gutter: stable` so the page doesn't shift when the bar vanishes.
+// The lock itself is CSS on `html[data-scroll-locked]` (src/styles/globals.css).
 
 let locks = 0
 
@@ -18,10 +15,6 @@ export function unlockScroll(): void {
   document.documentElement.removeAttribute('data-scroll-locked')
 }
 
-/**
- * Drop every lock at once. For `astro:after-swap`: overlays don't survive a
- * view transition, so their pending locks must not leak into the next page.
- */
 export function resetScrollLock(): void {
   locks = 0
   document.documentElement.removeAttribute('data-scroll-locked')

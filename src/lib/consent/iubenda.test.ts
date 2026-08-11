@@ -14,7 +14,6 @@ function makeGate(): ConsentGate & { applyPreference: ReturnType<typeof vi.fn> }
   } as unknown as ConsentGate & { applyPreference: ReturnType<typeof vi.fn> }
 }
 
-/** A window fresh enough that the module's once-only guard starts unset. */
 function makeWin(config?: typeof CONFIG) {
   const win = { __consentConfig: config } as unknown as Window & typeof globalThis
   return win
@@ -45,8 +44,6 @@ describe('buildCsConfiguration', () => {
     expect(buildCsConfiguration({ ...CONFIG, onPreference: vi.fn() }).perPurposeConsent).toBe(true)
   })
 
-  // A returning visitor's stored preference arrives through onConsentRead only:
-  // wiring just onPreferenceExpressed would leave them un-granted forever.
   it('routes both the fresh and the stored preference to the same handler', () => {
     const onPreference = vi.fn()
     const { callback } = buildCsConfiguration({ ...CONFIG, onPreference })
@@ -67,8 +64,6 @@ describe('bootstrapIubenda', () => {
     expect(win._iub?.csConfiguration).toBeDefined()
   })
 
-  // The whole gating story: no id → no third-party script, in dev and on any
-  // deploy that hasn't configured iubenda yet.
   it('does nothing without a config', () => {
     const { loadScript, win } = boot({ win: makeWin() })
 
@@ -90,8 +85,6 @@ describe('bootstrapIubenda — wiring', () => {
     expect(win.__consent?.onConsent).toBe(gate.onConsent)
   })
 
-  // Re-running the module (a second <script>, a view transition) must not add a
-  // second CMP script to the page.
   it('is idempotent', () => {
     const win = makeWin(CONFIG)
     const loadScript = vi.fn()
@@ -112,9 +105,7 @@ describe('bootstrapIubenda — wiring', () => {
     expect(gate.applyPreference).toHaveBeenCalledWith(pref)
   })
 
-  // Default loadScript path: the one branch the injected dep would otherwise
-  // hide. The element is built by the real DOM but never connected to it —
-  // appending it for real would have happy-dom fetch the CDN from a unit test.
+  // Never connected: appending for real would have happy-dom fetch the CDN from a unit test.
   it('appends an async script tag when no loader is injected', () => {
     const appended: HTMLScriptElement[] = []
     const doc = {

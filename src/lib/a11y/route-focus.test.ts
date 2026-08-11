@@ -3,9 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { bindRouteFocus } from '@/lib/a11y/route-focus'
 
-// `bound` is module state, so the first bind below registers the listener for
-// the whole file — which is exactly the contract, and why the cold-load case
-// runs first.
+// bindRouteFocus's `bound` flag is module state: the cold-load case must run first.
 function renderMain(): HTMLElement {
   document.body.innerHTML = '<main id="main-content" tabindex="-1">content</main>'
   const main = document.getElementById('main-content')

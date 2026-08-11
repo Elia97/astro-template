@@ -1,11 +1,6 @@
 import { i18n } from 'astro:config/client'
 import { type CollectionEntry, getCollection } from 'astro:content'
 
-// Shared loader for `section`-discriminated singleton collections (the homepage
-// pattern). Default-locale entries live flat (`hero.yml` → "hero"); other
-// locales under `<locale>/` (`en/hero.yml` → "en/hero"). Fail-loud on a
-// misplaced default-locale folder or a duplicate section. Extend `Sectioned`
-// when a fork adds another section-discriminated collection.
 type Sectioned = 'homepage'
 
 /* v8 ignore next -- astro:config/client is injected by Astro on every render; the fallback guards a module that cannot be missing */

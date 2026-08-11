@@ -1,47 +1,32 @@
-// Single source of truth for site metadata and chrome content (nav/footer/CTA/legal).
-// Replace the placeholders per project — de-branding happens at design time.
-// UI copy is NOT here: entries reference i18n dictionary keys (`key`,
-// resolved via useTranslations), so the chrome localizes with the site.
 export const SITE = {
   name: '<PROJECT_NAME>',
-  // ⚠️ Must be a valid URL: it feeds `site` in astro.config.mjs and every
-  // canonical/OG/hreflang absolute URL. Replace with the project's real domain.
+  // Feeds `site` in astro.config.mjs and every canonical/OG/hreflang absolute URL.
   url: 'https://example.com',
   description: '<DESCRIPTION>',
   defaultOgImage: '/og-default.png',
-  // Browser-chrome colour per theme (head/icons.astro) and the manifest's
-  // background/theme colour. ⚠️ Keep equal to `--background` in
-  // styles/light.css / dark.css, or the chrome and the page disagree at the
-  // seam. Hex, not oklch: a `<meta name="theme-color">` is parsed by the browser
-  // UI layer, where support is narrower than in CSS.
+  // TODO: duplicates `--background` in src/styles/light.css / dark.css — add a drift test.
+  // Hex, not oklch: `<meta name="theme-color">` is parsed by the browser UI layer, not the CSS engine.
   themeColor: { light: '#fafafa', dark: '#0a0a0a' },
-  // BCP 47 tag per locale (lang/hreflang/og:locale). Keys must match the
-  // locale *codes* from `i18n.locales` in astro.config.mjs (for object
-  // entries that's `codes[0]`, not `path`) — held to it by
-  // src/i18n/locale-config.test.ts, since a missing tag only degrades hreflang
-  // to a bare code rather than failing anything.
+  // Keys must match the locale codes in `i18n.locales` (astro.config.mjs) — `codes[0]`
+  // for an object entry, not `path`; held to it by src/i18n/locale-config.test.ts.
   localeTags: { it: 'it-IT' },
-  // Header navigation. `href` is the default-locale path — components run it
-  // through localizedHref(), which localizes prefix and segments per locale.
+  // `href` is the default-locale path: localizedHref() adds the prefix per locale.
   nav: [
     { key: 'nav.home', href: '/' },
     { key: 'nav.contact', href: '/contatti' },
   ],
   cta: { key: 'nav.cta', href: '/contatti' },
-  // Legal links (universal for EU sites).
   legal: [
     { key: 'legal.terms', href: '/termini' },
     { key: 'legal.privacy', href: '/privacy' },
     { key: 'legal.cookies', href: '/cookie-policy' },
   ],
-  // Social profiles (footer). Brand names don't translate — plain labels.
   social: [{ label: 'LinkedIn', href: '#' }],
 } as const
 
-/** @public SITE shape: template surface, consumable by child projects. */
+/** @public */
 export type Site = typeof SITE
 
-/** BCP 47 tag for a locale code, falling back to the code itself. */
 export function localeTag(locale: string): string {
   const tags: Record<string, string> = SITE.localeTags
   return tags[locale] ?? locale

@@ -6,9 +6,7 @@ import { assertInjectable, injectCollection } from './inject-config.mjs'
 const CONFIG = 'src/content.config.ts'
 const config = (root: string) => read(root, CONFIG)
 
-/** The `const <camel> = defineCollection({ … })` block alone. ts-morph emits raw
- *  (double quotes, semicolons) and Biome normalizes it in the post-gen step, so
- *  assertions here stay off formatting and on structure. */
+/** ts-morph emits raw (double quotes, semicolons); Biome normalizes it in the post-gen step. */
 const block = (root: string, camel: string) =>
   config(root)
     .slice(config(root).indexOf(`const ${camel} = defineCollection(`))
@@ -16,9 +14,6 @@ const block = (root: string, camel: string) =>
 
 afterEach(cleanupRoots)
 
-// Every branch below is a hook point that someone can break by editing
-// content.config.ts. The contract is that the generator ABORTS with a message
-// naming the contract, never writes a half-registered collection.
 describe('contract checks on content.config.ts', () => {
   it('passes against the real file, which is the actual contract', () => {
     expect(() => assertInjectable({ root: makeRoot(), camel: 'posts', kebab: 'posts' })).not.toThrow()
@@ -30,8 +25,6 @@ describe('contract checks on content.config.ts', () => {
     expect(() => assertInjectable({ root, camel: 'posts', kebab: 'posts' })).toThrow(/no `collections` variable/)
   })
 
-  // Astro reads the EXPORT. A non-exported object is silently ignored, so the
-  // generator would appear to succeed and the collection would never load.
   it('refuses when `collections` is not exported', () => {
     const root = makeRoot({ [CONFIG]: 'const collections = {}' })
 
@@ -50,8 +43,6 @@ describe('contract checks on content.config.ts', () => {
     expect(() => assertInjectable({ root, camel: 'posts', kebab: 'posts' })).toThrow(/already registered/)
   })
 
-  // A dashed collection is registered quoted, so the collision check has to look
-  // for both spellings or a second `blog-posts` would be injected next to the first.
   it('refuses a dashed name already registered as a quoted key', () => {
     const root = makeRoot({ [CONFIG]: "export const collections = { 'blog-posts': blogPosts }" })
 
@@ -78,8 +69,6 @@ describe('injectCollection', () => {
     expect(written).toMatch(/collections = \{[\s\S]*\bposts\b/)
   })
 
-  // The marker comment lives INSIDE the object literal precisely so injected
-  // statements above the declaration cannot detach it from what it documents.
   it('leaves the injection-point comment inside the literal', () => {
     const root = makeRoot()
 
@@ -88,9 +77,6 @@ describe('injectCollection', () => {
     expect(config(root)).toMatch(/collections = \{[\s\S]*INJECTION POINT/)
   })
 
-  // Reachable through the documented recovery: `git checkout -p` discards the
-  // registration hunk but leaves the import. Re-running must not stack a second
-  // one — the pre-flight lets this through, since only the registration is gone.
   it('reuses the schema import left behind by a partial rollback', () => {
     const root = makeRoot({
       [CONFIG]: [
@@ -108,9 +94,6 @@ describe('injectCollection', () => {
   })
 })
 
-// The override is archetype-specific, not house style: a document id becomes the
-// route slug and must keep Astro's default generateId, while a data collection is
-// read back by folder and must not be slugified.
 describe('the loader the archetype gets', () => {
   it('gives a document collection the markdown pattern and no generateId override', () => {
     const root = makeRoot()
@@ -130,7 +113,6 @@ describe('the loader the archetype gets', () => {
     expect(block(root, 'authors')).toContain('generateId: ({ entry }) => entry.replace(')
   })
 
-  // `{ blog-posts }` is not valid syntax, so a dashed key has to be quoted.
   it('quotes a dashed collection key instead of using a shorthand', () => {
     const root = makeRoot()
 

@@ -19,9 +19,8 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      # Falls back to GITHUB_TOKEN until RELEASE_PLEASE_TOKEN is set (see HOW_TO_USE.md) —
-      # note that with GITHUB_TOKEN, CI won't run on release-please's own release PR
-      # (GitHub Actions anti-recursion safeguard), so set the PAT before relying on that check.
+      # GitHub raises no workflow run on events made with GITHUB_TOKEN, so the release PR gets
+      # no CI until RELEASE_PLEASE_TOKEN is set (HOW_TO_USE.md).
       - uses: googleapis/release-please-action@v5
         id: release
         with:
@@ -29,8 +28,6 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Same workflow the manual "Run workflow" button calls, so the release path and
-  # the emergency path can't drift apart.
   deploy:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}

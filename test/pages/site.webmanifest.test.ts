@@ -10,8 +10,6 @@ async function get(): Promise<{ body: unknown; type: string | null }> {
 }
 
 describe('site.webmanifest', () => {
-  // The extension gives production its MIME; this header is what dev and
-  // `astro preview` answer with, and a browser rejects the manifest without it.
   it('answers with the manifest MIME type', async () => {
     const { type } = await get()
 

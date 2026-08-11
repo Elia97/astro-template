@@ -40,12 +40,6 @@ describe('rateLimit', () => {
   })
 })
 
-// The leak: entries are written per address and never read again. On a reused
-// Fluid Compute instance a spam run from rotating IPs grows the map for the life
-// of the instance, with no error and no failed request to notice it by.
-//
-// Asserted on the map size because allow/deny cannot see the difference: the
-// per-call filter drops expired timestamps either way.
 describe('bounded memory', () => {
   beforeEach(resetRateLimit)
   afterEach(resetRateLimit)

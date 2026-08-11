@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
-// The seam this guards: buildPayload maps form fields by NAME. Rename a control
-// and the payload silently carries an empty string — the schema then rejects a
-// submission the user filled in correctly.
+// buildPayload maps by control NAME: a renamed control silently sends an empty string.
 function renderForm(): HTMLFormElement {
   document.body.innerHTML = `
     <form data-contact-form>
@@ -20,9 +18,8 @@ function renderForm(): HTMLFormElement {
   return document.querySelector('form') as HTMLFormElement
 }
 
-// Both imports must come AFTER vi.resetModules(): it invalidates the registry,
-// so a spy installed on an `astro:actions` imported earlier would sit on a
-// different object than the one the module under test binds to.
+// Both imports must follow vi.resetModules(): a spy on an earlier `astro:actions`
+// sits on a different object than the module under test binds to.
 async function bindWithSpy() {
   const { actions } = await import('astro:actions')
   const spy = vi.spyOn(actions, 'contact').mockResolvedValue({} as never)
@@ -65,7 +62,6 @@ describe('contact form payload', () => {
     expect(payload).toHaveProperty(HONEYPOT_FIELD, '')
   })
 
-  // The checkbox arrives as 'on' or not at all; the schema wants a boolean.
   it('coerces the consent checkbox to true', async () => {
     const payload = await submitAndCapture()
 

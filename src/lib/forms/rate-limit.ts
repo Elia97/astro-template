@@ -1,15 +1,11 @@
-// In-memory sliding-window rate limiter. Per-instance state: it resets on
-// cold starts and isn't shared across serverless instances — fine as a
-// base anti-abuse layer, not a hard quota (docs/guides/forms-email.md).
+// Per-instance state: it resets on cold starts and isn't shared across serverless
+// instances — a base anti-abuse layer, not a quota (docs/guides/forms-email.md).
 const WINDOW_MS = 60_000
 const MAX_HITS = 5
 const hits = new Map<string, number[]>()
 
-// [HARD] The map has to be swept. Every distinct address adds an entry that is
-// never read again, and under Fluid Compute an instance is reused across many
-// requests — so a spam run from rotating IPs grows it without bound for the life
-// of the instance. Nothing surfaces: no error, no failed request, just an
-// instance using more memory until the platform recycles it.
+// [HARD] Sweep the map: under Fluid Compute one instance serves many requests, so
+// rotating IPs grow it unbounded with no error to show for it.
 const MAX_TRACKED_KEYS = 5_000
 
 function sweepExpired(now: number, windowMs: number): void {
@@ -32,17 +28,11 @@ export function rateLimit(key: string, max = MAX_HITS, windowMs = WINDOW_MS): bo
   return true
 }
 
-/** Test seam: the module-level map would otherwise leak state between cases. */
 export function resetRateLimit(): void {
   hits.clear()
 }
 
-/**
- * Test seam. The sweep is deliberately invisible to behaviour — the per-call
- * filter already discards expired timestamps, so allow/deny is identical with or
- * without it. Only the map's size tells the two apart, which makes this the one
- * way to keep the fix honest.
- */
+/** The sweep is invisible to allow/deny — only the map size tells the two apart. */
 export function trackedKeyCount(): number {
   return hits.size
 }

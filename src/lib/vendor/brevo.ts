@@ -1,16 +1,9 @@
-// Brevo transactional-email/CRM client — plain fetch, no SDK. Failure is a
-// value (`BrevoResult`), never a throw: the action decides which failures
-// are fatal. Missing API key: dev no-ops loudly, production refuses — a
-// silently dropped lead is the worst outcome.
 import { getSecret } from 'astro:env/server'
 
 const BREVO_API = 'https://api.brevo.com/v3'
 
-// [HARD] `fetch` has no default timeout. A vendor that accepts the connection and
-// then stalls holds the function open until the platform kills it — the visitor
-// watches a spinner for the whole duration and the action never gets to run its
-// error path. Three calls fire in parallel, so this is also the ceiling on the
-// whole handler. Keep it well under `maxDuration` in vercel.json.
+// [HARD] `fetch` has no default timeout, and three of these run in parallel — keep
+// this well under `maxDuration` in vercel.json.
 const REQUEST_TIMEOUT_MS = 8_000
 
 interface EmailAddress {

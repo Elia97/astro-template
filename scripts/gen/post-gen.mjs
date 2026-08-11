@@ -1,14 +1,5 @@
-// Shared final plop action: regenerate astro:* types, then format and check
-// the generated output with the repo's own gate.
-//
-// FAILS LOUDLY on a non-zero exit (throw → plop reports the action as
-// failed): broken generated output must break the generator run, never be
-// swallowed — same contract as lefthook and CI.
-//
-// `pnpm run check` is `biome check --write .` — repo-wide, so it reformats any
-// unrelated dirty file too. Harmless (the pre-commit hook would do the same) but
-// it means a generator run is not confined to the files it generated: recovery
-// hints must never reach for a whole-file `git checkout`.
+// `pnpm run check` is repo-wide `biome check --write .`, so a run also reformats unrelated dirty files —
+// recovery hints must never reach for a whole-file `git checkout`.
 import { execSync } from 'node:child_process'
 
 export function postGenAction(root, recoveryHint) {

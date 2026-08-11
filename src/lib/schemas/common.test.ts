@@ -19,8 +19,6 @@ describe('ctaSchema url', () => {
     expect(parseUrl(url)).toBe(true)
   })
 
-  // These are the ones that reach an href unescaped. `URL.canParse` says yes to
-  // the first two, and the third reads as a relative path while leaving the site.
   it.each(['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', '//evil.example/phish'])(
     'rejects %s',
     (url) => {

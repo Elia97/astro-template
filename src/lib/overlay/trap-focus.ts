@@ -1,6 +1,4 @@
-// Tab/Shift+Tab focus trap for dialogs, menus and other overlays: call from
-// the container's `keydown` handler with its focusable elements (in DOM
-// order) and focus wraps at both ends instead of escaping the overlay.
+// `focusables` must be in DOM order: the first and last are read as the trap's ends.
 
 function isBackwardWrap(event: KeyboardEvent, active: Element | null, first: HTMLElement): boolean {
   return event.shiftKey && active === first

@@ -1,7 +1,3 @@
-// Generator: new Astro page, static or dynamic ([slug] + getStaticPaths).
-// Standalone files only — no injection. Supports nested paths: each
-// '/'-separated segment is dash-cased independently (legal/privacy →
-// src/pages/legal/privacy.astro).
 import { postGenAction } from './post-gen.mjs'
 
 function pathSegments(plop, value) {
@@ -22,8 +18,7 @@ export default function pageGenerator(plop) {
         type: 'input',
         name: 'name',
         message: 'Page path (e.g. about-us, or nested like legal/privacy):',
-        // Validate the TRANSFORMED value: change-case strips punctuation, so
-        // raw input like '...' is non-empty yet dash-cases to ''.
+        // change-case strips punctuation, so '...' is non-empty yet dash-cases to ''.
         validate: (value) =>
           pathSegments(plop, value).length > 0 || 'Page path must contain at least one letter or digit',
       },

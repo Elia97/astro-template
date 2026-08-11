@@ -10,9 +10,7 @@ function loadGtm(win: Window & typeof globalThis, gtmId: string): void {
   if (win.__analyticsLoaded === true) return
   win.__analyticsLoaded = true
 
-  // gtm.start before the container script: GTM reads it off the dataLayer to
-  // time the container. GA4 itself is configured inside the container, so
-  // there's no direct gtag.js path here.
+  // GTM reads gtm.start off the dataLayer to time the container.
   pushToDataLayer({ 'gtm.start': Date.now(), event: 'gtm.js' })
 
   const script = win.document.createElement('script')
@@ -21,14 +19,8 @@ function loadGtm(win: Window & typeof globalThis, gtmId: string): void {
   win.document.head.appendChild(script)
 }
 
-/**
- * GTM loads ONLY after 'measurement' consent — nothing reaches Google before the
- * user opts in.
- *
- * Deliberately the "basic" Consent Mode shape: advanced would send cookieless
- * pings for modeling, which a site this size can never make eligible (Google
- * requires roughly 1k daily events on each side of the consent split).
- */
+/** Basic Consent Mode, not advanced: Google's modeling needs roughly 1k daily events
+ *  on each side of the consent split, which a site this size never reaches. */
 export function bootstrapAnalytics(deps?: Partial<AnalyticsBootstrapDeps>): void {
   const win = deps?.win ?? window
   const onConsent = deps?.onConsent ?? defaultOnConsent

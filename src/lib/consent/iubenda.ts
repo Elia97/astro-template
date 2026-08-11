@@ -1,9 +1,5 @@
 import { type ConsentGate, type ConsentPreference, consentGate } from '@/lib/consent/gate'
 
-// iubenda Cookie Solution: the CMP that collects the preference the gate then
-// enforces. Swapping vendor means replacing this file — `gate.ts` is where the
-// rest of the app talks to, and it only knows about categories.
-
 export interface IubendaCsCallback {
   onPreferenceExpressed: (pref: ConsentPreference) => void
   onConsentRead: (pref: ConsentPreference) => void
@@ -19,16 +15,8 @@ export interface IubendaCsConfiguration {
   callback: IubendaCsCallback
 }
 
-/**
- * - `consentOnContinuedBrowsing` MUST stay false: scroll or continued browsing
- *   is not valid consent under the Garante's 2021 cookie guidelines.
- * - `perPurposeConsent` drives the granular purposes the gate maps to Consent Mode.
- * - `floatingPreferencesButtonDisplay` false hides iubenda's persistent floating
- *   badge. Consent stays revocable through the footer's
- *   `.iubenda-cs-preferences-link` (src/components/layout/footer.astro), so the
- *   GDPR right to withdraw is preserved, not removed — [HARD] keep that link if
- *   you keep this false.
- */
+/** [HARD] With `floatingPreferencesButtonDisplay` false, the footer's
+ *  `.iubenda-cs-preferences-link` is the only way left to withdraw consent. */
 export function buildCsConfiguration(opts: {
   siteId: string
   cookiePolicyId: string
@@ -43,8 +31,8 @@ export function buildCsConfiguration(opts: {
     perPurposeConsent: true,
     floatingPreferencesButtonDisplay: false,
     callback: {
-      // onConsentRead fires on return visits (stored preference), so both paths
-      // must reach the gate or a returning user would never re-grant.
+      // onConsentRead carries the stored preference on a return visit;
+      // onPreferenceExpressed fires only on a fresh choice.
       onPreferenceExpressed: opts.onPreference,
       onConsentRead: opts.onPreference,
     },
@@ -58,9 +46,6 @@ export interface BootstrapDeps {
   loadScript: (src: string) => void
 }
 
-// Only the CS script: no autoblocking, no GPP stub. Nothing third-party loads
-// before consent anyway (analytics/bootstrap.ts gates GTM), so autoblocking
-// would just add a parser-blocking request and a second source of truth.
 const IUBENDA_CS_SRC = 'https://cdn.iubenda.com/cs/iubenda_cs.js'
 
 export function bootstrapIubenda(deps?: Partial<BootstrapDeps>): void {
@@ -79,8 +64,6 @@ export function bootstrapIubenda(deps?: Partial<BootstrapDeps>): void {
   if (win.__consentBootstrapped === true) return
   win.__consentBootstrapped = true
 
-  // No site id → no CMP. Dev and any deploy that hasn't configured iubenda stay
-  // script-free, which is also why nothing here needs a PROD guard.
   const cfg = win.__consentConfig
   if (cfg === undefined || cfg.siteId === '') return
 

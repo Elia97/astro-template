@@ -4,7 +4,6 @@ import type { HTMLAttributes } from 'astro/types'
 import { cn } from '@/lib/utils'
 
 interface Props extends HTMLAttributes<'div'> {
-  /** Render as `p` for real copy, `span` for inline use. */
   as?: 'div' | 'span' | 'p'
 }
 

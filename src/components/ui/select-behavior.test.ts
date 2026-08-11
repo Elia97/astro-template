@@ -10,9 +10,6 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-// The defect this pins: the label and the error both address the native by id,
-// and hiding it left the visible control anonymous — announced as "button", with
-// the validation error attached to something no one can reach.
 describe('select activation hands the field wiring to the visible control', () => {
   it('moves the id, so the label names and activates the trigger', async () => {
     renderSelect()

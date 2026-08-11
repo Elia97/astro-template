@@ -5,8 +5,6 @@ import { loadLocalizedSections } from '@/lib/content/localized-sections'
 
 vi.mock('astro:content')
 
-// Shaped like real collection entries; the loader only reads entry.id and
-// entry.data.section / entry.data, so the extra fields are free-form.
 type Fixture = { id: string; data: { section: string; [key: string]: unknown } }
 
 function mockEntries(entries: Fixture[]): void {

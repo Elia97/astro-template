@@ -13,13 +13,7 @@ import { localizedHref } from '@/i18n/href'
 import { useTranslations } from '@/i18n/translate'
 
 interface Props {
-  // Sit the header transparent over a page's full-bleed hero instead of the
-  // default sticky opaque chrome.
   heroOverlay?: boolean
-  // 'auto' follows the theme foreground (fine when the hero's top band tracks
-  // the theme). 'light' forces white nav/controls for a band that's dark or
-  // colored across BOTH themes, where near-black chrome would fail contrast.
-  // Only meaningful with heroOverlay.
   overlayChrome?: 'auto' | 'light'
 }
 
@@ -44,12 +38,6 @@ const navLinkClass = lightChrome
 const controlClass = lightChrome ? 'text-white hover:text-white/80' : 'text-muted-foreground hover:text-foreground'
 ---
 
-{/* Named, NOT `transition:persist`. Persisting would carry this header's DOM —
-    and therefore its classes — into the next page, so a fork that sets
-    `heroOverlay` on one page only would navigate away with a transparent
-    white-on-white header. A name keeps the visual continuity (the chrome morphs
-    instead of cross-fading with the page) while the incoming page still renders
-    its own header with its own props. */}
 <header transition:name="site-header" class={cn('w-full', headerClass)}>
   <Container class="flex h-16 items-center justify-between">
     <a href={href('/')} class={cn('font-semibold text-lg tracking-tight', wordmarkClass)}>{SITE.name}</a>

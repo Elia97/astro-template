@@ -24,7 +24,6 @@ describe('waitForAlias', () => {
     await expect(waitForAlias(context(get), sleep, 3)).resolves.toBeUndefined()
 
     expect(get).toHaveBeenCalledTimes(3)
-    // No sleep after the LAST attempt: it would delay the failure for nothing.
     expect(sleep.mock.calls).toEqual([[2000], [4000]])
   })
 
@@ -64,7 +63,6 @@ describe('checkPages', () => {
     expect(root).toMatchObject({ status: 'fail', detail: 'ECONNREFUSED' })
   })
 
-  // A thrown non-Error would otherwise render as "[object Object]".
   it('stringifies a thrown non-Error', async () => {
     const [root] = await checkPages(context(() => Promise.reject('socket hang up')))
 
@@ -88,8 +86,6 @@ describe('checkSecurityHeaders', () => {
     expect(results).toContainEqual({ check: 'header referrer-policy', status: 'fail', detail: 'missing' })
   })
 
-  // Only the headers with a pinned value are compared; the rest assert presence,
-  // because src/vercel-headers.test.ts already owns their exact contents.
   it('fails a pinned header whose value drifted', async () => {
     const headers = { ...secureHeaders(), 'x-frame-options': 'SAMEORIGIN' }
 
@@ -100,8 +96,6 @@ describe('checkSecurityHeaders', () => {
     )
   })
 
-  // The regression that costs the most: the *.vercel.app noindex rule reaching
-  // the custom domain drops the live site out of every search index.
   it('fails when x-robots-tag reached the production host', async () => {
     const headers = { ...secureHeaders(), 'x-robots-tag': 'noindex' }
 

@@ -1,9 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// happy-dom's MediaQueryList can't be driven from a test, so matchMedia is
-// replaced with a fake whose `change` listener we invoke by hand — the whole
-// point here is what happens ON the crossing, not how the browser detects it.
+// happy-dom's MediaQueryList can't be driven from a test, hence the hand-fired fake.
 let mediaListeners: Array<(event: { matches: boolean }) => void> = []
 
 function crossToDesktop(isDesktop: boolean): void {
@@ -91,9 +89,6 @@ describe('mobile nav', () => {
   })
 })
 
-// The regression: the panel and the toggle are both `md:hidden`, so crossing the
-// breakpoint while open used to leave the lock on and the background inert with
-// no visible control to undo either — a frozen page, one phone rotation away.
 describe('mobile nav across the desktop breakpoint', () => {
   it('closes itself when the viewport grows past md', async () => {
     const { panel, toggle, header } = renderChrome()
@@ -165,8 +160,7 @@ describe('keyboard inside the panel', () => {
     expect(isLocked()).toBe(false)
   })
 
-  // Tab is delegated to the shared focus trap; the assertion is that it is wired,
-  // not that cycleFocus works — trap-focus.test.ts owns that.
+  // Tab is delegated: trap-focus.test.ts owns cycleFocus itself.
   it('handles Tab without closing the panel', async () => {
     const { panel, toggle } = renderChrome()
     await bind()

@@ -6,9 +6,8 @@ import type { ConsentCategory } from '@/lib/consent/gate'
 
 const GTM = 'GTM-TEST123'
 
-/** A window whose document is real (so the script tag is built for real) but
- *  whose head collects instead of connecting — appending to the live document
- *  would have happy-dom fetch googletagmanager.com from a unit test. */
+/** The head collects instead of connecting: appending for real would have happy-dom
+ *  fetch googletagmanager.com from a unit test. */
 function makeWin(config?: { gtmId: string }) {
   const appended: HTMLScriptElement[] = []
   const win = {
@@ -25,7 +24,6 @@ function makeWin(config?: { gtmId: string }) {
   return { win, appended }
 }
 
-/** Captures the gate registration instead of granting it. */
 function makeConsent() {
   const calls: { category: ConsentCategory; grant: () => void }[] = []
   const onConsent = (category: ConsentCategory, callback: () => void) => {
@@ -59,8 +57,7 @@ describe('bootstrapAnalytics — before consent', () => {
     expect(appended).toHaveLength(0)
   })
 
-  // [HARD] The rule the whole module exists for: registering is not loading.
-  // Nothing may reach Google before the user has opted in.
+  // [HARD] Registering is not loading: nothing reaches Google before the opt-in.
   it('registers for measurement consent without loading anything yet', () => {
     const { win, appended } = makeWin({ gtmId: GTM })
     const consent = makeConsent()
@@ -84,8 +81,6 @@ describe('bootstrapAnalytics — after consent', () => {
     expect(appended[0]?.async).toBe(true)
   })
 
-  // GTM reads gtm.start off the dataLayer to time the container: pushing it
-  // after the script would leave the container without a start time.
   it('pushes gtm.start before the container script', () => {
     const { win } = makeWin({ gtmId: GTM })
     const consent = makeConsent()
@@ -97,8 +92,6 @@ describe('bootstrapAnalytics — after consent', () => {
     expect(window.dataLayer?.[0]?.['gtm.start']).toEqual(expect.any(Number))
   })
 
-  // A second grant (a re-expressed preference, a second bootstrap) must not add
-  // a second container to the page.
   it('loads the container at most once', () => {
     const { win, appended } = makeWin({ gtmId: GTM })
     const consent = makeConsent()
@@ -110,8 +103,6 @@ describe('bootstrapAnalytics — after consent', () => {
     expect(appended).toHaveLength(1)
   })
 
-  // The real gate queues rather than granting, so nothing loads here — the
-  // assertion is that wiring the default dependency doesn't throw.
   it('defaults to the real consent gate when none is injected', () => {
     const { win } = makeWin({ gtmId: GTM })
 
@@ -122,8 +113,6 @@ describe('bootstrapAnalytics — after consent', () => {
 })
 
 describe('default dependencies', () => {
-  // The deps object is a test seam; production calls it with nothing and must
-  // reach the real window and the real consent gate.
   it('falls back to the real globals when called without deps', () => {
     expect(() => {
       bootstrapAnalytics()

@@ -1,6 +1,5 @@
-// The vendor and BotID mocks live here; each test file has to register them itself:
-//   vi.mock('@/lib/vendor/brevo', () => brevoMock)
-//   vi.mock('botid/server', () => botidMock)
+// vi.mock is hoisted per file and cannot be registered from here: each test file
+// calls vi.mock('@/lib/vendor/brevo', …) and vi.mock('botid/server', …) itself.
 import { vi } from 'vitest'
 
 import type { ContactRequest } from '@/lib/contact'
@@ -14,8 +13,6 @@ export const brevoMock = {
 
 export const botidMock = { checkBotId: vi.fn<() => Promise<{ isBot: boolean }>>() }
 
-// Not exported: it's only ever the default below — a test asks for a failure,
-// never for the success it already gets.
 const OK: BrevoResult = { ok: true }
 export const KO_ERROR = 'brevo said no'
 export const KO: BrevoResult = { ok: false, error: KO_ERROR }
@@ -36,9 +33,7 @@ export interface Env {
   botidEnforce?: boolean
 }
 
-// Env vars are read at module import (test/stubs/astro-env-server.ts), so every
-// case re-imports through a fresh module graph. That also hands each test a
-// clean rate-limit window — the sliding window is module-level state in
+// A fresh module graph also resets the sliding window: module-level state in
 // src/lib/forms/rate-limit.ts.
 export async function importActions(env: Env = {}) {
   vi.stubEnv('PROD', env.prod ?? false)
@@ -53,9 +48,8 @@ interface BrevoAnswers {
   upsert?: BrevoResult
 }
 
-// Dispatches on the tag rather than call order: the three calls fire inside one
-// Promise.all, and a test that pinned their order would break on a harmless
-// reshuffle.
+// src/actions/index.ts fires the three sends inside one Promise.all, so the answers
+// dispatch on the tag rather than on call order.
 export function brevoAnswers({ notify = OK, autoreply = OK, upsert = OK }: BrevoAnswers = {}) {
   brevoMock.sendTransactionalEmail.mockImplementation((params) =>
     Promise.resolve(params.tags?.includes('autoreply') ? autoreply : notify),
@@ -80,9 +74,8 @@ export interface ThrownActionError extends Error {
   code: string
 }
 
-// `astro:actions` is re-instantiated by every vi.resetModules(), so the class the
-// handler throws is never the one a test file would have imported: assert on the
-// shape Astro serializes (type + code), not on instanceof.
+// vi.resetModules() re-instantiates `astro:actions`, so `instanceof ActionError`
+// never matches the class the handler threw: match on the serialized shape.
 function isActionError(error: unknown): error is ThrownActionError {
   return error instanceof Error && 'type' in error && error.type === 'AstroActionError' && 'code' in error
 }

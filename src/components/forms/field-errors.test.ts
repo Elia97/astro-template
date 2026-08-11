@@ -42,7 +42,6 @@ describe('applyFieldErrors', () => {
     expect(control('message')?.hasAttribute('aria-invalid')).toBe(false)
   })
 
-  // Reporting it would tell a bot which field gave it away.
   it('never surfaces a honeypot error, in a slot or form-level', () => {
     const result = applyFieldErrors(form, { [HONEYPOT_FIELD]: ['Campo non valido'] })
     expect(result).toEqual({ matched: false, unmatched: [] })
@@ -70,8 +69,6 @@ describe('clearFieldErrors', () => {
 })
 
 describe('focusFirstInvalid', () => {
-  // DOM order, not the key order of error.fields, which would send focus
-  // backwards past a field the reader hasn't reached.
   it('focuses the first invalid control in DOM order', () => {
     applyFieldErrors(form, { message: ['Troppo lungo'], email: ['Email non valida'] })
     expect(focusFirstInvalid(form)).toBe(true)

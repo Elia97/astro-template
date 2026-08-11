@@ -1,11 +1,7 @@
-// No image() option yet: no real image section exists to derive it from.
 import { isValidIdentifier } from './identifier.mjs'
 import { assertSectionInjectable, injectSection } from './inject-section.mjs'
 import { postGenAction } from './post-gen.mjs'
 
-// Deliberately NOT a whole-file `git checkout`: two of the three files it names
-// are ones you are likely mid-edit on while adding a section, and that command
-// would take the rest of your uncommitted work with the injection.
 const ROLLBACK_HINT =
   'gen:section also MODIFIED three existing files: src/lib/schemas/homepage/index.ts, ' +
   'src/lib/homepage.ts, src/pages/index.astro. Review them with `git diff`, then discard ONLY ' +
@@ -49,7 +45,6 @@ export default function sectionGenerator(plop) {
         templateFile: `${tpl}/schema.ts.hbs`,
       },
       {
-        // Default-locale content is FLAT — getHomepageSections() includes it.
         type: 'add',
         path: 'src/content/homepage/{{dashCase name}}.yml',
         templateFile: `${tpl}/content.yml.hbs`,

@@ -16,10 +16,8 @@ function focusableElements(panel: HTMLElement): HTMLElement[] {
   )
 }
 
-// `aria-modal` is advisory: on its own a screen reader's virtual cursor still
-// swipes past the last nav item into the page underneath, and the Tab trap never
-// notices because no focus ever moves. `inert` is what actually removes the rest
-// of the document — for pointer, focus and assistive tech alike.
+// `aria-modal` is advisory: a screen reader's virtual cursor still swipes into the
+// page underneath, and the Tab trap never notices because no focus moves.
 function setBackgroundInert(panel: HTMLElement, inert: boolean): void {
   for (const sibling of Array.from(document.body.children)) {
     if (sibling === panel || !(sibling instanceof HTMLElement)) continue
@@ -41,8 +39,7 @@ function openMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
 function closeMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
   panel.hidden = true
   toggle.setAttribute('aria-expanded', 'false')
-  // Before the focus call below: the toggle lives in the inert subtree, and an
-  // inert element silently refuses focus.
+  // Before the focus below: an inert element silently refuses focus.
   setBackgroundInert(panel, false)
   if (isOpen) unlockScroll()
   isOpen = false
@@ -55,9 +52,6 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
     else closeMenu(panel, toggle)
   }
 
-  // A single delegated click handles both the explicit close button and any
-  // nav/CTA link: closing on link-click keeps the panel from covering the
-  // page the router is about to swap in.
   const onPanelClick = (event: MouseEvent): void => {
     /* v8 ignore next -- delegated from the panel, whose children are all elements */
     if (!(event.target instanceof Element)) return
@@ -74,11 +68,8 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
     if (event.key === 'Tab') cycleFocus(focusableElements(panel), event)
   }
 
-  // The panel and its toggle are both `md:hidden`. Crossing to desktop while the
-  // drawer is open leaves `isOpen` true, the scroll lock on and the background
-  // inert — with every control that could undo it now display:none. The page is
-  // frozen and the only way out is a reload. Rotating a phone to landscape is
-  // enough: a 14 Pro is 852px wide.
+  // Panel and toggle are both `md:hidden`, and a phone in landscape crosses the
+  // 768px breakpoint (a 14 Pro is 852px wide) with the drawer still locking the page.
   const stopViewportWatch = onDesktopViewportChange((isDesktop) => {
     if (isDesktop && !panel.hidden) closeMenu(panel, toggle)
   })
@@ -98,8 +89,7 @@ function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): (
 function setupMobileNav(): void {
   const panel = document.querySelector<HTMLElement>('[data-mobile-nav]')
   const toggle = document.querySelector<HTMLButtonElement>('[data-mobile-nav-toggle]')
-  // Already-bound panel must not be double-wired: setup re-runs on the
-  // initial load (see createMotionBinding's contract).
+  // createMotionBinding runs setup twice on a cold load.
   if (!panel || !toggle || panel.dataset.mobileNavReady !== undefined) return
   panel.dataset.mobileNavReady = ''
 
@@ -116,8 +106,6 @@ function cleanupMobileNav(): void {
     panel.hidden = true
     setBackgroundInert(panel, false)
   }
-  // Overlays don't survive a view transition: drop the lock and the inert flags
-  // so neither leaks into the next page.
   if (isOpen) unlockScroll()
   isOpen = false
   lastFocused = null

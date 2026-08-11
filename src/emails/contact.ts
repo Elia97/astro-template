@@ -1,5 +1,4 @@
-// Contact-form emails as plain HTML strings (table layout + inline styles:
-// email clients ignore stylesheets). Copy is in the site's default language.
+// Table layout and inline styles because email clients ignore stylesheets.
 // Every user-provided value goes through escapeHtml before interpolation.
 import type { ContactRequest } from '@/lib/contact'
 import { SITE } from '@/lib/site'
@@ -35,7 +34,6 @@ function fullName(request: ContactRequest): string {
   return [request.firstName, request.lastName].filter(Boolean).join(' ').trim()
 }
 
-/** Internal notification: the site owner's copy of the request. */
 export function renderContactNotification(request: ContactRequest): {
   subject: string
   html: string
@@ -53,7 +51,6 @@ export function renderContactNotification(request: ContactRequest): {
   return { subject: `[${SITE.name}] Nuova richiesta — ${who}`, html }
 }
 
-/** Autoreply to the visitor, confirming receipt. */
 export function renderContactAutoreply(contactEmail: string): {
   subject: string
   html: string

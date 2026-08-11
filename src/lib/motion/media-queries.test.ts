@@ -1,7 +1,4 @@
-// Deliberately NOT happy-dom: these guards exist for the server, where `window`
-// genuinely does not exist. Under a DOM environment the SSR branch could only be
-// faked, and a fake would stop proving the thing that matters — that importing
-// this module during a build cannot throw.
+// Deliberately NOT happy-dom: a faked window would void what these guards prove.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -13,7 +10,6 @@ import {
 
 type Listener = (event: { matches: boolean }) => void
 
-/** Minimal matchMedia whose result and listeners the test drives. */
 function stubMatchMedia(matches: boolean): { listeners: Listener[]; removed: number } {
   const state = { listeners: [] as Listener[], removed: 0 }
   vi.stubGlobal('window', {
@@ -34,8 +30,6 @@ afterEach(() => {
 })
 
 describe('without a window (SSR)', () => {
-  // The safe default differs per guard, and the direction is the point: motion
-  // is off unless proven otherwise, capabilities are absent unless proven present.
   it('assumes reduced motion', () => {
     expect(prefersReducedMotion()).toBe(true)
   })

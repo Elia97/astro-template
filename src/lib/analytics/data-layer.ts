@@ -1,7 +1,5 @@
-// Shared GTM dataLayer bridge. The GTM container that reads this array is gated
-// behind consent (src/lib/analytics/bootstrap.ts); until it loads, pushes queue
-// harmlessly on a plain array — the standard GTM snippet contract. SSR-safe:
-// no-op off the client.
+// The GTM snippet contract: until the container loads it queues on a plain array
+// and replays on load, so a push before consent is safe.
 
 export type DataLayerEvent = Record<string, unknown>
 

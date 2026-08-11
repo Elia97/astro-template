@@ -1,8 +1,5 @@
-// Injection for gen:section — ts-morph on the two .ts hook points, marker splice on
-// src/pages/index.astro (ts-morph can't parse .astro). Insertion goes ABOVE each marker:
-// below it, Biome's organizeImports adopts the marker as leading trivia of the new import
-// and relocates it into the sorted block. Every lookup that can fail throws a DESCRIPTIVE
-// error — a broken or renamed hook point must abort the generator, never silently no-op.
+// Insertion goes ABOVE each marker: below it, Biome's organizeImports adopts the marker as leading
+// trivia of the new import and relocates it into the sorted block. (.astro is not ts-morph-parseable.)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Project, SyntaxKind } from 'ts-morph'
 
@@ -45,8 +42,6 @@ function locateReturnObject(project, root) {
   if (!fn) {
     fail(DATA_LAYER, 'no `getHomepageSections` function — was it renamed?')
   }
-  // Only DIRECT statements of the function body: descendant search would pick
-  // up returns nested in callbacks/IIFEs inside the returned object itself.
   const ret = fn
     .getBody()
     ?.getStatements()
@@ -69,8 +64,6 @@ function readIndexPage(root) {
   return src
 }
 
-/** Pre-flight: assert all three hook points and every collision — including the
- *  identifiers the injection will introduce — WITHOUT touching anything. */
 export function assertSectionInjectable({ root, camel, kebab, pascal }) {
   const project = new Project()
   const { barrel, union } = locateUnionArray(project, root)
@@ -88,9 +81,6 @@ export function assertSectionInjectable({ root, camel, kebab, pascal }) {
     fail(DATA_LAYER, `section "${camel}" is already picked in getHomepageSections`)
   }
   const src = readIndexPage(root)
-  // The component import binds `pascal` in the frontmatter — assert it's free
-  // (index.astro is not ts-morph-parseable, so this is a textual check on the
-  // frontmatter block only).
   const frontmatter = src.split('---')[1] ?? ''
   if (new RegExp(`\\b${pascal}\\b`).test(frontmatter)) {
     fail(
@@ -131,7 +121,6 @@ export function injectSection({ root, camel, kebab, pascal }) {
 
   project.saveSync()
 
-  // Marker splice, insertion ABOVE each marker (see contract note up top).
   let src = readIndexPage(root)
   const imp = `import ${pascal} from '@/components/home/${kebab}.astro'`
   if (!src.includes(imp)) {

@@ -1,19 +1,12 @@
 #!/usr/bin/env node
-// Runtime smoke against the live production host — the only check that sees
-// what the edge actually serves, where src/vercel-*.test.ts only pins what
-// vercel.json says. Run it by hand after a rollback: `pnpm smoke:prod [url]`.
-//
-// The checks live in ./lib/smoke-production.ts, which is what the unit tests
-// exercise; everything here is the network, the printing and the exit code.
+// The only check that sees what the edge actually serves — src/vercel-headers.test.ts only pins vercel.json.
 
 import process from 'node:process'
 
 import { SITE } from '../src/lib/site.ts'
 import { runChecks, waitForAlias } from './lib/smoke-production.ts'
 
-// The apex, not the *.vercel.app URL `vercel deploy` prints: on that host
-// `X-Robots-Tag: noindex` is there by construction (the `has: host` rule in
-// vercel.json), so the check below would report the opposite of the truth.
+// The apex, not the *.vercel.app URL `vercel deploy` prints: vercel.json's `has: host` rule puts noindex there.
 const baseUrl = (process.argv[2] ?? SITE.url).replace(/\/+$/, '')
 
 if (process.argv[2] === undefined && new URL(SITE.url).host === 'example.com') {

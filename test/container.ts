@@ -1,16 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { Window } from 'happy-dom'
 
-// Renders `.astro` components through the Container API, so markup contracts
-// (attributes, roles, headings) are testable the way pure modules already are.
-//
-// [HARD] A file using these must run under `environment: 'node'` — the suite
-// default. Opting one into happy-dom makes Vite resolve `astro` with browser
-// conditions, so the runtime that compiles the component stops being the one
-// that renders it and the call fails with `NoMatchingRenderer`.
-//
-// renderToFragment re-parses the output with a hand-built happy-dom Window:
-// assertions stay structural instead of matching against raw HTML strings.
+// [HARD] Callers run under `environment: 'node'`: happy-dom makes Vite resolve
+// `astro` with browser conditions and the render fails with `NoMatchingRenderer`.
 
 type Container = Awaited<ReturnType<typeof AstroContainer.create>>
 type Renderable = Parameters<Container['renderToString']>[0]

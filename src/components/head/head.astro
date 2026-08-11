@@ -1,6 +1,4 @@
 ---
-// The layout (`@/layouts/main.astro`) forwards SEO props here; pages talk to
-// the layout, never to this component directly.
 import HeadAlternates from './alternates.astro'
 import HeadIcons from './icons.astro'
 import HeadJsonLd from './json-ld.astro'
@@ -8,8 +6,6 @@ import HeadOg from './og.astro'
 import { resolveHeadSeoMeta } from './seo'
 import HeadTwitter from './twitter.astro'
 
-// `| undefined` is explicit so the layout can forward its own optional props
-// under `exactOptionalPropertyTypes`.
 interface Props {
   title: string
   description?: string | undefined
@@ -34,9 +30,8 @@ const { canonical, ogImageUrl, currentTag, localeAlternates, defaultHref } = res
 
 <title>{title}</title>
 {description ? <meta name="description" content={description} /> : null}
-{/* The only per-path noindex that reaches a prerendered page: middleware runs
-    for one at build time, but its X-Robots-Tag is discarded with the response
-    (src/middleware.ts). */}
+{/* Astro discards a prerendered page's response headers at build (src/middleware.ts),
+    so this is the only per-path noindex that reaches one. */}
 {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 <link rel="canonical" href={canonical} />
 <HeadAlternates localeAlternates={localeAlternates} defaultHref={defaultHref} />

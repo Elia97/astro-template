@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// Bundle budget gate over dist/client — run after `astro build`. The pure logic
-// lives in ./lib/bundle-budget.ts, which is what the unit tests exercise.
+// Bundle budget gate over dist/client — needs a completed `astro build`.
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -33,8 +32,6 @@ function walk(dir, extension) {
   })
 }
 
-// Render-blocking and shared by every page, so it is measured once rather than
-// charged to each route.
 function readStylesheets() {
   const files = readdirSync(ASSETS).filter((f) => f.endsWith('.css'))
   const totalGzip = files.reduce((total, name) => total + gzipSync(readFileSync(join(ASSETS, name))).length, 0)
@@ -100,9 +97,6 @@ console.log(
   `\nCSS (render-blocking, shared by every route)   ${gz(stylesheets.totalGzip).padStart(9)}   ${gz(CSS_BUDGET_GZIP).padStart(9)}${cssFailure ? '  ✗' : ''}`,
 )
 
-// Not a failure: an SSR page emits no HTML, so it is outside this budget by
-// construction. Under `output: 'static'` that only happens on a deliberate
-// `prerender = false` — a page that forgets the annotation stays measured.
 if (expected.ssr.length > 0) {
   console.log(
     `\nNOTE  ${expected.ssr.length} page(s) opted out with \`export const prerender = false\` and are outside this budget:`,

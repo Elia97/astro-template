@@ -1,14 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-// The contract docs/guides/ui-components.md § Contrast asks for, made executable.
-// It reads the CSS rather than restating the values, so a rebrand that drops a
-// token below the threshold fails here instead of at a client's accessibility
-// audit — the failure has no other symptom, since nothing renders wrong.
-//
-// Ratios are computed the WCAG 2.x way: oklch → Oklab → LMS → linear sRGB →
-// relative luminance. Not the `Y = L³` shortcut, which only holds at chroma 0
-// and would quietly misreport every red.
+// Executable form of docs/guides/ui-components.md § Contrast. Ratios follow WCAG 2.x
+// (oklch → Oklab → LMS → linear sRGB), not `Y = L³`, which misreports every red.
 
 type Oklch = readonly [l: number, c: number, h: number]
 

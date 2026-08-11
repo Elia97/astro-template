@@ -33,8 +33,6 @@ describe('checkBotIdChallenge', () => {
 })
 
 describe('checkCanonicalHost', () => {
-  // It depends on DNS and on the domain configured on the Vercel project, not on
-  // the deployment under test, so an arbitrary base URL cannot assert it.
   it('skips without making a request when the base URL is not the production site', async () => {
     const get = vi.fn(always({}))
 
@@ -70,9 +68,6 @@ describe('checkCanonicalHost', () => {
 })
 
 describe('runChecks', () => {
-  // The order is what the operator reads down after a deploy, and the CLI prints
-  // it verbatim — a check silently dropped from the sequence is a check nobody
-  // notices is gone.
   it('runs every check, in order', async () => {
     const headers = { ...secureHeaders(), 'content-type': 'text/html' }
 

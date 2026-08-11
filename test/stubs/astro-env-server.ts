@@ -1,14 +1,7 @@
 import process from 'node:process'
 
-// Stub of `astro:env/server` for tests (mapped via resolve.alias in
-// vitest.config.ts). The virtual module only exists in the Astro build; under
-// vitest we read from process.env instead, mirroring astro.config.mjs's schema
-// — types and defaults included. Values are evaluated at module import, so to
-// drive them in a test:
-//   1. vi.stubEnv('BOTID_ENFORCE', 'true'),
-//   2. vi.resetModules(),
-//   3. re-import the module under test.
-// (test/helpers/actions.ts wraps that sequence.)
+// Mirrors astro.config.mjs's env schema, defaults included. Values are read at module
+// import: stubEnv → resetModules → re-import (test/helpers/actions.ts wraps that).
 export function getSecret(key: string): string | undefined {
   return process.env[key]
 }

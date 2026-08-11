@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { resolveHeadSeoMeta } from '@/components/head/seo'
 
-// Exercises the single-locale configuration the template ships (stubs mirror
-// astro.config.mjs): canonical/hreflang policy per docs/guides/seo.md.
 describe('resolveHeadSeoMeta', () => {
   it('builds an absolute canonical with the trailing slash normalized away', () => {
     const meta = resolveHeadSeoMeta({ currentLocale: 'it', canonicalPath: '/chi-siamo/', ogImage: undefined })

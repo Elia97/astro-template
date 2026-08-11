@@ -1,7 +1,3 @@
-// Client behavior for ui/select.astro. Progressive enhancement contract:
-// the native <select> stays the single source of truth — the custom listbox
-// writes into it and re-dispatches `change`, so forms and any external
-// listeners keep working exactly as with a plain select.
 import { createMotionBinding } from '@/lib/motion'
 
 import { adoptNativeRelationships, markSelectedOption, markSelectedValue } from './select-a11y'
@@ -25,7 +21,6 @@ function syncTriggerLabel(root: HTMLElement): void {
   if (!native || !label) return
   const { text, hasValue } = selectedOptionInfo(native)
   label.textContent = text
-  // Placeholder (empty value) renders muted like the native one would.
   label.classList.toggle('text-muted-foreground', !hasValue)
 }
 
@@ -178,8 +173,6 @@ function activateSelect(root: HTMLElement, { native, trigger, listbox }: SelectE
 function setupSelects(): void {
   for (const root of document.querySelectorAll<HTMLElement>('[data-select-root]')) {
     const elements = findSelectElements(root)
-    // Already-activated roots (hidden native) must not be double-bound: setup
-    // re-runs on the initial load (see createMotionBinding's contract).
     if (!elements || elements.native.classList.contains('hidden')) continue
 
     activateSelect(root, elements)

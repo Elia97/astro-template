@@ -5,8 +5,7 @@ import { cn } from '@/lib/utils'
 
 type Props = HTMLAttributes<'textarea'>
 
-// `value` must be rendered as element CONTENT: <textarea> has no value
-// attribute, spreading it would silently produce an empty field.
+// <textarea> has no value attribute: value is rendered as element content.
 const { class: className, value, ...rest } = Astro.props
 ---
 

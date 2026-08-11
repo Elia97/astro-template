@@ -5,9 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import collectionGenerator from './collection.mjs'
 import sectionGenerator from './section.mjs'
 
-// Both generators capture `process.cwd()` when plop loads them, so the tests
-// chdir into a throwaway tree first — otherwise the action closures would
-// inject into the real repo.
+// collection.mjs and section.mjs capture `process.cwd()` at registration, so the chdir has to precede it.
 let original: string
 
 beforeEach(() => {
@@ -23,12 +21,7 @@ afterEach(() => {
 const run = (action: unknown, answers: Record<string, string | boolean>, plop: unknown) =>
   (action as FunctionAction)(answers, null, plop as never)
 
-/**
- * The three function actions in order: pre-flight, injection, post-gen gate.
- * Asserting the shape here is the point — a reordering that moves the pre-flight
- * after the `add` actions has to fail somewhere. postGenAction is never invoked:
- * it shells out to `astro sync`.
- */
+/** The three function actions in order: pre-flight, injection, post-gen — never invoked, it shells out to `astro sync`. */
 const steps = (actions: unknown[]) => {
   const functions = actions.filter((action) => typeof action === 'function')
   expect(functions).toHaveLength(3)
@@ -37,8 +30,6 @@ const steps = (actions: unknown[]) => {
 }
 
 describe('gen:collection wiring', () => {
-  // The ordering IS the contract: a duplicate name caught after the `add`
-  // actions would have already planted files inside a live collection.
   it('runs the content.config.ts pre-flight before any file is written', () => {
     const { plop, config } = registerWith(collectionGenerator, 'collection')
     const { preflight } = steps(actionsFor(config, { name: 'services', document: false }))

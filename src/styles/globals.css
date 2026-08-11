@@ -50,7 +50,6 @@
   z-index: var(--z-skip-link);
 }
 
-/* ─── @theme inline: remaps custom props to Tailwind utilities (--color-… → bg-… / text-… / border-…) ─── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

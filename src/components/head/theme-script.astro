@@ -1,7 +1,4 @@
 ---
-// Anti-FOUC: runs inline in the <head> BEFORE first paint, otherwise the page
-// flashes from light to dark. Idempotent and re-runnable on `astro:after-swap`
-// (view transitions don't re-execute inline scripts).
 ---
 
 <script is:inline>
@@ -17,9 +14,7 @@
     let stored = null
     try {
       stored = localStorage.getItem('theme')
-    } catch {
-      /* localStorage not accessible: fall back to the system preference */
-    }
+    } catch {}
     const dark = stored
       ? stored === 'dark'
       : window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -28,12 +23,7 @@
     syncThemeColor(dark)
   }
 
-  // The two theme-color metas (head/icons.astro) ship with a
-  // prefers-color-scheme media query — the right no-JS default, but it ignores
-  // the toggle. Flipping `media` to all / not all makes the browser chrome
-  // follow the theme actually applied instead of the system preference.
-  // NB: this script is `is:inline`, so it lands in the HTML verbatim —
-  // comments included. Keep them short and free of markup.
+  // A theme-color meta applies only while its `media` matches: `not all` switches it off.
   function syncThemeColor(dark) {
     const metas = document.querySelectorAll('meta[name="theme-color"][data-scheme]')
     for (const meta of metas) {
@@ -42,8 +32,6 @@
     }
   }
 
-  // First load: this runs in <head> before the toggles and the theme-color
-  // metas exist, so both syncs must run again once the DOM is there.
   function syncFromDom() {
     syncThemeToggles()
     syncThemeColor(document.documentElement.classList.contains('dark'))
@@ -55,8 +43,6 @@
     window.__themeInit = true
     document.addEventListener('DOMContentLoaded', syncFromDom)
     document.addEventListener('astro:after-swap', applyTheme)
-    // Delegated toggle on the document: survives island re-renders and view
-    // transitions. Persists the choice in localStorage.
     document.addEventListener('click', function (event) {
       const target = event.target
       const toggle = target && target.closest && target.closest('[data-theme-toggle]')
@@ -66,9 +52,7 @@
       syncThemeColor(isDark)
       try {
         localStorage.setItem('theme', isDark ? 'dark' : 'light')
-      } catch {
-        /* private mode / blocked cookies: ignore */
-      }
+      } catch {}
     })
   }
 </script>

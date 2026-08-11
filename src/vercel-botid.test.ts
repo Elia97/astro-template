@@ -2,13 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// Guards the BotID proxy wiring in vercel.json. The client challenge is served
-// from these same-origin paths — that is what keeps ad-blockers and the CSP out
-// of the way, and why enabling BotID needs no `script-src` entry. A typo in the
-// opaque prefix disables the bot check and leaves every action POST waiting on a
-// 404, and `astro dev` never reads vercel.json, so CI is the only place any of
-// it can be exercised. The prefix is Vercel's, not ours: it must stay
-// byte-for-byte what /docs/botid/get-started publishes.
+// The opaque prefix is Vercel's, byte-for-byte from /docs/botid/get-started: a typo
+// disables the bot check silently, and `astro dev` never reads vercel.json.
 
 type Rewrite = { source: string; destination: string }
 type HeaderEntry = { key: string; value: string }
@@ -36,7 +31,7 @@ describe('vercel.json BotID proxy', () => {
   it('relaxes X-Frame-Options to SAMEORIGIN on the proxy path, after the global DENY', () => {
     const index = config.headers.findIndex((rule) => rule.source === `${BOTID_PREFIX}/:path*`)
     expect(config.headers[index]?.headers).toEqual([{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }])
-    // Last matching rule wins: placed before the global rule it would never apply.
+    // Vercel applies the last matching header rule.
     expect(index).toBeGreaterThan(config.headers.findIndex((rule) => rule.source === '/(.*)'))
   })
 })

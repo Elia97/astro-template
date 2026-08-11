@@ -1,14 +1,7 @@
 name: Deploy
 
-# Two entry points, one gated path. `workflow_call` is the release pipeline on a
-# fresh tag; `workflow_dispatch` is the human one, for the times production has to
-# be rebuilt without a code change — a rotated secret, a republished iubenda
-# policy, a rollback to an older tag. Both run the identical
-# `pnpm run ci` → build → deploy → smoke chain.
-#
-# [HARD] This exists so the emergency route IS the gated route. Without a manual
-# trigger the answer under deadline is `vercel --prod` from a laptop, which walks
-# around all four quality gates at once.
+# [HARD] `workflow_dispatch` exists so the emergency route is the gated route: rebuilding
+# production without a code change goes through this chain, never `vercel --prod` by hand.
 on:
   workflow_call:
     inputs:
@@ -26,7 +19,6 @@ on:
 permissions:
   contents: read
 
-# Never two production deploys at once, and never cancel one half-done.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -63,14 +55,13 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      # Full history so a blank dispatch input can resolve the most recent tag.
+      # actions/checkout fetches no tags at its default depth; `git describe` below needs them.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      # The input reaches the shell through env, never interpolated into the
-      # script: a `run:` block that splices `${{ inputs.… }}` inline is a command
-      # injection on a workflow anyone with write access can dispatch.
+      # `inputs.ref` reaches the shell through env: splicing `${{ }}` into a `run:` block is
+      # script injection (GitHub Actions security hardening).
       - name: Resolve the tag to deploy
         id: target
         env:
@@ -84,15 +75,12 @@ jobs:
             }
             echo "::notice::No ref given — deploying the most recent tag ($ref)."
           fi
-          # Keeps the invariant a dispatch could otherwise break: a branch name
-          # here would ship whatever it points at, bypassing the release.
           if ! git rev-parse -q --verify "refs/tags/$ref" > /dev/null; then
             echo "::error::$ref is not a tag — production ships from release tags only"
             exit 1
           fi
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
 
-      # Detached at the tag, not at whatever main points to by now.
       - name: Check out the tag
         env:
           TARGET_REF: ${{ steps.target.outputs.ref }}
@@ -107,15 +95,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The binding gate: the tag only becomes production if it passes the same
-      # suite CI runs. `vercel build` below is `astro build` — no Biome, no
-      # astro check, no vitest — and nothing else guards this moment (the `main`
-      # ruleset covers what lands on main, not what ships from a tag).
+      # `vercel build` below runs `astro build` alone — no Biome, no astro check, no vitest.
       - run: pnpm run ci
 
-      # Version-pinned on purpose: `pnpm dlx vercel` resolves whatever is latest
-      # at release time, and Dependabot doesn't cover `pnpm dlx` — a major bump
-      # would land unannounced, in the middle of a release. Bump it deliberately.
+      # `pnpm dlx` resolves latest at run time and Dependabot doesn't scan it: bump the pin by hand.
       - run: pnpm dlx vercel@58 pull --yes --environment=production
 
       - run: pnpm dlx vercel@58 build --prod
@@ -127,9 +110,6 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to: $url"
 
-      # Runtime check against the live host: the vercel.json tests are
-      # declarative and astro dev never reads that file, so this is the only
-      # place headers, rewrites and the served routes are exercised for real. It
-      # hits the apex, not $url — see the comment at the top of the script.
+      # `astro dev` never reads vercel.json: headers and rewrites are exercised for real only here.
       - name: Smoke test production
         run: pnpm run smoke:prod

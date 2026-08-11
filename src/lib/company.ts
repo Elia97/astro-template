@@ -1,6 +1,3 @@
-// Company registry data: feeds the homepage JSON-LD Organization schema and
-// the legal pages ("titolare del trattamento", VAT number, …). Placeholder
-// values — replace per project alongside src/lib/site.ts.
 export const COMPANY = {
   legalName: '<LEGAL_NAME>',
   phone: '+39 000 0000000',

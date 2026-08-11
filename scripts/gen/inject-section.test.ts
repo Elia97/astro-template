@@ -41,10 +41,6 @@ describe('injectSection', () => {
   })
 })
 
-// The gotcha the whole marker contract exists for: inserted BELOW, Biome's
-// organizeImports adopts the marker as leading trivia of the new import and
-// relocates it into the sorted block — the anchor moves, and the next run
-// splices into the wrong place.
 describe('insertion position relative to the markers', () => {
   it.each([
     ["import Features from '@/components/home/features.astro'", '// @gen:home-imports'],
@@ -69,8 +65,6 @@ describe('insertion position relative to the markers', () => {
   })
 })
 
-// injectSection runs no pre-flight of its own — assertSectionInjectable does.
-// Reached when a previous run half-succeeded, or when the caller re-runs it.
 describe('re-running against its own output', () => {
   it.each([
     ['the schema import', BARREL, /import \{ featuresSectionSchema \}/g],

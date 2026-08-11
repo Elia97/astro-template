@@ -2,9 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ROBOTS_DISALLOWED_PATHS } from '@/lib/seo/crawl-policy'
 
-// The list ships empty, so the Disallow branch has no input as shipped — mocked
-// because a fork's first entry is exactly when this has to be right, and the
-// contract (one line per path, read from crawl-policy) is the point.
+// ROBOTS_DISALLOWED_PATHS ships empty: the mock is what gives the Disallow branch input.
 vi.mock('@/lib/seo/crawl-policy', () => ({ ROBOTS_DISALLOWED_PATHS: [] }))
 
 async function get(site?: URL): Promise<{ body: string; type: string | null }> {
@@ -33,8 +31,7 @@ describe('robots.txt', () => {
     expect(body).toContain('Sitemap: https://example.test/sitemap-index.xml')
   })
 
-  // `site` is undefined in dev; a crash there would break `astro dev` for a file
-  // nobody is looking at until deploy.
+  // Astro leaves `site` undefined in dev.
   it('falls back to localhost when `site` is unset', async () => {
     const { body } = await get(undefined)
 
