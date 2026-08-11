@@ -1,21 +1,6 @@
 ---
-// CMP + analytics, or nothing at all. getTrackingConfig() returns null unless
-// BOTH the GTM container and the iubenda site id are configured, so dev and any
-// deploy without those env vars render no script, set no cookie, and show no
-// banner — the template's default state.
-//
-// [HARD] Turning this on requires widening the CSP in vercel.json. `astro dev`
-// never reads that file, so a policy that blocks the CMP looks fine locally and
-// fails in production by showing no cookie banner at all — a silent GDPR
-// problem, not a visible error. Add to the global rule, and to the exact source
-// lists pinned in src/vercel-headers.test.ts:
-//
-//   script-src   https://www.googletagmanager.com https://cdn.iubenda.com https://cs.iubenda.com
-//   style-src    https://cdn.iubenda.com
-//   img-src      https://www.googletagmanager.com https://*.google-analytics.com https://cdn.iubenda.com
-//   connect-src  https://www.googletagmanager.com https://*.google-analytics.com
-//                https://*.analytics.google.com https://*.iubenda.com
-//   frame-src    https://www.googletagmanager.com
+// The origins these scripts need ship from src/lib/csp/directives.ts: a new vendor
+// goes there and in src/lib/csp/csp.test.ts, never in vercel.json.
 import { i18n } from 'astro:config/client'
 
 import { getTrackingConfig } from '@/lib/analytics/tracking'

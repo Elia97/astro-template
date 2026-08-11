@@ -5,6 +5,7 @@ import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, envField } from 'astro/config'
 
+import { cspIntegration } from './src/lib/csp/integration'
 import { isExcludedFromSitemap } from './src/lib/seo/crawl-policy'
 import { SITE } from './src/lib/site'
 
@@ -40,6 +41,9 @@ export default defineConfig({
     },
   },
   integrations: [
+    // Before the adapter: it rewrites the HTML under dist/client, which the adapter
+    // then copies into .vercel/output/static.
+    cspIntegration(),
     // Emits sitemap-index.xml at build time; src/pages/robots.txt.ts points
     // crawlers at it. Exclusions are NOT listed here: they live in
     // src/lib/seo/crawl-policy.ts, the same module robots.txt and the middleware
