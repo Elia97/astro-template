@@ -8,14 +8,11 @@ import { SITE } from '@/lib/site'
 
 const manifest = buildWebManifest()
 
-// Resolved from the project root (vitest's cwd), not relative to this file:
-// `public/` is a fixed top-level directory, so a path counted in `../` breaks
-// the moment this test moves — which is exactly how it broke once.
+// vitest's cwd is the project root, and `public/` is a fixed top-level directory.
 const publicFile = (src: string) => join(process.cwd(), 'public', src)
 
 describe('web manifest', () => {
-  // The failure this exists for: an icon listed here but not shipped is a 404
-  // the browser only reports at install time, where nobody is looking.
+  // A declared-but-missing icon is a 404 the browser only reports at install time.
   it('declares only icons that exist in public/', () => {
     expect(manifest.icons.length).toBeGreaterThan(0)
     for (const icon of manifest.icons) {
@@ -29,8 +26,6 @@ describe('web manifest', () => {
     expect(manifest.description).toBe(SITE.description)
   })
 
-  // Changing `id` makes browsers treat the site as a different app: an existing
-  // install stops updating and the prompt comes back.
   it('pins the app identity and the navigation scope at the root', () => {
     expect(manifest.id).toBe('/')
     expect(manifest.start_url).toBe('/')

@@ -1,6 +1,3 @@
-// AST injection into src/content.config.ts (ts-morph). Every lookup that can fail
-// throws a DESCRIPTIVE error — a broken or renamed hook point must abort the
-// generator, never silently no-op.
 import { Project, SyntaxKind } from 'ts-morph'
 
 import { isNameTaken } from './ts-morph-utils.mjs'
@@ -51,7 +48,6 @@ function locateContract(cfg, { camel, kebab }) {
   return { statement, object }
 }
 
-/** Pre-flight: every contract/collision check, WITHOUT touching anything. */
 export function assertInjectable({ root, camel, kebab }) {
   locateContract(loadConfig(root), { camel, kebab })
 }
@@ -67,12 +63,6 @@ export function injectCollection({ root, camel, kebab, document }) {
     })
   }
 
-  // The `generateId` override is archetype-specific, not a house style. A
-  // document collection's id BECOMES the URL slug through getStaticPaths, so the
-  // default — which slugifies segments and honors a frontmatter `slug` — is
-  // exactly what a blog wants; overriding it there would put "My First Post",
-  // spaces and all, in a URL. Data collections keep the raw path because a
-  // locale-partitioned one is read back by folder (see the homepage collection).
   const pattern = document ? '**/*.md' : '**/*.{yaml,yml}'
   const loaderId = document
     ? `    // Default generateId on purpose: this id becomes the route slug, so it\n` +

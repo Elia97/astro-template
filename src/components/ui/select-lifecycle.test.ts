@@ -30,8 +30,6 @@ describe('defensive and lifecycle paths', () => {
     expect(isOpen()).toBe(true)
   })
 
-  // Re-running setup must not activate an already-activated root a second time:
-  // the native is hidden by then, and re-binding would double every listener.
   it('skips a root it already activated', async () => {
     renderSelect()
     await activate()
@@ -52,8 +50,6 @@ describe('defensive and lifecycle paths', () => {
     await expect(activate()).resolves.toBeUndefined()
   })
 
-  // Listeners must not survive a view transition: one of them sits on `document`,
-  // so it would keep firing against DOM the swap has replaced.
   it('unbinds every listener on astro:before-swap', async () => {
     renderSelect()
     await activate()

@@ -25,12 +25,8 @@ function messageOf(form: HTMLFormElement, error: unknown): string | undefined {
   return form.dataset.i18nGenericError
 }
 
-/**
- * Validation errors land on their own field (slot text + `aria-invalid`) and
- * focus moves to the first invalid control. The form-level alert then speaks
- * only for what had no slot to land in — repeating a message a field already
- * carries would have a screen reader read it twice.
- */
+// A screen reader reads a message twice when both the field slot and the
+// form-level alert carry it, so the alert speaks only for what found no slot.
 function reportError(form: HTMLFormElement, error: unknown): void {
   if (!isInputError(error)) {
     showFeedback(form, 'error', messageOf(form, error))
@@ -65,13 +61,6 @@ async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: Ac
   reportError(form, error)
 }
 
-/**
- * Shared submit binder for Astro Action forms. Owns the lifecycle once: pending
- * label swap, `[data-form-success|error]` toggle, reset on success. A per-form
- * module supplies only the selector, a buildPayload, and the action.
- * Idempotent across view transitions (createMotionBinding); querySelectorAll so
- * one page can carry multiple instances of the same form.
- */
 export function createActionFormBinding<P>(config: {
   formSelector: string
   buildPayload: (form: HTMLFormElement) => P

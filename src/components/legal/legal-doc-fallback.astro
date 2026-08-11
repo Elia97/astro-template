@@ -1,7 +1,5 @@
 ---
-// Shown when the hosted document isn't available. Deliberately NOT placeholder
-// legal prose: draft text on a live /privacy reads as a real policy and is the
-// one thing worse than an honest "not available" — it invites shipping it.
+// Never placeholder legal prose: draft text on a live /privacy reads as a real policy.
 import { iubendaHostedUrl, type LegalDocKind } from '@/lib/legal/documents'
 
 interface Props {
@@ -10,7 +8,6 @@ interface Props {
 
 const { kind } = Astro.props
 const title = kind === 'privacy' ? 'Privacy Policy' : 'Cookie Policy'
-// null until a policy id is configured — the template's default state.
 const hostedUrl = iubendaHostedUrl(kind)
 ---
 

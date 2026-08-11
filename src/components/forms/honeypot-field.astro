@@ -1,9 +1,6 @@
 ---
-// Decoy input: out of the a11y tree (aria-hidden + tabindex=-1) and out of
-// autofill, so only a bot fills it. No `id` — several forms can share a page.
-// A filled submission is dropped in silence by the action, never rejected.
-// `sr-only` rather than `hidden`/display:none: a field a bot can't see in the
-// layout is still one it finds in the DOM, which is the point.
+// `sr-only`, never `hidden`/display:none: a bot skips a field the layout hides.
+// No `id`, so several forms can share a page.
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 ---
 

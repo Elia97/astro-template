@@ -19,8 +19,8 @@ describe('useTranslations', () => {
   })
 })
 
-// The registry is keyed by locale code; a locale routed in astro.config without
-// a dictionary in ui.ts is a misconfiguration the compiler cannot see.
+// A locale routed in astro.config.mjs without a dictionary in ui.ts is a
+// misconfiguration the compiler cannot see.
 describe('missing dictionaries', () => {
   it('throws when even the default locale has none registered', async () => {
     vi.resetModules()

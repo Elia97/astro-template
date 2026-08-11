@@ -29,8 +29,6 @@ export default function collectionGenerator(plop) {
       },
     ],
     actions: (answers) => [
-      // Pre-flight FIRST: a duplicate name must not plant files inside a live
-      // collection's content directory.
       (a, _config, api) => {
         assertInjectable({
           root,
@@ -45,8 +43,6 @@ export default function collectionGenerator(plop) {
         templateFile: `${tpl}/schema.ts.hbs`,
       },
       {
-        // Default-locale content is FLAT (same convention as the homepage);
-        // a future extra locale goes in src/content/<name>/<locale>/.
         type: 'add',
         path: answers.document
           ? 'src/content/{{dashCase name}}/example.md'

@@ -1,7 +1,4 @@
 ---
-// shadcn-shaped button, native Astro: cva variants on the template's tokens,
-// zero JS shipped. Instead of Radix's `asChild`, the `as` prop makes it
-// polymorphic — `<Button as="a" href=...>` for link CTAs.
 import type { HTMLAttributes } from 'astro/types'
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -19,11 +16,8 @@ export const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
         accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
-        // Low-emphasis fill; no text color baked in, so a slotted glyph inherits currentColor.
         soft: 'border border-transparent bg-foreground/10 hover:bg-foreground/20',
       },
-      // One t-shirt scale for text and icon buttons (icon-* are square). `md`
-      // is the default — there is deliberately no `default` size key.
       size: {
         sm: 'h-9 gap-1.5 px-4',
         md: 'h-10 px-5 py-2',
@@ -34,7 +28,6 @@ export const buttonVariants = cva(
         'icon-lg': 'size-11',
         'icon-xl': 'size-12',
       },
-      // Box shape, orthogonal to size/variant.
       shape: {
         default: '',
         pill: 'rounded-full',
@@ -44,13 +37,11 @@ export const buttonVariants = cva(
   },
 )
 
-// Explicit discriminated union instead of the docs' generic Polymorphic
-// pattern: astro check (0.9.x) doesn't resolve generic Props at call sites.
-// The union types each branch with ITS element's attributes — `disabled` is
-// illegal on the link branch (inert on anchors anyway) and `href` is required.
+// astro check (0.9.x) doesn't resolve generic Props at call sites, so this is an
+// explicit discriminated union instead of the docs' Polymorphic pattern.
 type Props = VariantProps<typeof buttonVariants> &
-  // `href?: never` catches the realistic mistake — passing href while
-  // forgetting as="a" — which the union's excess-check would let through.
+  // TypeScript's excess-property check runs against the whole union, so `href` alone
+  // compiles without `href?: never`.
   (({ as?: 'button'; href?: never } & HTMLAttributes<'button'>) | ({ as: 'a'; href: string } & HTMLAttributes<'a'>))
 
 const { as: Tag = 'button', variant, size, shape, class: className, ...rest } = Astro.props

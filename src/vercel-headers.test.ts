@@ -2,17 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// Guards the unconditional security headers in vercel.json. `astro dev` never
-// reads that file, so nothing exercises them before a deploy — CI is the only
-// place the source of truth can be locked. The siblings cover the conditional
-// rules: vercel-robots.test.ts the preview noindex, vercel-botid.test.ts the
-// proxy paths.
-//
-// The CSP assertions pin the EXACT source list per directive, not a superset.
-// The template ships a self-only policy: a fork adding a vendor (analytics, a
-// CMS, an image CDN) has to widen both the policy and this test, which is the
-// point — a vendor origin should never slip in as a side effect of pasting a
-// snippet.
+// `astro dev` never reads vercel.json: CI is the only place these headers run before
+// a deploy. Every other CSP directive lives in src/lib/csp/, covered by csp.test.ts.
 
 type HeaderEntry = { key: string; value: string }
 type HeaderRule = { source: string; has?: unknown[]; headers: HeaderEntry[] }
@@ -89,28 +80,18 @@ describe('security headers', () => {
 })
 
 describe('Content-Security-Policy', () => {
-  it('locks the directives that stop injection from escalating', () => {
-    expect(sources('default-src')).toEqual(["'self'"])
-    expect(sources('object-src')).toEqual(["'none'"])
-    expect(sources('base-uri')).toEqual(["'self'"])
-    expect(sources('form-action')).toEqual(["'self'"])
+  it('carries frame-ancestors, the one directive a meta CSP cannot express', () => {
     // Redundant with X-Frame-Options above, and deliberately so: the header is
     // the one older browsers honour, this is the one that is actually specified.
     expect(sources('frame-ancestors')).toEqual(["'none'"])
   })
 
-  it('serves every script and style from this origin only', () => {
-    expect(sources('script-src')).toEqual(["'self'", "'unsafe-inline'"])
-    expect(sources('style-src')).toEqual(["'self'", "'unsafe-inline'"])
-    expect(sources('connect-src')).toEqual(["'self'"])
-  })
-
-  // `'unsafe-inline'` above is load-bearing, not an oversight: the theme script
-  // has to run before first paint to avoid a flash, so it cannot be an external
-  // module, and Astro emits its own inline block too. The upgrade path is
-  // per-page SHA-256 hashes computed at build time.
-  it('still refuses eval, which no inline script here needs', () => {
-    expect(sources('script-src')).not.toContain("'unsafe-eval'")
+  it('leaves every other directive to the build-time policy', () => {
+    // The CSP spec enforces multiple policies independently, so a copy here would
+    // intersect with src/lib/csp/directives.ts rather than replace it.
+    for (const directive of ['default-src', 'script-src', 'style-src', 'connect-src', 'img-src']) {
+      expect(sources(directive), directive).toEqual([])
+    }
   })
 
   it('allows no wildcard and no plaintext origin anywhere', () => {

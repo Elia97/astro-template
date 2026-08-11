@@ -14,8 +14,11 @@ updates:
     commit-message:
       prefix: 'fix(deps)'
       prefix-development: 'fix(deps-dev)'
+    # Long enough for a bad release to be yanked before it reaches a PR here, and
+    # longer still for majors, which is where a regression usually lands.
     cooldown:
-      default-days: 2
+      default-days: 7
+      semver-major-days: 14
     ignore:
       # `astro check` (through @astrojs/language-server) uses the TypeScript programmatic
       # API, which the native 7.x compiler does not ship yet: with TS 7 installed

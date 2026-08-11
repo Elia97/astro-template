@@ -29,8 +29,6 @@ describe('scroll lock', () => {
   it('ignores unlock calls without a matching lock', () => {
     unlockScroll()
     expect(isLocked()).toBe(false)
-    // A spurious unlock must not push the counter negative: the next
-    // lock still has to take effect immediately.
     lockScroll()
     expect(isLocked()).toBe(true)
   })

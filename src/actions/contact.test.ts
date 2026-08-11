@@ -13,10 +13,6 @@ import {
 } from '@test/helpers/actions'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// The error policy of src/actions/index.ts: exactly one of the three Brevo calls
-// is fatal. The owner notification IS the lead — losing it silently is the worst
-// outcome the form has — while the autoreply and the CRM upsert are courtesies
-// that must never turn a delivered lead into an error the user sees.
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => ({ checkBotId: vi.fn() }))
 
@@ -53,9 +49,6 @@ describe('contact handler', () => {
     expect(consoleError).toHaveBeenCalledWith('[contact] notification failed:', KO_ERROR)
   })
 
-  // Best-effort by design: the lead is already in the owner's inbox, so a failure
-  // here is logged and swallowed rather than shown to someone whose message did
-  // in fact arrive.
   it('swallows an autoreply failure', async () => {
     const consoleError = spyOnConsoleError()
     brevoAnswers({ autoreply: KO })
@@ -75,9 +68,6 @@ describe('contact handler', () => {
   })
 })
 
-// Brevo is the only sink the submission ever reaches, so this line is the whole
-// recovery path: without it the visitor gets "riprova" and the lead is gone with
-// no record anywhere.
 describe('lead recovery', () => {
   it('writes the submission to the log when the notification fails', async () => {
     const consoleError = spyOnConsoleError()
@@ -96,8 +86,7 @@ describe('lead recovery', () => {
 })
 
 describe('reply-to without a name', () => {
-  // Both name fields are optional in the schema; an empty display name on the
-  // reply-to header would render as `<>` in some clients.
+  // An empty display name on a reply-to header renders as `<>` in some mail clients.
   it('sends a bare address when the submission carries no name', async () => {
     brevoAnswers({})
     const { handleContact } = await importActions()

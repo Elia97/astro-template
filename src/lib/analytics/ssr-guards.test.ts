@@ -1,7 +1,4 @@
-// Deliberately NOT happy-dom: these guards exist for the server, where `window`
-// genuinely does not exist. Faking it in a DOM environment would stop proving
-// the thing that matters — that importing these modules during a build, or
-// rendering a page that pulls them in, cannot throw.
+// Deliberately NOT happy-dom: a faked window would void what these guards prove.
 import { describe, expect, it } from 'vitest'
 
 describe('analytics modules are importable without a window', () => {
@@ -13,8 +10,7 @@ describe('analytics modules are importable without a window', () => {
     }).not.toThrow()
   })
 
-  // The module registers a matchMedia listener at import time; without the guard
-  // the import itself would throw during SSR.
+  // reveal.ts registers a matchMedia listener at import time.
   it('the reveal module imports cleanly', async () => {
     await expect(import('@/lib/motion/reveal')).resolves.toBeDefined()
   })

@@ -18,8 +18,6 @@ describe('postGenAction', () => {
     expect(result).toBe('astro sync + biome check passed')
   })
 
-  // The contract this file exists for: a failing gate must break the plop run.
-  // Swallowing it would leave output that does not compile looking generated-ok.
   it('throws when a check fails, instead of reporting success', () => {
     execSync.mockImplementation(() => {
       throw new Error('biome found 3 errors')
@@ -49,8 +47,6 @@ describe('postGenAction', () => {
     )
   })
 
-  // Without a hint the default has to still say the files were left on disk —
-  // a re-run against leftovers fails with a confusing "File already exists".
   it('falls back to the leftovers warning when no hint is given', () => {
     execSync.mockImplementation(() => {
       throw new Error('nope')

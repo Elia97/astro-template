@@ -33,7 +33,6 @@ const MAPPING_CASES: [string, ConsentPreference, ConsentModeUpdate][] = [
   ['purpose 4 only → analytics_storage', { purposes: { '4': true } }, ONLY_ANALYTICS],
   ['purpose 5 only → ad_* signals', { purposes: { '5': true } }, ONLY_ADS],
   ['purposes 4 + 5 → everything', { purposes: { '4': true, '5': true } }, ALL_GRANTED],
-  // Granularity present ⇒ no "accept all" shortcut: the purposes win over consent.
   ['consent=true but purposes false', { consent: true, purposes: { '4': false, '5': false } }, ALL_DENIED],
   ['partial/undefined purposes', { purposes: { '4': undefined, '5': false } }, ALL_DENIED],
   ['consent=false, no purposes', { consent: false }, ALL_DENIED],
@@ -46,7 +45,6 @@ describe('mapPreferenceToConsentMode', () => {
   })
 })
 
-/** Fresh gate + its spies per test — no shared mock state to reset. */
 function makeGate() {
   const gtag = vi.fn()
   const dispatchEvent = vi.fn()

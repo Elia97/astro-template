@@ -1,9 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// happy-dom's MediaQueryList can't be driven from a test, so matchMedia is
-// replaced with a fake whose `change` listener we invoke by hand — the whole
-// point here is what happens ON the crossing, not how the browser detects it.
+// happy-dom's MediaQueryList can't be driven from a test, hence the hand-fired fake.
 let mediaListeners: Array<(event: { matches: boolean }) => void> = []
 
 function renderChrome(): { panel: HTMLElement; toggle: HTMLButtonElement; header: HTMLElement } {
@@ -67,8 +65,6 @@ describe('setup guards', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
   })
 
-  // Non-element children (text, comments) sit in body.children? They do not, but a
-  // stray node must not throw the inert loop either way.
   it('survives non-element nodes beside the panel', async () => {
     const { toggle, header } = renderChrome()
     document.body.append(document.createComment('stray'))
@@ -118,7 +114,6 @@ describe('defensive paths', () => {
     const { panel } = renderChrome()
     await bind()
 
-    // close without ever opening
     panel.querySelector<HTMLElement>('[data-mobile-nav-close]')?.click()
 
     expect(isLocked()).toBe(false)

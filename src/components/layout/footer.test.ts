@@ -4,11 +4,8 @@ import { SITE } from '@/lib/site'
 
 const CMP_ENV = { PUBLIC_GTM_ID: 'GTM-TEST', PUBLIC_IUBENDA_SITE_ID: '1234567' }
 
-/**
- * The env is read at module import, so each case resets and re-imports. The
- * container is re-imported from the SAME fresh registry: taken from the outer
- * one it would render a component compiled by a different module instance.
- */
+// vi.resetModules() gives a fresh registry: the container has to be imported from
+// it, not from the outer one, or it renders a component another instance compiled.
 async function renderFooter(env: Record<string, string> = {}) {
   vi.resetModules()
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value)
@@ -43,10 +40,7 @@ describe('footer.astro', () => {
   })
 })
 
-// [HARD] This link is how consent stays revocable — the CMP's own floating badge
-// is disabled. It must appear exactly when the CMP does, in both directions: a
-// missing link strands the visitor with no way back to their choices, and one
-// rendered without a CMP behind it is a dead control opening nothing.
+// [HARD] GDPR: the link must track the CMP in both directions (src/lib/consent/iubenda.ts).
 describe('the cookie-preferences link', () => {
   it('is absent when no CMP is configured, which is how the template ships', async () => {
     expect(cmpLink(await renderFooter())).toBeNull()

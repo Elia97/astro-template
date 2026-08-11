@@ -5,7 +5,6 @@ import { consentField, emailField, requiredText } from '@/lib/forms/form-fields'
 
 import { it as dictionary } from '@/i18n/strings/it'
 
-/** First message Zod produces for a value, or undefined when it parses. */
 function messageFor(
   schema: { safeParse: (value: unknown) => { success: boolean; error?: { issues: { message: string }[] } } },
   value: unknown,
@@ -14,11 +13,8 @@ function messageFor(
   return result.success ? undefined : result.error?.issues[0]?.message
 }
 
-// Zod's built-in messages are English ("Invalid email"), and they reach the user
-// verbatim: applyFieldErrors prints them into the field slots. Every message the
-// form can emit has to come from the dictionary instead — that is the whole
-// point of these field contracts, and nothing else in the suite would notice a
-// field quietly falling back to the default.
+// Zod's built-in messages are English ("Invalid email") and reach the user verbatim,
+// so every message the form can emit has to come from the dictionary.
 describe('validation messages come from the dictionary', () => {
   it('reports an invalid email in the site language', () => {
     expect(messageFor(emailField, 'not-an-email')).toBe(dictionary['forms.error.emailInvalid'])
@@ -36,7 +32,6 @@ describe('validation messages come from the dictionary', () => {
     const field = requiredText('compila')
     expect(messageFor(field, undefined)).toBe('compila')
     expect(messageFor(field, '')).toBe('compila')
-    // `.trim()` runs first, so whitespace is empty — the user typed nothing.
     expect(messageFor(field, '   ')).toBe('compila')
   })
 })
@@ -66,7 +61,6 @@ describe('required parity with the markup', () => {
     expect(contactSchema.safeParse({ ...valid, consent: false }).success).toBe(false)
   })
 
-  // The one field the markup leaves optional — the schema has to agree.
   it('accepts an empty message', () => {
     expect(contactSchema.safeParse({ ...valid, message: '' }).success).toBe(true)
   })

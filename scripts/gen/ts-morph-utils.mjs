@@ -1,7 +1,3 @@
-/**
- * True if `name` is already bound in `sourceFile` as a variable, a function, or
- * an import (named or default) — the injected const/import would shadow it.
- */
 export function isNameTaken(sourceFile, name) {
   if (sourceFile.getVariableDeclaration(name) || sourceFile.getFunction(name)) return true
   return sourceFile

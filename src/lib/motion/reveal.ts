@@ -1,7 +1,5 @@
-// Reveal-on-scroll setup (see components/ui/reveal.astro for the markup side).
-// An IntersectionObserver marks `[data-reveal]` / `[data-reveal-stagger]`
-// containers with `data-reveal-ready` on viewport entry; the transition is
-// pure CSS (initial state gated on `html.js` + reduced-motion, globals.css).
+// `data-reveal-ready` is what src/styles/globals.css transitions on; the markup
+// side is src/components/ui/reveal.astro.
 import { createMotionBinding } from './binding'
 import { prefersReducedMotion } from './media-queries'
 
@@ -28,18 +26,12 @@ function isBelowRevealLine(el: HTMLElement, maxScrollY: number, revealLine: numb
 }
 
 function setupReveals(): void {
-  // Announced BEFORE the early returns below: this says "the module arrived",
-  // not "it observed something". It is what disarms the failsafe in
-  // head/js-flag.astro, which otherwise assumes the chunk never loaded and
-  // unhides everything.
+  // src/components/head/js-flag.astro unhides everything unless this attribute
+  // appears, so it goes before the early returns: it means "the chunk arrived".
   document.documentElement.setAttribute('data-reveal-active', '')
   if (prefersReducedMotion()) return
   const els = queryRevealTargets()
   if (els.length === 0) return
-  // The primary observer reveals slightly before the element's natural entry
-  // point. Elements that can never cross the shrunk boundary (sitting in the
-  // bottom ~15% of the page at max scroll) go to the no-margin fallback,
-  // otherwise they would stay hidden forever.
   primary ??= new IntersectionObserver(onIntersect, { rootMargin: '0px 0px -15% 0px' })
   fallback ??= new IntersectionObserver(onIntersect)
   const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
@@ -59,9 +51,6 @@ function cleanupReveals(): void {
 
 export const bindReveals = createMotionBinding(setupReveals, cleanupReveals)
 
-// Re-arm if the user turns reduced-motion OFF mid-session: the CSS gate
-// starts hiding [data-reveal] elements and something must reveal them again.
-// (window guard: the module must stay importable outside the browser.)
 if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => {
     if (!event.matches) setupReveals()

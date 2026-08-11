@@ -2,13 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// Guards the preview-deploy noindex in vercel.json. A page opting into
-// `prerender = true` is served as a static file and never reaches
-// src/middleware.ts, so the noindex has to come from an edge header rule — and
-// `astro dev` never reads vercel.json, which leaves CI as the only place the
-// rule can be exercised at all. It must match the deployment's *.vercel.app
-// hosts (preview AND the production aliases, which would otherwise duplicate
-// the custom domain) and never the custom domain itself.
+// A prerendered page is served as a static file and never reaches src/middleware.ts,
+// so the preview noindex is an edge rule — and `astro dev` never reads vercel.json.
 
 type HasCondition = { type: string; value?: string }
 type HeaderEntry = { key: string; value: string }
@@ -32,8 +27,7 @@ describe('vercel.json preview-deploy noindex', () => {
     expect(robotsTag(hostRule)).toContain('noindex')
   })
 
-  // Behaviour, not spelling: Vercel anchors route patterns against the whole
-  // host, so the assertions run the configured pattern the way the edge does.
+  // Vercel anchors a route pattern against the whole host — these run it the way the edge does.
   it('matches vercel.app deployment hosts, never the production domain', () => {
     const pattern = hostRule?.has?.find((cond) => cond.type === 'host')?.value
     expect(pattern).toBeDefined()
@@ -42,15 +36,11 @@ describe('vercel.json preview-deploy noindex', () => {
     expect(host.test('my-project-git-feat-thing-acme.vercel.app')).toBe(true)
     expect(host.test('my-project.vercel.app')).toBe(true)
 
-    // SITE.url's host — still the template placeholder, replaced per fork.
     expect(host.test('example.com')).toBe(false)
     expect(host.test('www.example.com')).toBe(false)
-    // A host merely *containing* the pattern must not slip through the anchors.
     expect(host.test('vercel.app.example.com')).toBe(false)
   })
 
-  // The failure that matters most: a rule that also covered the custom domain
-  // would drop the live site out of every search index.
   it('leaves the unconditional rule free of X-Robots-Tag', () => {
     expect(globalRule).toBeDefined()
     expect(robotsTag(globalRule)).toBeUndefined()

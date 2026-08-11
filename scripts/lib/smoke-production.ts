@@ -1,7 +1,3 @@
-// Data in, data out: the network, the printing and the exit code stay in
-// scripts/smoke-production.mjs, so every check here is unit-testable.
-
-/** The slice of `Response` the checks read — a test supplies a literal. */
 export interface SmokeResponse {
   ok: boolean
   status: number
@@ -12,9 +8,7 @@ export type Fetcher = (url: string) => Promise<SmokeResponse>
 
 export interface SmokeContext {
   get: Fetcher
-  /** The host under test, already stripped of trailing slashes. */
   baseUrl: string
-  /** SITE.url — what the canonical-host check compares the base against. */
   siteUrl: string
 }
 
@@ -32,15 +26,12 @@ const messageOf = (error: unknown) => (error instanceof Error ? error.message : 
 
 export const PAGES = [
   { path: '/', type: 'text/html' },
-  // Not the root: a prerendered route served off the CDN from a nested path.
   { path: '/contatti', type: 'text/html' },
   { path: '/robots.txt', type: 'text/plain' },
   { path: '/sitemap-index.xml', type: 'xml' },
 ] as const
 
-// Declared on the global `/(.*)` rule in vercel.json. `null` = presence is the
-// assertion — src/vercel-headers.test.ts already pins the values, and repeating
-// a long CSP here would mean editing two places for one change.
+// From vercel.json's global `/(.*)` rule. `null` = assert presence only; src/vercel-headers.test.ts pins the values.
 export const SECURITY_HEADERS: Record<string, string | null> = {
   'content-security-policy': null,
   'strict-transport-security': null,
@@ -50,16 +41,10 @@ export const SECURITY_HEADERS: Record<string, string | null> = {
   'permissions-policy': null,
 }
 
-/** Same-origin proxy for the BotID challenge. */
+/** Must match the rewrite `source` in vercel.json. */
 export const BOTID_CHALLENGE = '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js'
 
-/**
- * The production alias takes a moment to point at the deployment just uploaded:
- * without this wait the smoke would photograph the previous one, or a 404. Only
- * the first request waits — once the alias resolves everything else is served by
- * the same deployment, and retrying a genuine failure five times just makes a
- * red job slower. Failures here are not reported: the checks below do that.
- */
+/** Vercel's production alias takes a moment to point at the deployment just uploaded. */
 export async function waitForAlias(
   { get, baseUrl }: SmokeContext,
   sleep: (ms: number) => Promise<void>,
@@ -68,9 +53,7 @@ export async function waitForAlias(
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       if ((await get(baseUrl)).ok) return
-    } catch {
-      // Network-level failure — the checks below report it with its message.
-    }
+    } catch {}
     if (attempt < attempts) await sleep(attempt * 2000)
   }
 }
@@ -109,8 +92,7 @@ export async function checkSecurityHeaders({ get, baseUrl }: SmokeContext): Prom
     return pass(check)
   })
 
-  // The `has: host = *.vercel.app` rule must never reach the custom domain: a
-  // noindex here drops the live site out of every search index.
+  // vercel.json's `has: host = *.vercel.app` noindex on the custom domain drops the site out of every search index.
   const check = 'no x-robots-tag on the production host'
   const robots = response.headers.get('x-robots-tag')
   results.push(robots === null ? pass(check) : fail(check, `present on ${baseUrl}: "${robots}"`))
@@ -128,11 +110,7 @@ export async function checkBotIdChallenge({ get, baseUrl }: SmokeContext): Promi
   }
 }
 
-/**
- * The www → apex 308 from vercel.json. The one check that can't run against an
- * arbitrary base URL: it depends on DNS and on the domain configured on the
- * Vercel project, not on the deployment under test.
- */
+/** The www → apex 308 from vercel.json: depends on DNS and the Vercel project's domain, not on the deployment. */
 export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext): Promise<CheckResult[]> {
   const check = 'www → apex 308'
   if (baseUrl !== siteUrl) return [skip(check, `base URL is not ${siteUrl}`)]
@@ -147,7 +125,6 @@ export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext
   }
 }
 
-/** Every check, in order. The caller prints and decides the exit code. */
 export async function runChecks(context: SmokeContext): Promise<CheckResult[]> {
   return [
     ...(await checkPages(context)),

@@ -1,6 +1,5 @@
 import { z } from 'astro/zod'
 
-// Types are inferred, never hand-written.
 export const {{camelCase name}}Schema = z.strictObject({
   title: z.string().min(1),
   description: z.string().optional(),

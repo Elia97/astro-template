@@ -11,14 +11,11 @@ const t = useTranslations(Astro.currentLocale)
 const href = (path: string) => localizedHref(Astro.currentLocale, path)
 const year = new Date().getFullYear()
 
-// [HARD] This link is how consent stays revocable: the CMP's own floating badge
-// is disabled (src/lib/consent/iubenda.ts). Rendered only when the CMP is
-// configured — otherwise it would be a dead control opening nothing.
+// [HARD] Consent stays revocable through this link: the CMP's own floating badge
+// is disabled (src/lib/consent/iubenda.ts).
 const hasCmp = getTrackingConfig() !== null
 ---
 
-{/* Same reasoning as the header: named so the chrome holds still across a
-    navigation instead of fading out and back in with the page body. */}
 <footer transition:name="site-footer" class="border-border/60 border-t bg-background">
   <Container class="py-12">
     <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
@@ -38,8 +35,7 @@ const hasCmp = getTrackingConfig() !== null
         }
         {
           hasCmp && (
-            /* iubenda binds the click by class name — the href is a fallback for
-               the moment before its script has loaded. */
+            /* iubenda binds the click by class name; href is the pre-script fallback. */
             <a
               href="#"
               class="iubenda-cs-preferences-link text-muted-foreground text-sm transition-colors hover:text-foreground"

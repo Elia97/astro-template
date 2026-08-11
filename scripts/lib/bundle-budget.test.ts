@@ -28,7 +28,6 @@ describe('parseEdges', () => {
     expect([...edges.dynamic].sort()).toEqual(['c.js', 'd.js'])
   })
 
-  // Getting this backwards would hide a library sitting on the critical path.
   it('does not count a dynamic import as a static edge', () => {
     expect([...parseEdges('await import("./heavy.abc.js")').static]).toEqual([])
   })
@@ -97,8 +96,6 @@ describe('expectedRoutes', () => {
     expect(expected.patterns[0]?.pattern.test('/blog/a/b')).toBe(false)
   })
 
-  // The default is now the measured one, so a miss here is fail-open: prose read
-  // as a declaration would drop a real page out of the budget silently.
   it('ignores the word prerender inside prose', () => {
     const source = '// this page is intentionally not prerender = false\n'
     const expected = expectedRoutes([{ file: 'src/pages/x.astro', source }], 'src/pages')
@@ -131,8 +128,7 @@ describe('missingRouteFailures', () => {
     ])
   })
 
-  // [HARD] The fail-open case: every other assertion iterates the emitted pages,
-  // so an empty dist would otherwise report a green budget having measured nothing.
+  // [HARD] Fail-open: every other assertion iterates the emitted pages.
   it('refuses to pass on an empty dist', () => {
     expect(missingRouteFailures(expected, [], 'dist/client')).toEqual([expect.stringContaining('no .html file')])
   })
@@ -145,9 +141,6 @@ describe('budgetFor', () => {
   })
 })
 
-// The gap this closes: the stylesheet is the heaviest thing the site ships and
-// the only render-blocking one, and until now the gate that exists to catch
-// weight never looked at it.
 describe('cssBudgetFailure', () => {
   it('passes a stylesheet under the budget', () => {
     expect(cssBudgetFailure(CSS_BUDGET_GZIP - 1, ['main.css'])).toBeNull()
@@ -171,7 +164,6 @@ describe('budget selection and edges', () => {
   })
 
   it('ignores a regex match whose capture group is absent', () => {
-    // `from './x.js'` with an optional group that does not participate.
     expect(parseEdges("import 'sideeffect'\n").static.size).toBe(0)
   })
 

@@ -1,22 +1,14 @@
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
-// Per-field validation surface, shared by every action-backed form. The markup
-// contract is one `<FieldError field="…" />` slot per control, wired to it
-// through a static `aria-describedby`; this module only fills the slots and
-// flips `aria-invalid`. markup-contract.test.ts guards that the slots in a
-// rendered form and the keys of its schema still agree.
+// Fills the `[data-field-error]` slots rendered by ui/field/error.astro.
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 
 export type FieldErrorResult = {
-  /** At least one message landed on a field slot — the alert can stay a summary. */
   matched: boolean
-  /** Messages with no slot to land in: the caller surfaces them form-level. */
   unmatched: string[]
 }
 
-/** Links a control's `aria-describedby` to its error slot. One function so the
- *  two ends can't drift apart. */
 export function fieldErrorId(field: string): string {
   return `${field}-error`
 }
@@ -30,10 +22,7 @@ export function clearFieldErrors(form: HTMLFormElement): void {
   for (const control of form.querySelectorAll('[aria-invalid]')) control.removeAttribute('aria-invalid')
 }
 
-/**
- * The honeypot is dropped rather than reported: surfacing its error would tell
- * a bot which field gave it away.
- */
+// Surfacing the honeypot error tells a bot which field gave it away, so it is dropped.
 export function applyFieldErrors(
   form: HTMLFormElement,
   fields: Readonly<Record<string, string[] | undefined>>,
@@ -54,8 +43,6 @@ export function applyFieldErrors(
   return result
 }
 
-/** First invalid control in DOM order — not in `error.fields` key order, which
- *  would send focus somewhere the reader hasn't reached yet. */
 export function focusFirstInvalid(form: HTMLFormElement): boolean {
   const control = form.querySelector<FormControl>('[aria-invalid="true"]')
   if (!control) return false

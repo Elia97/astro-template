@@ -8,17 +8,8 @@ import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
 import { fieldErrorId } from './field-errors'
 
-// Contract between a form's markup and the schema behind it. `applyFieldErrors`
-// looks up a `[data-field-error="<schema key>"]` slot per field: if one is
-// missing or renamed nothing fails at compile time — `field` is typed as a plain
-// string — but the error silently degrades to a form-level message, with no
-// `aria-invalid` on the control and no focus landing on it.
-//
-// Rendered, not grepped: the slot names only exist for real once the components
-// have run, and a wrong `aria-describedby` is invisible in the source.
-
-// Declared exclusions, never implicit: a slot would tell a bot which field the
-// decoy is.
+// A slot missing or renamed against the schema compiles fine and silently degrades
+// the field error to a form-level message.
 const WITHOUT_SLOT: readonly string[] = [HONEYPOT_FIELD]
 
 const expectedFields = Object.keys(contactSchema.shape).filter((field) => !WITHOUT_SLOT.includes(field))
@@ -39,8 +30,6 @@ describe('contact form markup contract', () => {
     }
   })
 
-  // The reference only resolves if the slot carries that id — empty:sr-only
-  // keeps it in the a11y tree, display:none would not.
   it('gives every slot the id its control references', async () => {
     const document = await renderToFragment(ContactFormFields)
     for (const field of expectedFields) {

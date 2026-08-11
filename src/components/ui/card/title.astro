@@ -4,7 +4,6 @@ import type { HTMLAttributes } from 'astro/types'
 import { cn } from '@/lib/utils'
 
 interface Props extends HTMLAttributes<'div'> {
-  /** Render as a real heading (`h2`/`h3`…) when the card title belongs in the page outline. */
   as?: 'div' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 }
 

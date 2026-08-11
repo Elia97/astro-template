@@ -10,9 +10,6 @@ import {
   SITEMAP_EXCLUDED_PATHS,
 } from '@/lib/seo/crawl-policy'
 
-// The normalizer is the only place in this module where a bug can hide: the
-// lists are written as a person writes a path, while @astrojs/sitemap hands over
-// absolute URLs with a trailing slash regardless of `trailingSlash: 'never'`.
 describe('crawlPathname', () => {
   it('takes the pathname out of an absolute sitemap entry', () => {
     expect(crawlPathname('https://example.com/privacy')).toBe('/privacy')
@@ -41,23 +38,15 @@ describe('crawlPathname', () => {
 })
 
 describe('SITEMAP_EXCLUDED_PATHS', () => {
-  // The composition is the contract: a path added to either list must stop
-  // appearing in the sitemap without a second edit.
   it('is the union of both lists', () => {
     expect(SITEMAP_EXCLUDED_PATHS).toEqual([...ROBOTS_DISALLOWED_PATHS, ...NOINDEX_PATHS])
   })
 
-  // A robots-blocked URL still listed in the sitemap is a Search Console
-  // warning: the crawler is told to fetch something it is also told not to read.
   it('covers every robots-disallowed path', () => {
     for (const path of ROBOTS_DISALLOWED_PATHS) expect(SITEMAP_EXCLUDED_PATHS).toContain(path)
   })
 })
 
-// Both lists ship empty, so every consumer below is a no-op against the real
-// constants — this is where the matching rule itself is pinned, on lists the
-// test owns. Without it a fork adding its first path is the one discovering
-// whether children are covered.
 describe('matchesSubtree', () => {
   const roots = ['/area-riservata', '/grazie']
 
@@ -75,8 +64,6 @@ describe('matchesSubtree', () => {
     expect(matchesSubtree('https://example.com/area-riservata/documenti/', roots)).toBe(true)
   })
 
-  // A prefix that isn't a path segment: `/area-riservata-pubblica` is a
-  // different page, and `startsWith` without the separator would swallow it.
   it('does not match a sibling that merely shares the prefix', () => {
     expect(matchesSubtree('/area-riservata-pubblica', roots)).toBe(false)
     expect(matchesSubtree('/grazie-mille', roots)).toBe(false)
@@ -95,8 +82,6 @@ describe('isExcludedFromSitemap', () => {
     }
   })
 
-  // A stray entry landing in either list would silently drop a page out of the
-  // sitemap.
   it('lets through anything not listed', () => {
     for (const url of ['https://example.com/', 'https://example.com/contatti', 'https://example.com/privacy/']) {
       expect(isExcludedFromSitemap(url), url).toBe(matchesSubtree(crawlPathname(url), SITEMAP_EXCLUDED_PATHS))
@@ -104,8 +89,6 @@ describe('isExcludedFromSitemap', () => {
   })
 })
 
-// The middleware reads the policy through this, so the subtree rule reaches
-// X-Robots-Tag too — not just the sitemap filter.
 describe('isNoindexPath', () => {
   it('answers for every listed path and its children', () => {
     for (const path of NOINDEX_PATHS) {

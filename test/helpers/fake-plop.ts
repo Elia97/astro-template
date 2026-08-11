@@ -1,10 +1,3 @@
-// A stand-in for the slice of plop's API the scripts/gen/* generators touch:
-// setGenerator + getHelper. The case helpers mirror plop's change-case ones for
-// the inputs these tests exercise — what the assertions are about is how the
-// generators WIRE those helpers (pre-flight ordering, template and path
-// selection, the validate guards), not change-case's own behaviour.
-
-/** Punctuation-stripping word split, like change-case: '...' yields none. */
 const words = (value: string): string[] =>
   value
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
@@ -70,7 +63,6 @@ function fakePlop(): FakePlop {
   }
 }
 
-/** The registered config, or a loud failure — a renamed generator is a bug. */
 export function registerWith(
   define: (plop: FakePlop) => void,
   name: string,
@@ -82,7 +74,6 @@ export function registerWith(
   return { plop, config }
 }
 
-/** Resolves the actions of a generator whose list is answer-dependent. */
 export function actionsFor(config: GeneratorConfig, answers: Answers): PlopAction[] {
   return typeof config.actions === 'function' ? config.actions(answers) : config.actions
 }

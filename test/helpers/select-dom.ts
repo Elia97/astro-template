@@ -1,11 +1,5 @@
-// SSR shape of ui/select.astro (native + trigger + listbox), before the behavior
-// module swaps the native out for the styled trigger. Shared by the activation
-// and the interaction suites.
-//
-// The current value is assigned, never written as a `selected` attribute:
-// parsing innerHTML, happy-dom ignores that attribute and reports the first
-// enabled option instead, so an attribute-based fixture would silently set up
-// the wrong starting state.
+// Parsing innerHTML, happy-dom ignores a `selected` attribute and reports the first
+// enabled option, so the current value is assigned instead.
 export function renderSelect({ value = '', required = true } = {}): void {
   document.body.innerHTML = `
     <label for="topic">Argomento</label>

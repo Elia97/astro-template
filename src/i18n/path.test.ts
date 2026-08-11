@@ -3,9 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { localizedHref } from '@/i18n/href'
 import { localeAgnosticPath } from '@/i18n/path'
 
-// The base every canonical and hreflang is computed from: a request pathname
-// reduced to its default-locale form. Getting it wrong publishes a canonical
-// that disagrees with the page it sits on, which search engines then ignore.
+// A canonical that disagrees with the page it sits on is ignored by search engines.
 describe('localeAgnosticPath', () => {
   it('leaves a default-locale path as it is', () => {
     expect(localeAgnosticPath('/contatti', 'it')).toBe('/contatti')
@@ -19,7 +17,6 @@ describe('localeAgnosticPath', () => {
     expect(localeAgnosticPath('/en', 'en')).toBe('/')
   })
 
-  // A path that merely starts with the same letters is not prefixed by it.
   it('does not strip a prefix that only looks like one', () => {
     expect(localeAgnosticPath('/enoteca', 'en')).toBe('/enoteca')
   })
@@ -28,8 +25,8 @@ describe('localeAgnosticPath', () => {
     expect(localeAgnosticPath('/', 'it')).toBe('/')
   })
 
-  // trailingSlash is 'never': a canonical with one would compete with the page's
-  // own URL for the same content.
+  // `trailingSlash: 'never'` (astro.config.mjs): a canonical with one competes with
+  // the page's own URL for the same content.
   it.each([
     ['/contatti/', '/contatti'],
     ['/contatti///', '/contatti'],
@@ -41,8 +38,7 @@ describe('localeAgnosticPath', () => {
     expect(localeAgnosticPath('/en/', 'en')).toBe('/')
   })
 
-  // Slashes all the way down: stripping them empties the string, and an empty
-  // canonical would resolve against the origin rather than the page.
+  // An empty canonical resolves against the origin, not against the page.
   it('recovers the root from a path that is only slashes', () => {
     expect(localeAgnosticPath('///', 'it')).toBe('/')
   })
@@ -57,8 +53,7 @@ describe('localizedHref', () => {
     expect(localizedHref('en', '/contatti')).toBe('/en/contatti')
   })
 
-  // Astro.currentLocale is undefined on a page outside i18n routing; the link
-  // still has to resolve rather than produce "/undefined/…".
+  // Astro.currentLocale is undefined on a page outside i18n routing.
   it('falls back to the default locale when none is given', () => {
     expect(localizedHref(undefined, '/contatti')).toBe('/contatti')
   })

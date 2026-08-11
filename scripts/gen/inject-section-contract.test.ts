@@ -7,7 +7,6 @@ const BARREL = 'src/lib/schemas/homepage/index.ts'
 const DATA = 'src/lib/homepage.ts'
 const PAGE = 'src/pages/index.astro'
 
-/** Minimal index.astro carrying both markers, so marker tests isolate one gap. */
 const page = (frontmatter = '') => `---\n${frontmatter}\n// @gen:home-imports\n---\n{/* @gen:home-sections */}\n`
 
 const assertOn =
@@ -22,9 +21,6 @@ const assertOn =
 
 afterEach(cleanupRoots)
 
-// gen:section splices three files at once. A hook point that moved must abort
-// the whole run BEFORE anything is written — a partial injection leaves the
-// repo not compiling, with no single command to undo it.
 describe('hook points in the schema barrel', () => {
   it('accepts the real repo, which is what the contract actually describes', () => {
     expect(assertOn()).not.toThrow()
@@ -51,8 +47,6 @@ describe('hook points in the data layer', () => {
     expect(assertOn({ [DATA]: 'export function other() {}' })).toThrow(/was it renamed/)
   })
 
-  // A descendant search would find a return nested in a callback inside the
-  // object and register the pick() in the wrong place.
   it('refuses when there is no top-level return object to register the pick in', () => {
     const src = 'export function getHomepageSections() { return buildSections() }'
     expect(assertOn({ [DATA]: src })).toThrow(/no top-level `return/)
@@ -74,7 +68,6 @@ describe('collisions', () => {
     expect(assertOn({}, 'hero')).toThrow(/already in the union/)
   })
 
-  // The union is clean but the identifier is bound: the injected import collides.
   it('refuses when the schema identifier is already bound in the barrel', () => {
     const src = [
       "import { featuresSectionSchema } from './elsewhere'",
@@ -90,14 +83,10 @@ describe('collisions', () => {
     expect(assertOn({ [BARREL]: barrel }, 'hero')).toThrow(/already picked/)
   })
 
-  // index.astro is not ts-morph-parseable, so this one is textual — and scoped
-  // to the frontmatter, because the same word in the template is not a binding.
   it('refuses when the component name is already bound in the frontmatter', () => {
     expect(assertOn({ [PAGE]: page("import Features from '@/components/other.astro'") })).toThrow(/would collide/)
   })
 
-  // No frontmatter fence means no bindings at all, so there is nothing to
-  // collide with — the check degrades to "free" instead of crashing on undefined.
   it('treats a page with markers but no frontmatter as having no bindings', () => {
     expect(assertOn({ [PAGE]: '// @gen:home-imports\n{/* @gen:home-sections */}\n' })).not.toThrow()
   })

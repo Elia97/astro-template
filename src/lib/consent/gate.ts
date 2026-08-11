@@ -1,13 +1,3 @@
-// Consent gate: the queue every consent-dependent script waits in, and the
-// translation from a CMP preference to Google Consent Mode v2.
-//
-// The rule this module exists to enforce: nothing that sets a non-essential
-// cookie runs until the user has said yes. Callers register through
-// `onConsent(category, cb)` and are called back the moment consent for that
-// category arrives — or immediately, if it already had.
-//
-// Leaf layer: no imports from the rendering tree.
-
 export type ConsentCategory = 'measurement' | 'marketing'
 
 export interface ConsentPreference {
@@ -24,18 +14,15 @@ export interface ConsentModeUpdate {
 
 export type GtagFn = (...args: unknown[]) => void
 
-// iubenda purpose ids, as emitted in the CS preference object: 4 = Measurement,
-// 5 = Marketing. They are iubenda's numbering, not ours — don't renumber.
+// iubenda's purpose ids in the CS preference object, not ours.
 const PURPOSE_MEASUREMENT = '4'
 const PURPOSE_MARKETING = '5'
 
-// Fail-safe by construction: anything not explicitly `true` maps to 'denied'.
 export function mapPreferenceToConsentMode(pref: ConsentPreference): ConsentModeUpdate {
   const purposes = pref.purposes
   const hasGranularPurposes = purposes !== undefined && Object.keys(purposes).length > 0
 
-  // "Accept all" arrives as consent=true with no granular purposes. When
-  // purposes ARE present they win, even alongside consent=true.
+  // iubenda sends "accept all" as consent=true with no granular purposes.
   if (pref.consent === true && !hasGranularPurposes) {
     return {
       ad_storage: 'granted',

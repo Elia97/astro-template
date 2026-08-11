@@ -4,7 +4,6 @@ import { sanitizeLegalHtml } from '@/lib/legal/documents'
 
 const POLICY_ID = '7654321'
 
-/** The env is read at module import, so each case stubs, resets and re-imports. */
 async function loadWith(id?: string) {
   vi.resetModules()
   if (id !== undefined) vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_ID', id)
@@ -25,8 +24,6 @@ afterEach(() => {
   vi.resetModules()
 })
 
-// Injected with set:html into a prerendered page, under a CSP that allows
-// inline script. Everything executable has to be gone before it gets there.
 describe('sanitizeLegalHtml', () => {
   it('strips script and style elements with their contents', () => {
     const html = '<p>ok</p><script>alert(1)</script><style>body{}</style>'
@@ -46,7 +43,7 @@ describe('sanitizeLegalHtml', () => {
     expect(sanitizeLegalHtml('<a href="javascript:alert(1)">t</a>')).toBe('<a href="#">t</a>')
   })
 
-  // Signed S3 hosts that the CSP doesn't allow — they would render broken.
+  // The images in iubenda's output are decorative provider icons on signed S3 hosts.
   it('drops images', () => {
     expect(sanitizeLegalHtml('<p>a</p><img src="https://s3.example/x.png" alt="">')).toBe('<p>a</p>')
   })
@@ -66,8 +63,6 @@ describe('getLegalDoc — gating', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  // [SENSITIVE] is what Vercel hands a prebuilt pull for a Sensitive variable.
-  // Fetching it would build a 404 URL out of a placeholder.
   it('refuses a non-numeric id instead of fetching it', async () => {
     const getLegalDoc = await loadWith('[SENSITIVE]')
     const fetchSpy = mockFetch({})
@@ -96,7 +91,6 @@ describe('getLegalDoc — fetching', () => {
     expect(fetchSpy.mock.calls[0]?.[0]).toContain(`/${POLICY_ID}/cookie-policy/no-markup`)
   })
 
-  // Dev only: a flaky connection must not stop `astro dev`.
   it('falls back to null and logs when the API fails', async () => {
     const getLegalDoc = await loadWith(POLICY_ID)
     mockFetch({}, false)
@@ -116,9 +110,6 @@ describe('getLegalDoc — fetching', () => {
   })
 })
 
-// The outcome this prevents: one transient network error during a production
-// build publishes the visible "draft, not yet legally reviewed" notice in place
-// of the client's real policy, on the two pages with legal exposure.
 describe('getLegalDoc — a configured policy is required in production', () => {
   it('throws instead of shipping the placeholder when the API fails', async () => {
     vi.stubEnv('PROD', true)
@@ -136,7 +127,6 @@ describe('getLegalDoc — a configured policy is required in production', () => 
     await expect(getLegalDoc('privacy')).rejects.toThrow(/configured but could not be fetched/)
   })
 
-  // Not configured is the template's honest default, not a failure.
   it('still returns null when no policy id is configured', async () => {
     vi.stubEnv('PROD', true)
     const getLegalDoc = await loadWith('')
@@ -145,7 +135,6 @@ describe('getLegalDoc — a configured policy is required in production', () => 
   })
 })
 
-// Where the fallback sends people when the document itself can't be embedded.
 describe('iubendaHostedUrl', () => {
   it('builds the privacy page URL from the configured id', async () => {
     vi.stubEnv('PUBLIC_IUBENDA_COOKIE_POLICY_ID', POLICY_ID)
@@ -163,8 +152,6 @@ describe('iubendaHostedUrl', () => {
     expect(iubendaHostedUrl('cookie-policy')).toBe(`https://www.iubenda.com/privacy-policy/${POLICY_ID}/cookie-policy`)
   })
 
-  // An empty id builds a generic iubenda URL that is not the client's policy at
-  // all: the fallback omits the link rather than pointing somewhere wrong.
   it('returns null with no id configured', async () => {
     vi.resetModules()
     const { iubendaHostedUrl } = await import('@/lib/legal/documents')

@@ -1,7 +1,6 @@
 ---
-// JSON-LD emitter. The left angle bracket is escaped (unicode form) so
-// content can't close the script element early — never `set:html` raw
-// JSON.stringify output.
+// The left angle bracket is escaped so content can't close the script element
+// early — never `set:html` raw JSON.stringify output.
 interface Props {
   items?: Record<string, unknown>[] | undefined
 }

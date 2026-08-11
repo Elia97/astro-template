@@ -36,17 +36,19 @@ Model: **one issue = one PR**. Dedicated branch, **one Conventional commit** (ty
 
 Expand the issue body into `.claude/plans/pr-<N>-<slug>.md`: files to touch, vertical-agent breakdown (1-3 agents, **exclusive** scope-paths — only if the surface is wide/parallelizable; otherwise work directly), quality gates, manual checks. `AskUserQuestion` for ambiguities that affect the plan. The user iterates / calls `ExitPlanMode` to approve.
 
-Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run audit:diff`** **→ `pnpm run build`**.
+Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run check:comments`** **→ `pnpm run audit:diff`** **→ `pnpm run build`**.
 
 ## Phase 4 — Implementation
 
 1. Modifications: parallel agents with exclusive scope-paths if the surface is wide (prompt includes: exclusive scope, explicit **role = "implement"**, references to `CLAUDE.md`/`docs/ARCHITECTURE.md`, "don't commit"); otherwise direct edits.
 2. **Overlap handling**: after parallel agents finish, check `git status` — if two agents touched the same file despite exclusive scopes, **stop this step**, don't auto-merge. Show the user both intended diffs and use `AskUserQuestion`: (a) the user resolves it manually and you re-run the gate, or (b) spawn one dedicated agent to reconcile the two changes coherently, then re-run from this step.
 3. Cover **every checklist item** from the issue (flag any deferred one explicitly).
-4. Sequential quality gate: `pnpm run ci`, then `pnpm run audit:diff`, then `pnpm run build`. On failure, spawn a fix agent and re-run (max 2 attempts, then stop).
+4. **Comment sweep** — spawn `comments-agent` with role **implement** over `git diff`, before the gate. It judges every comment the branch adds (yours and the other agents') against one test: does it carry a fact checkable **outside this file** — vendor behaviour, a measured number, a platform quirk, a named coupling with another file? If not, it goes. Predictions about our own code ("without this the layout breaks") read like invariants but are inferences drawn from the code itself, and they die here. The agent only ever removes comment lines, so the gate right after is proof enough that nothing broke. Run it even on code you wrote yourself: `check:comments` reads shape, not usefulness — a short useless comment passes it green.
+5. Sequential quality gate: `pnpm run ci`, then `pnpm run check:comments`, then `pnpm run audit:diff`, then `pnpm run build`. On failure, spawn a fix agent and re-run (max 2 attempts, then stop).
+   - `check:comments` always exits 0, but **what it lists has to be resolved before handing off**: it reads the whole tree (tracked plus untracked, no commit needed) and flags comment blocks over two lines, files where comments exceed 15% of their lines, and comments narrating the change instead of describing the code. Findings outside your diff are pre-existing debt: report them, fix them only if the issue is about them. The rule is in `CLAUDE.md`.
    - `audit:diff` is `fallow audit`: dead code, complexity, duplication and styling **scoped to the diff**, exiting non-zero on a fail verdict. It judges only what this branch introduced — inherited findings are reported and excluded from the verdict, so pre-existing debt never blocks an unrelated issue. It picks its own base (merge-base against the remote default); pin it with `FALLOW_AUDIT_BASE` if that resolves wrong.
    - It runs before `build` on purpose: it takes under a second and catches what the expensive step never looks at.
-5. Update impacted docs (never `docs/PROJECT.md`, and never `docs/ROADMAP.md` — that's `/milestone`'s territory only, updated once at seeding time; GitHub's own issue/milestone state is the source of truth for per-issue progress).
+6. Update impacted docs (never `docs/PROJECT.md`, and never `docs/ROADMAP.md` — that's `/milestone`'s territory only, updated once at seeding time; GitHub's own issue/milestone state is the source of truth for per-issue progress).
 
 ## Phase 5 — Handoff
 

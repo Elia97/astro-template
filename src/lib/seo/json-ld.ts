@@ -1,5 +1,3 @@
-// JSON-LD builders for inner pages (pass the result via the layout's `jsonLd`
-// prop). Sitewide Organization/WebSite schemas live on the homepage.
 import { SITE } from '@/lib/site'
 
 function absoluteUrl(path: string): string {
@@ -25,7 +23,6 @@ export function buildBreadcrumbList(items: ListEntry[]) {
   }
 }
 
-/** schema.org ItemList — for listing pages (catalog, archive, …). */
 export function buildItemList(items: ListEntry[]) {
   return {
     '@context': 'https://schema.org',

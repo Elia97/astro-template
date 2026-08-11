@@ -1,10 +1,4 @@
 ---
-// Body of a legal page: centered column + title, content from the page via
-// <slot /> (see legal-section-list.astro for the data-driven pattern).
-//
-// It does NOT mount the layout — the page owns that. A component that wraps
-// MainLayout inverts the direction the architecture rests on (layouts compose
-// components, never the reverse) and can never be placed inside another layout.
 import Container from '@/components/ui/container.astro'
 import Section from '@/components/ui/section.astro'
 

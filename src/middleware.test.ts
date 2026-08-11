@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { isNoindexPath } from '@/lib/seo/crawl-policy'
 
-// Both lists ship empty, so the positive branch has no input in the template as
-// shipped — mocked here because a fork's first NOINDEX_PATHS entry is exactly
-// when this code has to work, and nothing else would exercise it until then.
+// Both lists ship empty, so nothing exercises the positive branch until a fork adds
+// its first NOINDEX_PATHS entry.
 vi.mock('@/lib/seo/crawl-policy')
 
 async function run(pathname: string, headers: Record<string, string> = {}): Promise<Response> {

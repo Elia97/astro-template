@@ -1,5 +1,3 @@
-// Pure SEO-meta resolution for head.astro — no Astro component context, so
-// canonical/hreflang policy is unit-testable (./seo.test.ts).
 import { i18n } from 'astro:config/client'
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
 
@@ -27,16 +25,15 @@ interface HeadSeoParams {
   ogImage: string | undefined
 }
 
-// Locale entries normalized to codes: Astro's i18n APIs and Astro.currentLocale
-// speak codes (for object entries that's codes[0]), URLs carry paths.
+// Astro's i18n APIs and Astro.currentLocale speak locale codes (codes[0] for
+// object entries); URLs carry paths.
 function configuredLocaleCodes(): string[] {
   /* v8 ignore next -- object locale entries ({ path, codes }) are an Astro feature this template's single string locale never produces */
   return (i18n?.locales ?? []).map((l) => (typeof l === 'string' ? l : (l.codes[0] ?? l.path)))
 }
 
-// Canonical and alternates share one locale-agnostic base path, then each
-// locale re-localizes it (prefix via getAbsoluteLocaleUrl, segments via
-// translatePath) — hreflang that disagrees with the canonical gets ignored.
+// Search engines ignore an hreflang set that disagrees with the canonical: both
+// re-localize the same base path.
 function resolveLocaleAlternates(canonicalPath: string): LocaleAlternate[] {
   return configuredLocaleCodes().map((code) => ({
     tag: localeTag(code),

@@ -1,16 +1,30 @@
 name: CI
 
 on:
+  # No paths-ignore on pull_request: `ci` is a required check in the repository ruleset,
+  # and a skipped job reports nothing — the PR hangs on "Expected — Waiting for status".
   pull_request:
   push:
     branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**/*.md'
+      - '.github/**/*.md'
+      - '.claude/**/*.md'
 
 # Declared rather than inherited: this workflow runs on PRs, so it is the one a
 # third-party action would ride in on. It only reads the checkout.
 permissions:
   contents: read
 
+# On main every push is a candidate release commit, so those are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # No `name:` here: the check run would take it, and the ruleset requires the context
+  # `ci`, which is the job id.
   ci:
     runs-on: ubuntu-latest
     steps:
@@ -31,3 +45,30 @@ jobs:
 
       # Reads dist/client, so it has to follow the build.
       - run: pnpm run perf:bundle
+
+  # `fallow audit` otherwise only runs inside `/pr`: a PR opened by hand or by
+  # Dependabot never sees it.
+  fallow:
+    name: fallow (boundaries gate + dead-code advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the review brief diffs against the merge-base
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: fallow review (advisory, always exits 0)
+        run: pnpm exec fallow review
+
+      # HARD gate: a component reaching back into a layout inverts the composition
+      # and makes it unusable elsewhere. Nothing else fails on it.
+      - name: fallow boundaries
+        run: pnpm exec fallow dead-code --boundary-violations

@@ -1,8 +1,4 @@
 ---
-// Contact form shell: Card + submit lifecycle. Fields live in
-// contact-form-fields.astro, client behavior in contact-form-behavior.ts
-// (Astro Actions submit — no action/method fallback, JS is required; the
-// action itself still validates everything server-side).
 import Button from '@/components/ui/button.astro'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -19,14 +15,8 @@ const t = useTranslations(Astro.currentLocale)
     <CardDescription as="p">{t('contact.formIntro')}</CardDescription>
   </CardHeader>
 
-  {/* Pending/error copy travels on data attributes: the behavior module stays copy-free.
-
-      novalidate: the browser's own bubbles would report the first invalid field
-      in its own wording and its own styling, before the schema ever runs — two
-      error systems for one form, only one of which sets aria-invalid or fills
-      the field slots. The schema (src/lib/contact.ts) is the single gate; it
-      validates the same fields the `required` attributes mark, and those stay
-      for assistive tech. */}
+  {/* novalidate: the browser's own bubbles report before the schema runs and set no
+      aria-invalid — src/lib/contact.ts is the single gate. */}
   <form
     novalidate
     data-contact-form
@@ -56,8 +46,6 @@ const t = useTranslations(Astro.currentLocale)
 
   import { bindContactForm } from './contact-form-behavior'
 
-  // Scoped to the form's own page rather than the layout: only a route that can
-  // submit pays for the challenge client (see the bundle budget).
   initFormBotId()
   bindContactForm()
 </script>

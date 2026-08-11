@@ -38,9 +38,6 @@ describe('gen:page path handling', () => {
     expect(answers).toMatchObject({ pagePath: 'legal/cookie-policy', pageTitle: 'Cookie policy' })
   })
 
-  // change-case strips punctuation, so raw input that looks non-empty can
-  // dash-case to nothing — validating the RAW value would let it through and
-  // the generator would write src/pages/.astro.
   it.each(['...', '   ', '/'])('rejects %s, which dash-cases to nothing', (value) => {
     expect(validate('page', 'name', value)).toBe('Page path must contain at least one letter or digit')
   })
@@ -51,8 +48,6 @@ describe('gen:page path handling', () => {
 })
 
 describe('gen:component guards', () => {
-  // The template emits `export const {{camelCase name}}Variants`, so a name
-  // starting with a digit leaves unparseable code on disk.
   it('rejects a name whose camel form is not a valid identifier', () => {
     expect(validate('component', 'name', '404-page')).toMatch(/invalid identifier \(404PageVariants\)/)
   })
@@ -65,8 +60,7 @@ describe('gen:component guards', () => {
     expect(validate('component', 'name', 'PriceCard')).toBe(true)
   })
 
-  // Guards the bypass path: `plop component X ''` skips the prompt default, and
-  // an unvalidated '' would drop the file straight into src/components/.
+  // `plop component X ''` skips the prompt default, so the bypass path reaches validate with ''.
   it('rejects an area that dash-cases to nothing', () => {
     expect(validate('component', 'area', '...')).toMatch(/at least one letter or digit/)
   })
@@ -75,8 +69,7 @@ describe('gen:component guards', () => {
     expect(validate('component', 'area', 'marketing')).toBe(true)
   })
 
-  // plop expands the handlebars itself; what is asserted is that BOTH segments
-  // go through dashCase, so 'Marketing Pages' cannot become a folder with a space.
+  // plop expands the handlebars itself, so the action carries the template, not the final path.
   it('dash-cases both the area and the name in its path template', () => {
     const [add] = addActions(actionsFor(component().config, { name: 'PriceCard', area: 'Marketing Pages' }))
 

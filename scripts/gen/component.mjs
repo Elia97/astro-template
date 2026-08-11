@@ -1,9 +1,5 @@
-// No .tsx island option: the base scaffold has no React runtime to generate against.
 import { postGenAction } from './post-gen.mjs'
 
-// The template emits `export const {{camelCase name}}Variants`, so the
-// camel-cased name MUST be a valid (ASCII) JS identifier — '404-page' would
-// generate `export const 404PageVariants`, unparseable code left on disk.
 const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
 export default function componentGenerator(plop) {
@@ -30,8 +26,6 @@ export default function componentGenerator(plop) {
         name: 'area',
         message: 'Folder under src/components/ (e.g. ui, marketing):',
         default: 'ui',
-        // Validate the TRANSFORMED value; also guards the bypass path, where
-        // an empty '' arg would skip the default and drop files in src/components/.
         validate: (value) =>
           plop.getHelper('dashCase')(String(value)) !== '' ||
           'Area folder must contain at least one letter or digit (e.g. ui)',

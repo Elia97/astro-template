@@ -13,11 +13,7 @@ describe('isHoneypotFilled', () => {
   })
 })
 
-// The schema must ACCEPT a filled decoy: rejecting it would tell the bot which
-// field gave it away. Dropping the submission is the action's job.
 describe('honeypot in the contact schema', () => {
-  // Every field the markup marks `required` is filled: the decoy is what these
-  // cases vary, so the rest of the submission has to be one the schema accepts.
   const contact = {
     firstName: 'Ada',
     lastName: 'Lovelace',
@@ -44,9 +40,6 @@ describe('honeypot in the contact schema', () => {
     if (parsed.success) expect(isHoneypotFilled(parsed.data)).toBe(false)
   })
 
-  // The leak this closes: a validation error on the decoy is answered as a 400
-  // naming the field, which is the one thing the silent drop exists to avoid.
-  // `defineAction` validates before the handler, so the schema has to be total.
   it('reads an oversized decoy as a bot instead of failing validation', () => {
     const parsed = contactSchema.safeParse({ ...contact, [HONEYPOT_FIELD]: 'https://spam.example/'.repeat(50) })
     expect(parsed.success).toBe(true)

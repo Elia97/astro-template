@@ -1,6 +1,4 @@
 ---
-// Base layout: owns the document shell (lang, theme, SEO head, view
-// transitions) and the page chrome (skip-link, header, footer).
 import { i18n } from 'astro:config/client'
 import { ClientRouter } from 'astro:transitions'
 
@@ -20,13 +18,9 @@ interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
-  // Keeps a utility page out of search (thank-you/confirmation pages, internal
-  // tools). Works on prerendered pages, unlike NOINDEX_PATHS in src/middleware.ts
-  // — pair it with the sitemap `filter` in astro.config.mjs.
+  // Prerendered pages only, unlike NOINDEX_PATHS in src/middleware.ts — pair it
+  // with the sitemap `filter` in astro.config.mjs.
   noindex?: boolean
-  // Forwarded to <Header>: sit the header transparent over a page's hero instead
-  // of the default sticky chrome; 'light' forces white overlay chrome for a hero
-  // band that is dark/colored across both themes.
   heroOverlay?: boolean
   overlayChrome?: 'auto' | 'light'
 }
@@ -48,16 +42,13 @@ const lang = Astro.currentLocale ?? i18n?.defaultLocale ?? 'it'
 {/* scroll-pt-20: anchor jumps land clear of the 64px sticky header */}
 <html lang={lang} class="scroll-pt-20">
   <head>
-    {/* charset/viewport first: the encoding declaration must sit within the
-        first 1024 bytes of the document — the inline theme script would push
-        it past. The script only needs to run before first paint. */}
+    {/* The encoding declaration must sit within the document's first 1024 bytes,
+        and the inline theme script below would push it past. */}
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
     <ThemeScript />
     <Head {title} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} />
-    {/* After <Head>: nothing here is render-blocking, and the CMP has no reason
-        to precede the page's own metadata. Emits nothing unless configured. */}
     <Tracking />
     <ClientRouter />
   </head>

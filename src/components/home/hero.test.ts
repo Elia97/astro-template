@@ -25,8 +25,6 @@ describe('hero.astro', () => {
     expect(document.body.textContent).toContain(value)
   })
 
-  // Both are `.optional()` in the schema: an entry that omits them must render
-  // the hero anyway, not an empty tag or a crash.
   it('omits them entirely when the content does not', async () => {
     const document = await renderToFragment(Hero, { props })
 
@@ -41,9 +39,6 @@ describe('the hero buttons', () => {
     expect(document.querySelectorAll('a')).toHaveLength(0)
   })
 
-  // The design invariant behind the `index === 0` check: the FIRST cta is the
-  // primary action and the rest are secondary. Swap them and the page asks for
-  // two things with equal weight.
   it('styles only the first cta as the primary action', async () => {
     const buttons = [
       { label: 'Contattaci', url: '/contatti' },

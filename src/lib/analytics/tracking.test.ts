@@ -4,7 +4,6 @@ const GTM = 'GTM-TEST123'
 const SITE_ID = '1234567'
 const POLICY_ID = '7654321'
 
-/** The env is read at module import, so each case stubs, resets and re-imports. */
 async function loadWith(env: Record<string, string>) {
   vi.resetModules()
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value)
@@ -16,8 +15,6 @@ afterEach(() => {
   vi.resetModules()
 })
 
-// The gate the whole feature hangs on: no config → the layout renders no CMP and
-// no tags, which is how the template ships and how dev always runs.
 describe('getTrackingConfig — the off state', () => {
   it('is null when nothing is configured', async () => {
     expect(await loadWith({})).toBeNull()
@@ -27,8 +24,8 @@ describe('getTrackingConfig — the off state', () => {
     expect(await loadWith({ PUBLIC_GTM_ID: GTM })).toBeNull()
   })
 
-  // Tags without a banner is the combination that would actually be unlawful:
-  // GTM would set non-essential cookies with nowhere to refuse them.
+  // GTM without a banner is the unlawful combination: non-essential cookies with
+  // nowhere to refuse them.
   it('is null with a CMP but no GTM container', async () => {
     expect(await loadWith({ PUBLIC_IUBENDA_SITE_ID: SITE_ID })).toBeNull()
   })
@@ -51,9 +48,6 @@ describe('getTrackingConfig — the on state', () => {
   })
 })
 
-// Vercel hands a "Sensitive" variable to a prebuilt pull as the literal string
-// "[SENSITIVE]". Without this guard it would be spliced into an iubenda API URL
-// and fetched — a 404 at build time, or a CMP configured with a garbage id.
 describe('getTrackingConfig — non-numeric ids are treated as unset', () => {
   it('refuses the [SENSITIVE] placeholder as a site id', async () => {
     expect(await loadWith({ PUBLIC_GTM_ID: GTM, PUBLIC_IUBENDA_SITE_ID: '[SENSITIVE]' })).toBeNull()

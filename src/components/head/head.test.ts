@@ -3,11 +3,6 @@ import { describe, expect, it } from 'vitest'
 
 import Head from './head.astro'
 
-// Markup contract of the head (./seo.test.ts covers the URL/meta resolution
-// behind it). The `noindex` prop is why this file exists: it is the ONLY
-// per-path noindex that reaches a prerendered page (src/middleware.ts can't),
-// and nothing else would catch the tag silently disappearing.
-
 const props = { title: 'Page title', description: 'Page description' }
 
 describe('head.astro', () => {
@@ -21,8 +16,6 @@ describe('head.astro', () => {
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex, nofollow')
   })
 
-  // A noindex page still needs a canonical: the two carry different signals, and
-  // dropping the canonical here would be an easy accident when editing the block.
   it('keeps title and canonical alongside the robots meta', async () => {
     const document = await renderToFragment(Head, { props: { ...props, noindex: true } })
     expect(document.querySelector('title')?.textContent).toBe('Page title')

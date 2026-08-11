@@ -1,35 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "entry": [
-    // The shared design system is the template's public surface: not everything
-    // is consumed by the starter pages yet, but it is kept intentionally — not
-    // dead code. `reveal.astro` lives here too and is covered by the glob.
-    "src/components/ui/**",
-    // The motion barrel is the layer's stable public import point (internals
-    // import leaf modules directly, so the barrel has no consumer until an
-    // interactive component lands).
-    "src/lib/motion/index.ts"
-  ],
+  "entry": ["src/components/ui/**", "src/lib/motion/index.ts"],
   "ignoreDependencies": [
-    // Only imported from astro.config.mjs — fallow doesn't count config-file
-    // imports as production usage, so they're misclassified as test-only.
+    // fallow doesn't count astro.config.mjs imports as production usage.
     "@astrojs/vercel",
     "@astrojs/sitemap",
-    // Pulled in by globals.css via `@import "tailwindcss"` at build time —
-    // a build tool, correctly a devDependency despite the production import.
+    // Reached through `@import "tailwindcss"` in globals.css, which fallow doesn't trace.
     "tailwindcss"
   ],
   "ignoreExports": [
-    // CVA variant functions are exported on purpose so consumers can compose
-    // classes outside the component (e.g. an <a> styled as a button).
     { "file": "src/components/ui/button.astro", "exports": ["buttonVariants"] },
     { "file": "src/components/ui/section.astro", "exports": ["sectionVariants"] },
     { "file": "src/components/ui/heading.astro", "exports": ["headingVariants"] },
     { "file": "src/components/ui/card/card.astro", "exports": ["cardVariants"] },
-    // Reserved motion utilities — no caller in the starter yet.
     { "file": "src/lib/motion/media-queries.ts", "exports": ["isDesktopViewport", "hasFinePointer"] },
-    // Vitest alias targets for the astro:* virtual modules — consumed
-    // indirectly through the aliases, fallow can't trace through them.
+    // Consumed through the vitest.config.ts aliases, which fallow can't trace.
     {
       "file": "test/stubs/astro-env-server.ts",
       "exports": ["getSecret", "CONTACT_FROM_EMAIL", "CONTACT_FROM_NAME", "CONTACT_TO_EMAIL", "BOTID_ENFORCE"]
@@ -45,22 +30,13 @@
       "exports": ["getPathByLocale", "getAbsoluteLocaleUrl", "getRelativeLocaleUrl"]
     },
     { "file": "test/stubs/astro-content.ts", "exports": ["getCollection"] },
-    // Raw-HTML escape hatch for the Container API helpers: renderToFragment
-    // covers structural assertions, this one is for the cases a parsed document
-    // can't express (substring absence, script bodies).
     { "file": "test/container.ts", "exports": ["renderToString"] },
-    // Exported for the tests only: production reaches it through `defineAction`
-    // in the same file, and the tests through a dynamic import fallow can't trace.
+    // The tests reach it through a dynamic import fallow can't trace.
     { "file": "src/actions/index.ts", "exports": ["handleContact"] },
-    // Schema types exported for page/component authors.
     { "file": "src/lib/schemas/common.ts", "exports": ["Cta"] },
     { "file": "src/lib/schemas/homepage/hero.ts", "exports": ["HeroSection"] }
   ],
-  // Enforces docs/ARCHITECTURE.md § Source layering, which until now was prose
-  // nothing checked. The direction that matters: a component may not reach back
-  // into a layout or a page — it would invert composition and make the component
-  // unusable inside any other layout. `leaf` is lib/i18n/types, which the
-  // rendering tree consumes and never the reverse.
+  // Enforces docs/ARCHITECTURE.md § Source layering.
   "boundaries": {
     "zones": [
       { "name": "leaf", "patterns": ["src/lib/**", "src/i18n/**", "src/types/**"] },
@@ -80,9 +56,8 @@
   },
 
   "duplicates": {
-    // Hide pair-only clones; focus on widespread copy-paste worth
-    // refactoring. Lower to 2 to report every duplicate pair. (Known pair:
-    // collection.mjs/section.mjs share the generator skeleton by design.)
+    // 3 rather than 2: at 2 the only report is scripts/gen/collection.mjs and section.mjs,
+    // which share the generator skeleton by design.
     "minOccurrences": 3
   },
   "rules": {

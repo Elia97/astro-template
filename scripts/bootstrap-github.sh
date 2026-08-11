@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap GitHub — the prerequisites config files do NOT cover. Run it once after creating
-# the repo on GitHub, from inside it, with `gh` authenticated (gh auth status). Idempotent:
-# re-run it whenever.
+# GitHub-side config no file in the tree can carry. Idempotent — re-run it whenever (HOW_TO_USE.md).
 set -euo pipefail
 
 echo "==> 1/4 Dependabot labels (without them every dependabot PR logs 'label could not be found')"
@@ -9,13 +7,7 @@ gh label create dependencies --color 0366D6 --description "Dependency updates" -
 gh label create github-actions --color 000000 --description "GitHub Actions updates" --force
 
 echo "==> 2/4 Merge policy: squash ONLY (1 commit/PR on main); title=PR, body empty"
-# [HARD] The squash body MUST stay empty: release-please parses body lines too, and GitHub
-# omits the body only when it is byte-identical to the PR title — one capital letter or one
-# backtick of difference is enough to list the same change twice in the CHANGELOG.
-# `--squash-merge-commit-message pr-title` → `squash_merge_commit_message=BLANK` API-side.
-# One flag only — gh dropped `--squash-merge-commit-title`; the title is implied by the
-# `pr-title*` value. Consequence: a breaking change has to be marked with `!` in the PR title
-# (`feat(ui)!: …`), because a `BREAKING CHANGE:` footer would no longer reach release-please.
+# [HARD] Squash body stays empty; breaking changes need `!` in the title — docs/guides/deploy-ops.md § Release flow.
 gh repo edit \
   --enable-squash-merge \
   --enable-merge-commit=false \
@@ -23,44 +15,15 @@ gh repo edit \
   --squash-merge-commit-message pr-title
 
 echo "==> 3/4 Actions permissions: let release-please open the release PRs"
-# Two independent settings, and only the second one is what release-please needs.
-# The default stays READ: it is the token every workflow gets when it declares
-# nothing, so `write` here would hand repo-write to any workflow a fork adds
-# later — including a third-party action running on a PR. A workflow's own
-# `permissions:` block overrides the default and can still ask for write, which
-# is how release-please.yml gets `contents: write` + `pull-requests: write`.
+# Default stays READ — the token every workflow gets when it declares none; release-please.yml asks for write itself.
 gh api -X PUT "repos/{owner}/{repo}/actions/permissions/workflow" \
   -f default_workflow_permissions=read \
   -F can_approve_pull_request_reviews=true \
   || echo "   (if it fails: Settings → Actions → General → Workflow permissions → ☑ Allow GitHub Actions to create and approve pull requests)"
 
 echo "==> 4/4 Ruleset on main: CI becomes a gate, not a signal"
-# [HARD] Without it CI runs but binds nothing: a direct push to main, or a merge with the
-# check red, reaches production at the next tag. `ci` is the only job in ci.yml, so one
-# context covers Biome + astro check + vitest + build + bundle budget.
-#
-# "Validate PR title" is required for the same reason, not for tidiness: squash-merge makes
-# the PR title the commit message on main, and release-please reads that title to decide
-# whether anything releases at all. A non-conventional or non-releasable title lands the
-# change on main and it never ships — no error, nothing red, just a deploy that never happens.
-# Left unrequired, the check reports that and cannot stop it.
-# bypass_actors is empty by default, admins included: the only emergency exit is disabling
-# the ruleset from Settings → Rules, which stays in the audit log. release-please needs no
-# bypass: it opens a PR, and cuts tag and release only AFTER the merge.
-#
-# ADMIN_BYPASS=1 adds the admin role (repository-role id 5) as an always-bypass actor. That is
-# for a repo maintained by direct pushes to main — this template's own repo is the case it
-# exists for. Do NOT set it on a client project: there the whole point of the ruleset is that
-# `ci` is a gate nobody can walk around, and an admin bypass makes it a suggestion again.
-# strict_required_status_checks_policy=true ("branch up to date before merging") is what keeps
-# two PRs green against an OLDER main from both landing and leaving main red on their
-# combination. Learned the hard way: two dependabot PRs squashed 92 seconds apart auto-merged
-# their pnpm-lock.yaml into a hybrid with a duplicated key — unparsable YAML, every CI job
-# down, and dependabot itself unable to run until the lockfile was repaired by hand. The cost
-# of strict is a rebase per open PR whenever main moves; the single-group dependabot config in
-# .github/dependabot.yml is what keeps that cost to one PR per ecosystem per cycle.
-# required_linear_history is redundant while the repo stays squash-only, and is here as defence
-# in depth: re-enabling merge commits in Settings is one click, undoing this rule is not.
+# [HARD] Without it CI runs but binds nothing — bypass policy and strict checks: docs/guides/deploy-ops.md.
+# actor_id 5 is GitHub's admin repository role.
 if [ "${ADMIN_BYPASS:-0}" = "1" ]; then
   bypass_actors='[{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }]'
   echo "   ADMIN_BYPASS=1 → the admin role can still push straight to main"
@@ -68,7 +31,6 @@ else
   bypass_actors='[]'
 fi
 
-# Unquoted heredoc: the only expansion in it is ${bypass_actors}.
 ruleset_payload=$(cat << JSON
 {
   "name": "main",
@@ -101,7 +63,7 @@ ruleset_payload=$(cat << JSON
 }
 JSON
 )
-# A plain POST would create a duplicate on every run: update the ruleset when it exists.
+# The rulesets API takes duplicate names: without this lookup a re-run stacks a second 'main'.
 ruleset_id=$(gh api "repos/{owner}/{repo}/rulesets" --jq '[.[] | select(.name == "main") | .id] | first // empty')
 if [ -n "$ruleset_id" ]; then
   echo "$ruleset_payload" | gh api -X PUT "repos/{owner}/{repo}/rulesets/$ruleset_id" --input - > /dev/null

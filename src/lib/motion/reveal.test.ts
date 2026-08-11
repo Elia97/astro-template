@@ -13,11 +13,8 @@ interface FakeObserver {
 
 let observers: FakeObserver[] = []
 let mediaListeners: Array<(event: { matches: boolean }) => void> = []
-// Mutable so a test can flip the preference WITHOUT reinstalling the stubs,
-// which would drop the very listener it needs to fire.
 let reducedMotion = false
 
-/** The primary observer carries a rootMargin; the no-margin one is the fallback. */
 const primary = (): FakeObserver => observers.find((o) => o.rootMargin) as FakeObserver
 const fallback = (): FakeObserver => observers.find((o) => !o.rootMargin) as FakeObserver
 
@@ -80,10 +77,6 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-// The silent failure this guards: `html.js` is set by an inline script that
-// cannot fail, but what actually clears `opacity: 0` is `data-reveal-ready`,
-// written by THIS module — which arrives as a network chunk. Without a signal
-// that it ran, a chunk that never lands leaves the content invisible forever.
 describe('announcing itself', () => {
   it('marks the document as soon as it runs', async () => {
     document.body.innerHTML = '<div data-reveal></div>'
@@ -119,8 +112,6 @@ describe('choosing an observer per element', () => {
     expect(fallback().observed).toHaveLength(0)
   })
 
-  // An element that can never cross the shrunk boundary — the bottom ~15% of the
-  // page at max scroll — would stay hidden forever on the primary observer.
   it('sends an element past the reveal line to the no-margin fallback', async () => {
     document.body.innerHTML = '<div id="b" data-reveal></div>'
     withGeometry({ '#b': 900 })
@@ -159,7 +150,6 @@ describe('revealing on intersection', () => {
 })
 
 describe('teardown and re-arm', () => {
-  // A live observer would keep pointing at DOM the swap has already replaced.
   it('disconnects both observers on astro:before-swap', async () => {
     document.body.innerHTML = '<div id="a" data-reveal></div><div id="b" data-reveal></div>'
     withGeometry({ '#a': 0, '#b': 900 })
@@ -171,8 +161,6 @@ describe('teardown and re-arm', () => {
     expect(fallback().disconnected).toBe(true)
   })
 
-  // Turning reduced-motion OFF mid-session starts the CSS gate hiding elements
-  // that no observer is watching — something has to arm them again.
   it('re-arms when the visitor turns reduced motion off', async () => {
     installEnvironment({ reduced: true })
     document.body.innerHTML = '<div id="a" data-reveal></div>'

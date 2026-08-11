@@ -31,8 +31,6 @@ describe('opening the listbox', () => {
     expect(isOpen()).toBe(false)
   })
 
-  // Opening on the current value, not the top of the list: a reader landing on
-  // the first option would have to walk back to find where it already is.
   it('focuses the selected option when there is one', async () => {
     renderSelect({ value: 'preventivo' })
     await activate()
@@ -106,7 +104,6 @@ describe('dismissing the listbox', () => {
     expect(document.activeElement).toBe(trigger())
   })
 
-  // Tab must not trap: the listbox closes and the browser moves on by itself.
   it('closes on Tab without stealing focus back', async () => {
     renderSelect()
     await activate()

@@ -11,8 +11,6 @@ import { SITE } from '@/lib/site'
 
 const content = await getHomepageSections(Astro.currentLocale)
 
-// Sitewide structured data lives on the homepage only; inner pages pass their
-// own specific schemas (breadcrumb/list builders in @/lib/seo).
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',

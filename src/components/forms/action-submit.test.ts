@@ -4,8 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createActionFormBinding } from './action-submit'
 import { fieldErrorId } from './field-errors'
 
-// The shape `astro:actions` really produces — mirrored by test/stubs/astro-actions.ts,
-// so a test that passes here would have matched the runtime guard too.
+// The shape `astro:actions` really produces (mirrored by test/stubs/astro-actions.ts).
 function inputError(fields: Record<string, string[]>): unknown {
   return { type: 'AstroActionInputError', issues: [], fields }
 }
@@ -29,7 +28,6 @@ function buildForm(): HTMLFormElement {
   return form
 }
 
-/** Binds and submits once, resolving after the async handler has settled. */
 type SubmitSpy = (payload: unknown) => Promise<{ error?: unknown }>
 
 async function submitWith(result: { error?: unknown }, spy?: SubmitSpy): Promise<HTMLFormElement> {
@@ -44,7 +42,6 @@ async function submitWith(result: { error?: unknown }, spy?: SubmitSpy): Promise
   await vi.waitFor(() => {
     expect(submit).toHaveBeenCalled()
   })
-  // let the post-await branch run
   await Promise.resolve()
   return form
 }
@@ -84,8 +81,6 @@ describe('validation errors land on their field', () => {
     expect(form.querySelector('[name="email"]')?.getAttribute('aria-invalid')).toBe('true')
   })
 
-  // The rule the module exists to enforce: a message a field already carries must
-  // not also be read out by the form-level alert, or a screen reader says it twice.
   it('stays silent at form level when every message found a slot', async () => {
     const form = await submitWith({ error: inputError({ email: ['Email non valida'] }) })
 
@@ -136,8 +131,6 @@ describe('binding lifecycle', () => {
     expect(submit).toHaveBeenCalledTimes(1)
   })
 
-  // The teardown half of the binding contract: without it the listener survives a
-  // view transition and the next page's form submits twice.
   it('unbinds on astro:before-swap', async () => {
     const form = buildForm()
     const submit = vi.fn((): Promise<{ error?: unknown }> => Promise.resolve({}))

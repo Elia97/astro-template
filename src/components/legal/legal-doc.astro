@@ -1,8 +1,4 @@
 ---
-// Body of a HOSTED legal document (src/lib/legal/documents.ts): the themed
-// document when the fetch returned one, the honest fallback when it did not.
-// The branch lives here rather than in each page so both call sites cannot
-// drift. Does not mount the layout — see the note in legal-page.astro.
 import Container from '@/components/ui/container.astro'
 import Section from '@/components/ui/section.astro'
 
@@ -18,9 +14,7 @@ interface Props {
 
 const { kind, html } = Astro.props
 
-// The iubenda no-markup HTML is semantic but unthemed (it ships its own h1):
-// these arbitrary-variant selectors apply the project tokens to the injected
-// tags, since the document can't carry classes of its own.
+// The iubenda no-markup document ships unthemed HTML, its own h1 included.
 const proseClass = [
   'text-foreground leading-relaxed',
   '[&_h1]:mb-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h1]:tracking-tight',

@@ -14,9 +14,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HONEYPOT_FIELD } from '@/lib/forms/honeypot'
 
-// The abuse guards in src/actions/index.ts, in the order they run:
-// honeypot → rate limit → BotID. The order is the point — each layer is cheaper
-// than the next, and the cheapest must never let expensive work happen first.
 vi.mock('@/lib/vendor/brevo', () => brevoMock)
 vi.mock('botid/server', () => botidMock)
 
