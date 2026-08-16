@@ -34,6 +34,8 @@ Model: **one issue = one PR**. Dedicated branch, **one Conventional commit** (ty
 
 ## Phase 3 — Plan (plan mode)
 
+**First, look for a brief from `/approach`**: `grep -l "^### #<N> " .claude/plans/approach-*.md`. Those briefs cover a whole milestone, so read the file's *Decided* and *Order* sections for the shape agreed across the set, then the `### #<N>` block for this issue: its path, scope, constraints, and **which of the issue's claims did not survive** the check against the code — that last one is there so you don't re-discover it. Treat the decided path and scope as settled: the user chose them, don't re-open the choice. The brief's *Open* section is what still needs `AskUserQuestion` here. If the brief puts other issues before this one, say so and confirm before proceeding. Without a brief, plan from the issue body as before.
+
 Expand the issue body into `.claude/plans/pr-<N>-<slug>.md`: files to touch, vertical-agent breakdown (1-3 agents, **exclusive** scope-paths — only if the surface is wide/parallelizable; otherwise work directly), quality gates, manual checks. `AskUserQuestion` for ambiguities that affect the plan. The user iterates / calls `ExitPlanMode` to approve.
 
 Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run check:comments`** **→ `pnpm run audit:diff`** **→ `pnpm run build`**.
