@@ -15,6 +15,12 @@ updates:
       default-days: 7
       semver-major-days: 14
     ignore:
+      # No major from an automatic bump: the single group below would sweep them in with the
+      # patches. `cooldown` is no safety net either — a package that published a high version
+      # years ago and then carried on down a lower line (@vercel/og 1.0.0 is from 2023) clears
+      # the maturity window, while the real major is still held inside it.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
       # TODO: drop when astro supports TS 7. `astro check` uses the TypeScript
       # programmatic API, which 7.x does not ship. withastro/roadmap#1321
       - dependency-name: 'typescript'
