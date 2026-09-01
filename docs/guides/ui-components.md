@@ -22,6 +22,14 @@ Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head 
   happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
   < `--z-skip-link`. Place a new overlay by reading it, and reach it through the
   named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`.
+- **Timing and easing are tokens like the colours**, and `tokens.css` is the only
+  sheet allowed to spell one out: `--ease-emphasized` and `--duration-slower`
+  live there, the effect sheets consume them. `src/styles/motion.test.ts` holds
+  it — a `cubic-bezier(` or a literal duration in a `transition`/`animation`
+  fails there. A `var(--x, 0.08s)` fallback is exempt: that is one instance's
+  default, not a timing of the system. A fork adding more steps names them off
+  the same two axes; declaring them in `@theme` instead of `:root` also generates
+  the matching `ease-*` utility, which `:root` does not.
 - `src/styles/light.css` / `dark.css` — semantic role mapping (shadcn naming:
   `--background`, `--primary`, `--destructive`, …). **Never rename these keys**;
   components and utilities assume them. Dark overrides the same keys under `.dark`.

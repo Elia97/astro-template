@@ -38,5 +38,10 @@
   --z-overlay: 60;
   --z-skip-link: 100;
 
+  /* Timing and easing are tokens like the colours: the effect sheets consume these,
+     they never spell a duration or a curve out. src/styles/motion.test.ts holds it. */
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-slower: 0.6s;
+
   --radius: 0.625rem;
 }
