@@ -52,6 +52,26 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 - Available vertical agents (`.claude/agents/`), one per domain: `content-agent`, `ui-agent`, `seo-agent`, `forms-agent`, `perf-rendering-agent`, `ops-agent`, plus `comments-agent` — cross-cutting, not a domain: `/pr` runs it over the diff before the gate, and it can audit the whole tree on demand. Both `/milestone` (suggesting an agent per issue) and `/pr` (implementing one) use the same domain-detection logic. Each agent reads the matching guide in `docs/guides/*.md` when one exists, and falls back to standard best practices when it doesn't. Role (implement/review) is decided at invocation-prompt level, not by separate agent files.
 - Reusable milestone blueprints live in `docs/milestone-templates/*.md` — same "stable, reusable across projects" status as `docs/guides/*.md`.
 
+## Language [HARD]
+
+Two categories, and the split is what a file is for — not a style preference.
+
+| | Language | Files |
+|---|:-:|---|
+| **Stable**, travels between projects | **English** | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/guides/*`, `docs/milestone-templates/*`, `docs/proposal-templates/*`, `.claude/commands/*`, `.claude/agents/*`, comments in `src/**` |
+| **Living**, this project only | the project's own | `docs/ROADMAP.md`, `docs/DECISIONS.md`, `docs/PROJECT.md`, `.claude/plans/*`, GitHub issues and PR bodies |
+
+`pnpm run check:language` (in `pnpm run ci`) enforces the first row and never
+looks at the second: a stable file reading as Italian fails the gate. It judges
+by function-word frequency, so a file too short to carry the signal — an index,
+a source file with no comments — is left undecided rather than guessed at.
+
+Why it exists: the two halves of a codebase family cannot be diffed against each
+other once they drift apart in language, and a rule nobody can check is a rule
+that decays. The living documents are excluded deliberately — they get written
+and rewritten in the language the work happens in, and pretending otherwise just
+moves the drift somewhere no gate looks.
+
 ## Multi-agent workflows [HARD]
 
 Containment rules for multi-agent orchestration (Workflow tool, agent fan-outs). They cap every session-level mode, ultracode included — a session mode never authorizes spend beyond these tiers.
