@@ -107,6 +107,15 @@ describe('expectedRoutes', () => {
     const expected = expectedRoutes([{ file: 'src/pages/[...path].astro', source: prerendered }], 'src/pages')
     expect(expected.patterns[0]?.pattern.test('/a/b/c')).toBe(true)
   })
+
+  // paginate() emits page one as the bare path, so a one-page archive emits only `/news`.
+  it('matches a paginated route that emitted page one alone', () => {
+    const expected = expectedRoutes([{ file: 'src/pages/news/[...page].astro', source: prerendered }], 'src/pages')
+
+    expect(expected.patterns[0]?.pattern.test('/news')).toBe(true)
+    expect(expected.patterns[0]?.pattern.test('/news/2')).toBe(true)
+    expect(expected.patterns[0]?.pattern.test('/newsletter')).toBe(false)
+  })
 })
 
 describe('missingRouteFailures', () => {
