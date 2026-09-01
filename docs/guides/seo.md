@@ -31,6 +31,16 @@ Conventions established by the centralized head (`src/components/head/head.astro
 - `SITE.localeTags` maps locale **codes** (for object locale entries that's
   `codes[0]`, not `path`) to BCP 47 tags used for `lang`, `hreflang` and
   `og:locale` (underscore form). `x-default` points at the default locale.
+- **[HARD] Never emit an `hreflang` pointing at a 404.** Google discards the
+  *whole* cluster when one alternate is dead — every language of that page, not
+  just the broken one — and no gate here sees it: it surfaces in Search Console
+  weeks later. A page without a translation emits no link for that language.
+- Under `exactOptionalPropertyTypes` that means **omitting the key**, not setting
+  it to `undefined`: `...(twin ? { en: twin } : {})`.
+- A sitemap's `xhtml:link` alternates pair **by identical path after the locale
+  prefix**, so localized slugs never pair up there. With localized routing the
+  hreflang that counts is the one in the `<head>`; the sitemap does not make up
+  for it.
 
 ## JSON-LD
 
@@ -76,6 +86,10 @@ hangs off the first via `parentOrganization`.
 - `public/og-default.png` is a solid-color 1200×630 placeholder — **replace it
   per fork**, and keep `SITE.defaultOgImage` pointing at a file that exists
   (a dead og:image fails social card validators).
+- **A generated OG image is cached forever.** `@vercel/og` answers
+  `cache-control: public, immutable, max-age=31536000`, so editing the template
+  updates neither the images already served nor the copies the social networks
+  hold. A refresh needs a *new URL*, not a new deploy.
 
 ## Icons, manifest & theme-color
 

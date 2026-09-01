@@ -55,6 +55,20 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
+// A 413 over actionBodySizeLimit reaches the client as a throw, not as `{ error }`.
+describe('a submit that throws', () => {
+  it('leaves the button usable and reports the failure', async () => {
+    const form = await submitWith(
+      {},
+      vi.fn(() => Promise.reject(new Error('Content too large'))),
+    )
+
+    expect(submitButton(form).disabled).toBe(false)
+    expect(errorBox(form).hidden).toBe(false)
+    expect(errorBox(form).textContent).toContain('Content too large')
+  })
+})
+
 describe('successful submit', () => {
   it('resets the form, clears field errors and shows the success box', async () => {
     const form = await submitWith({})

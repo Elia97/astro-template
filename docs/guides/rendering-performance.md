@@ -2,6 +2,9 @@
 
 ## Rendering policy
 
+- **`client:idle`, not `client:visible`, for anything mounting into a portal.** A
+  closed dialog renders an empty portal — a zero-sized node — and
+  `client:visible`'s IntersectionObserver may never fire on it.
 - View transitions are on: `<ClientRouter />` in the layout's `<head>` (that's
   the documented placement — it emits meta tags). Consequences for scripts:
   inline scripts don't re-run on navigation (listen to `astro:after-swap`, as
@@ -223,7 +226,20 @@ responsive variants into `dist/_astro/`, served as static files.
 
 - Deliberately NOT the Vercel adapter's `imageService: true`: build-time/static
   variants keep the template portable to non-Vercel hosts and off the Vercel
-  Image-Optimization runtime quota.
+  Image-Optimization runtime quota. Four things change the moment a fork turns it
+  on, all of them silent: no variant is emitted at build any more (the source is
+  copied byte for byte and `<Image>` emits `/_vercel/image?url=…` resolved per
+  request); **`format` stops entering the URL** — Vercel picks AVIF/WebP off the
+  `Accept` header, so a `<picture>` with an AVIF and a WebP `srcset` emits two
+  identical sources; **`quality` defaults to 100** unless passed; and **`widths`
+  is filtered against the adapter's own list**, not rounded to it — `[640, 1024,
+  1600, 2400]` survives as `[640]`, leaving a full-screen lightbox with a single
+  640w source, with nothing failing.
+- **A remote host needs the right allowlist for the path it takes.** Through
+  `<Image>`/`getImage()` it goes in `image.remotePatterns`; missing there,
+  `inferRemoteSize` throws *after* the headers have flushed and the page returns
+  **200 with an empty body**. A host served through a raw `<img>` never touches
+  the image service and belongs in the CSP's `img-src` instead.
 - Author `<Image>` with explicit `widths` + `sizes` (and a low `quality` for
   photographic art) so the build emits a right-sized srcset.
 - Always pass a meaningful `alt`; empty string only for purely decorative

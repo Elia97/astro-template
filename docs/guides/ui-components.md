@@ -21,7 +21,11 @@ Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head 
 - **`z-*` comes from the ladder in `tokens.css`**, not from a number that
   happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
   < `--z-skip-link`. Place a new overlay by reading it, and reach it through the
-  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`.
+  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`. The ladder only
+  orders siblings: **any `z-*` on an intermediate wrapper opens a stacking
+  context**, and a popover inside it can never rise above something outside it,
+  whatever number it carries. When an overlay lands under the header, look for a
+  `z-*` on an ancestor before raising the overlay's own.
 - **Timing and easing are tokens like the colours**, and `tokens.css` is the only
   sheet allowed to spell one out: `--ease-emphasized` and `--duration-slower`
   live there, the effect sheets consume them. `src/styles/motion.test.ts` holds
@@ -46,6 +50,15 @@ syntax `bg-(image:--gradient-name)` — the `image:` cast is required, a gradien
 
 Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
 `biome.json` — don't remove it, `@theme`/`@apply` fail to parse without it.
+
+**[HARD] In an `.astro` file Biome only reaches the frontmatter.** The template
+part comes out byte for byte as written, with three consequences worth knowing
+before trusting a green `pnpm run ci`: Tailwind class order is sorted
+automatically only inside `cn`/`cva` and in `.tsx`, so in `.astro` markup the
+order is yours (and reordering it by hand elsewhere is pure diff noise); the
+accessibility rules never see that markup, so an `<img>` without `alt` passes the
+gate — `astro check` and a Lighthouse audit are what catch it; and the line-count
+rules don't count those files either.
 
 ## Dark mode
 

@@ -17,7 +17,9 @@ Production ships **only from a release tag**, never from a push to `main`:
   (Settings → Build & Deployment → "Run my Bash script"). It exits 0 (skip) on
   `main` and `release-please--*`, exits 1 (proceed) everywhere else — so the git
   integration only ever produces **preview** deploys. Dependabot branches are cut
-  earlier still, by `git.deploymentEnabled` in `vercel.json`.
+  earlier still, by `git.deploymentEnabled` in `vercel.json`. A skip shows up in the
+  dashboard as a **Canceled deployment of 1s**, not as a missing one — worth
+  knowing before hunting for a deploy that never happened.
 - **Before the first release tag there is no deployment at all**, preview or
   production. Early milestones are verifiable only with `pnpm dev` and
   `pnpm run build` — worth knowing before promising a client a link.
@@ -170,9 +172,12 @@ obvious from reading either file alone:
 - **Only prerendered HTML is covered.** The integration walks the emitted
   `.html`; an on-demand route returning HTML with an inline script needs its own
   policy.
-- **`style-src` keeps `'unsafe-inline'` deliberately.** Hashing styles would make
-  the keyword inert and break every scoped `<style>` Astro emits — which is also
-  why Astro's native `security.csp` is not used here.
+- **`style-src` keeps `'unsafe-inline'` deliberately.** This is a browser rule,
+  not an Astro one: **once a hash is present on a directive, `'unsafe-inline'` is
+  ignored**. Astro's native `security.csp` hashes styles too, with no opt-out
+  (astro#14798), so adopting it leaves every scoped `<style>` — and any island
+  writing inline styles at runtime — unstyled. That is why the CSP here is built
+  by an integration that hashes scripts only.
 
 The rule that decides whether a vendor touches the CSP at all:
 
@@ -364,6 +369,13 @@ rebuild can't ship something the release path would have caught.
 - **An account without Production access reports variables as absent, not
   forbidden.** The CLI lists nothing where a variable does exist, so check
   `vercel whoami` before concluding one is missing.
+- **A site URL read from env takes `||`, not `??`.** An empty string is a value,
+  so `??` passes it through and Astro fails the build with "Invalid URL"; `||`
+  falls through to the literal fallback.
+- **A partial pnpm build cache on Vercel surfaces as unexplained flakiness** — a
+  preview failing with "Rollup failed to resolve tslib" that a redeploy fixes.
+  `VERCEL_FORCE_NO_BUILD_CACHE` on the project is the blunt cure; leave it set
+  once it is.
 - Feature flags default to the safe side and are flipped in the provider once
   verified on a real deploy — `BOTID_ENFORCE=false` ships observe-only because a
   false positive silently costs a lead (`forms-email.md` § Abuse protection has
