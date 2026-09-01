@@ -133,6 +133,20 @@ global `DENY`.
 Preview deploys are noindexed by a `has: host` header rule, not by
 `src/middleware.ts` — see `seo.md` § Preview deploys.
 
+**[HARD] Why the headers cannot live in middleware.** In the adapter's
+`.vercel/output/config.json` the `handle: filesystem` route precedes every
+`dest: _render`: on a prerendered page no function runs at all, so a middleware
+that sets `X-Frame-Options`, `Referrer-Policy` or `X-Robots-Tag` emits none of
+them — silently, on exactly the pages that make up most of a static site. The
+adapter's `staticHeaders` option would propagate them, but it defaults to
+`false`. Declaring them in `vercel.json`, as here, sidesteps the question.
+
+Related, and the reason this template ships its own CSP integration rather than
+Astro's `security.csp`: Astro picks the policy's destination with
+`cspDestination ?? (prerender ? 'meta' : 'header')`, so on a prerendered page the
+policy becomes a `<meta>` — which any middleware rewriting a directive will never
+touch.
+
 ## Content-Security-Policy
 
 The policy is **built at build time, not declared in `vercel.json`**. Two halves,
