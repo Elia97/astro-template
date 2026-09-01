@@ -37,17 +37,38 @@ Conventions established by the centralized head (`src/components/head/head.astro
 Pass structured data as objects via the layout's `jsonLd` prop.
 `head/json-ld.astro` escapes `<` (as the unicode escape) before `set:html` —
 content can't close the script element early. Never `set:html` raw
-`JSON.stringify` output anywhere else. Sitewide schemas (Organization from
-`src/lib/company.ts` + WebSite) live on the homepage only; inner pages build
-their own with `buildBreadcrumbList`/`buildItemList` from `src/lib/seo/json-ld.ts`.
+`JSON.stringify` output anywhere else. The sitewide schemas (Organization, built
+from `COMPANY` + `SITE`, and WebSite) are declared inline in
+`src/pages/index.astro` and live on the homepage only. `src/lib/seo/json-ld.ts`
+ships the two list builders — `buildBreadcrumbList` and `buildItemList` — which
+absolutize their URLs against `SITE.url`; a fork adds its own entity builders
+there.
 
 For a listing → detail route pair, the **listing** emits `BreadcrumbList` +
 an `ItemList` of its children (the catalog); each **detail** emits the
 single-entity schema (`Service`, `Article`, …) + its own `BreadcrumbList`.
 Don't replicate the full entity on the listing — the authoritative instance
-belongs to its detail URL. Entity builders in `src/lib/seo/json-ld.ts` absolutize
-their URLs against `SITE.url` and fill `provider`/`author`/`publisher` from
-the single company source (`src/lib/company.ts`).
+belongs to its detail URL.
+
+### One company, one entity (when a fork adds a second)
+
+The moment the company appears in more than one place — a `LocalBusiness` on the
+contact page, or a compact reference used as `author`/`publisher`/`provider` —
+the nodes need stable `@id`s (`${SITE.url}/#organization`) and the secondary one
+hangs off the first via `parentOrganization`.
+
+- **The `@id` is an identifier, not a navigable URL.** That fragment resolves to
+  nothing, deliberately.
+- **[HARD] The same `@id` merges the nodes**, so `name` and `legalName` must be
+  **identical** in the compact reference and in the full node — differing, the
+  merge yields one entity carrying two names.
+- **A `logo` must sit on a light background.** Google paints it on its own white
+  panel, where a white-on-transparent wordmark disappears. Assert the file exists
+  in `public/` from a test: a 404 logo fails silently, like the manifest icons
+  above.
+- **A `name` coming from a content field goes through a single-line normalizer.**
+  YAML block scalars keep their newlines, and one reaching a `<title>` or a
+  schema `name` prints there verbatim.
 
 ## OG / social
 
