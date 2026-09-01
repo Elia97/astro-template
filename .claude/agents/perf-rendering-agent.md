@@ -15,6 +15,6 @@ Before acting:
 
 ## Role
 
-Set by the invoking prompt. **Implement**: apply the changes within your scope. **Review**: do NOT modify files — report each issue with severity and `file:line`; fixing them is the implementer's job.
+Set by the invoking prompt. **Implement**: apply the changes within your scope. Run `pnpm run ci` **and** `pnpm run build` before reporting — the bundle budget reads `dist/client`, so it says nothing until a build exists. **Review**: do NOT modify files — report each issue with severity and `file:line`; fixing them is the implementer's job. **Investigate**: read-only — report what the code actually does today, change nothing.
 
 If the prompt assigns you an explicit scope-path, stay within it: you're working in parallel with other vertical agents on different areas of the same sub-task.

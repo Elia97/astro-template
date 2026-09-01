@@ -38,6 +38,13 @@ propagates to the client at typecheck time.
   interchangeable, and the email templates test the value for emptiness.
 - Every action schema spreads `honeypotShape` (see Abuse protection): the decoy
   is part of the contract, not something the handler reads off the raw body.
+- **[HARD] With `accept: 'form'` an empty input arrives as `null`, not `''`.**
+  Every field of a schema shared with the client then needs a `z.preprocess` that
+  normalizes it — and skipping it on the **honeypot** silently drops legitimate
+  submissions, because `.catch()` reads that `null` as a filled decoy.
+- **`security.actionBodySizeLimit` is 1 MB by default.** An action that accepts a
+  file has to raise it in `astro.config.mjs`, or Astro answers
+  `CONTENT_TOO_LARGE` (413) before the handler ever runs.
 
 **[HARD] Every message comes from the dictionary.** Zod's own errors are English
 ("Invalid email") and they reach the user verbatim — `applyFieldErrors()` prints
@@ -144,6 +151,11 @@ Policy worth keeping in a fork:
 
 - `BrevoResult = { ok: true } | { ok: false, error }` — failure is a **value**,
   not a throw; only the action decides what's fatal.
+- **A vendor's success is not always a 2xx you expect.** Brevo answers **204** for
+  an address already on the list: that is idempotence, not an error, and the
+  action returns `{ ok: true }` rather than duplicating a contact. Read the
+  vendor's status table before mapping its responses.
+- Brevo's account rate limit is ~30 req/s — never hit it in a burst from SSR.
 - Missing `BREVO_API_KEY`: **dev no-ops loudly** (console.warn, form
   "succeeds"), **production refuses** (an explicit error instead of a
   silently dropped lead). Keep this behavior for any replacement vendor.
@@ -156,6 +168,13 @@ Policy worth keeping in a fork:
 - Sender/recipient come from env (`CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`,
   `CONTACT_TO_EMAIL` — schema in astro.config.mjs, list in `.env.example`).
   Verify the sender domain's DKIM/SPF/DMARC before go-live.
+- **[HARD] The recipient of an internal notification is decided server-side —
+  env or content, never client input.** An action that mails whatever address the
+  payload carries is an **open relay** running on a verified sending domain: it
+  costs the domain its reputation, and nothing in the app looks broken while it
+  happens. The one address that may come from the payload is the sender's own, on
+  an autoreply addressed back to them (`src/actions/index.ts`) — and to nobody
+  else, `cc`/`bcc` included.
 - Failure strings carry the endpoint, the status and the **first 300 characters**
   of the body: enough to name a rejected attribute, short enough not to dump a
   vendor's HTML error page into the function logs.

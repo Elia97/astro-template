@@ -2,7 +2,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
 
 ## Stack and conventions
 
-- **Package manager**: pnpm via corepack only — version pinned in `packageManager` (`package.json`). No npm/yarn, no global installs.
+- **Package manager**: pnpm via corepack only — version pinned in `packageManager` (`package.json`). No npm/yarn, no global installs. What actually stops `yarn` is corepack shimming it; **nothing stops `npm install`** — corepack does not shim npm, and npm ignores `package-manager-strict` in `.npmrc` ("Unknown project config"). Treat the npm ban as a convention to keep, not a guardrail that fires.
 - **Node**: version pinned in `.nvmrc` — respect it, don't assume a different version.
 - **Formatter/linter**: Biome only (`biome.json`) — no ESLint/Prettier. Style: 2 spaces, single quotes, no semicolons, trailing commas.
 - **TypeScript**: `astro/tsconfigs/strictest`. If `noUncheckedIndexedAccess`/`exactOptionalPropertyTypes` flag an error, fix it in the code — don't relax the config to make it go away.
@@ -30,7 +30,7 @@ Reusable Astro template (personal/freelance use). Rules under `[HARD]` are non-n
   - Applies everywhere, **tests, config files and workflows included** — that's where the drift goes unnoticed.
   - History lives in `git log` and `docs/DECISIONS.md`, and that's where it gets looked up: `git log -S`, `git blame`.
   - **Before handing off, sweep your own diff** and delete the comments that don't pass the test — including the ones a vertical agent wrote for you. This pass is not optional: writing one comment fewer costs nothing, leaving one in costs every reader after you.
-  - Before the gates: `pnpm run check:comments` sweeps **the whole tree**, tracked plus untracked — not just the diff, because yesterday's debt counts as much as today's. It lists blocks over two lines, past-tense narration and files where comments run over 15% of the lines. It reads **shape, not usefulness** — a short, useless, present-tense comment sails through it clean. A green run is not permission to keep it.
+  - Before the gates: `pnpm run check:comments` sweeps **the whole tree**, tracked plus untracked — because yesterday's debt counts as much as today's; `--diff [base]` narrows it to the current branch, which is the per-PR scope. It lists blocks over two lines, past-tense narration and files where comments run over 15% of the lines. It reads **shape, not usefulness** — a short, useless, present-tense comment sails through it clean. A green run is not permission to keep it.
 
 ## Workflow [HARD]
 

@@ -327,6 +327,11 @@ rebuild can't ship something the release path would have caught.
   spliced into an API URL. **`vercel env add` stores Sensitive by default**, so
   pass `--no-sensitive` and confirm with a `vercel pull` before trusting it —
   otherwise the deployed function receives `[SENSITIVE]` as its API key.
+- **[HARD] That failure reaches production and skips preview.** The release job
+  builds *outside* Vercel (`vercel pull` → `vercel build --prod`), so a Sensitive
+  `PUBLIC_*` is inlined into the bundle as an empty value and the feature reading
+  it goes quietly no-op. A preview is built *by* Vercel, which has the real
+  values, so it looks fine — the bug exists only where nobody is testing.
 - **An account without Production access reports variables as absent, not
   forbidden.** The CLI lists nothing where a variable does exist, so check
   `vercel whoami` before concluding one is missing.
@@ -348,6 +353,11 @@ rebuild can't ship something the release path would have caught.
   change in the CHANGELOG.
 - Consequence: a breaking change is marked with `!` in the **PR title**
   (`feat(ui)!: …`). A `BREAKING CHANGE:` footer never survives the squash.
+- Same for every other release-please footer: **an override goes in
+  `release-please-config.json`, never in a commit message**. Forcing a first
+  release below `1.0.0`, or pinning any later version, is `release-as` in that
+  file — and it is sticky, so it needs a follow-up commit to remove it once the
+  release is out.
 - Same reason: `Closes #N` goes in the PR description, not in the commit message.
 - **[HARD] Only `feat` and `fix` cut a tag**, and only a tag deploys. Listing a
   type in `changelog-sections` governs how it is *displayed*, never whether it
