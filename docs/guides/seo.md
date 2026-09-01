@@ -107,6 +107,16 @@ and the browser-chrome colour — and is rendered once from `head.astro`.
 
 - `@astrojs/sitemap` (astro.config.mjs) emits `sitemap-index.xml` at build
   time — dev never serves it. Its locale map mirrors `SITE.localeTags`.
+- **A media sitemap needs its own endpoint.** The integration's `serialize` hook
+  cannot emit a `<video:…>` or `<image:…>` namespace: its `SitemapItem` type is a
+  `Pick` of `url|lastmod|changefreq|priority|links` and nothing else. Emit that
+  sitemap from a route of its own and attach it through `customSitemaps`.
+- **Media schema fields carry the platform's limits, enforced at build.** Google
+  caps a video `name` at 100 characters and a `description` at 2048: put those in
+  the Zod schema rather than truncating at serialization — failing the build
+  beats shipping a silently cut string into the XML. Same rule for the JSON-LD
+  and the sitemap describing the **same** set: resolve both from one function, or
+  they drift into describing different media.
 - Only **prerendered** routes end up in the sitemap: keep indexable pages
   prerendered (the default), or list on-demand URLs via the integration's
   `customPages`.

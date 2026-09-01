@@ -89,9 +89,27 @@ CHROME_PATH=<path to chromium> pnpm dlx lighthouse http://localhost:4321/ \
   --chrome-flags="--headless=new --no-sandbox --user-data-dir=/tmp/lh-profile" --quiet
 ```
 
-- **`--user-data-dir` is not optional under WSL.** Without it Chromium expands
-  `%LOCALAPPDATA%` to garbage and writes its profile into the repo root, as a
-  directory whose *name* contains backslashes — which then trips `biome ci`.
+- **`astro preview` does not work with the Vercel adapter** ("does not support
+  the preview command"), which is why the build is served by a plain static
+  server. Don't reach for LHCI's `staticDistDir` either: it serves through
+  `express.static`, which 301s `/page` to `/page/` and pollutes the `redirects`
+  audit on a `trailingSlash: 'never'` site.
+- **[HARD] Under WSL, pin a Linux Chrome.** `chrome-launcher` finds the *Windows*
+  Chrome through interop and prefers it; that binary reads a Linux user-data-dir
+  as a UNC path, fails to resolve `%LOCALAPPDATA%` (hence paths like
+  `undefined:\Users\undefined\...`), takes no lock and dies with "Unable to
+  connect to Chrome", leaving behind directories with backslashes in their names
+  that then trip `biome ci`. The giveaway in the log is a reference to
+  `crashpad\...\file_io_win.cc`. Validate the binary with `--version` before
+  using it: a cache can hold builds for another architecture (a puppeteer
+  `linux_arm-*` binary is x86-64, and on aarch64 it fails with `Exec format
+  error`).
+- **Don't let Lighthouse spawn processes under WSL.** A `pnpm` spawned by it
+  inherits that bogus `LOCALAPPDATA`; corepack uses it as its cache root even on
+  Linux, fails to find pnpm, tries to redownload it under `/mnt/undefined/...`
+  and dies with `EACCES`. Start the server yourself and hand Lighthouse a config
+  without a `startServerCommand` — passing `--collect.url` on the CLI does *not*
+  disable the one in the config file.
 - **The score is an upper bound, not a field number.** The local server sends no
   compression, no CDN and none of the `vercel.json` headers, and with the
   tracking env vars unset neither the CMP nor GTM loads. Read it as a regression
@@ -211,3 +229,10 @@ responsive variants into `dist/_astro/`, served as static files.
 - Always pass a meaningful `alt`; empty string only for purely decorative
   images. Content-driven images carry their alt as a sibling schema field
   (e.g. `imageAlt`), forwarded with `alt={imageAlt ?? ''}`.
+- **A list of content images is `array<{ src, alt }>`, never `array<string>`.**
+  The moment the alt has nowhere to live in the schema, the markup invents one —
+  and an alt written in a component is the same sentence on every entry.
+- Type it `z.string()` **without** `.min(1)`: an empty alt is the right answer for
+  a decorative image (which also takes `aria-hidden`), and the point is to force
+  the author to choose. Within one gallery each alt must be **distinct** — screen
+  readers and Google Images both read them as a list.
