@@ -119,6 +119,9 @@ links go through `localizedHref()` so they localize with the site.
   glow around the field border — a legitimate use, not a leftover.
 - Logical properties for the inline axis (`start-4`, `ms-*`) — the template is
   i18n-ready and must survive an RTL locale.
+- `overflow-wrap: anywhere`, not `break-word`, when a long token must not blow up
+  a flex or grid track: only `anywhere` lowers the box's *minimum* content size,
+  which is what the track is measured against.
 - `min-h-svh` for full-viewport shells (stable on mobile; `dvh` janks on scroll,
   `100vh` overflows under the expanded URL bar).
 - Current utility names: `backdrop-blur-sm` (bare `backdrop-blur` is the
@@ -138,6 +141,21 @@ links go through `localizedHref()` so they localize with the site.
   Tab wraps at both ends) and `lib/overlay/scroll-lock.ts` (reference-counted
   `lockScroll`/`unlockScroll`; `resetScrollLock()` on `astro:after-swap` so locks
   never leak across view transitions).
+- **[HARD] Every programmatic `focus()` takes `{ preventScroll: true }`.** The
+  browser scrolls a focused element into view: opening a panel scrolls its own
+  container, and restoring focus on close jumps the page to wherever the previous
+  element sits — which, after any scrolling, is off screen. `route-focus.ts` and
+  `mobile-nav.ts` both do this.
+- **Bind an overlay's toggle to `click`, not `pointerup`.** On touch the
+  `pointerup` fires first and the `click` that follows lands on whatever is now
+  under the finger, reopening what was just closed.
+- **A full-screen `<dialog>` is its own backdrop as far as the event target
+  goes.** The dialog element fills the viewport, so a click outside the content
+  targets the *dialog*, never `::backdrop` — compare against the content's
+  bounding box instead of testing the target for the backdrop.
+- **A `<video>` with its source still attached keeps buffering after the overlay
+  closes.** Detach it (or pause and clear `src`) on close, or a closed lightbox
+  keeps pulling bytes.
 - **Focus after a client-side navigation** (`lib/a11y/route-focus.ts`, bound once
   in the layout). `<ClientRouter />` restores focus only inside
   `[data-astro-transition-persist]` subtrees and the template has none, so without

@@ -20,8 +20,10 @@ const ITALIAN =
 const ENGLISH =
   /\b(?:the|and|that|with|from|this|is|are|of|when|only|also|already|every|but|which|what|they|their|does|has|without|so|because)\b/gi
 
-// Under this many hits the sample says nothing: a short file scores 2-1 on noise alone.
-const MIN_HITS = 12
+// Under this many hits the sample says nothing. 6 rather than 12: a source file carries
+// few comment lines, and at 12 every one of them read as undecided — measured against the
+// template and atc, which are fully English, 6 still yields zero false positives.
+const MIN_HITS = 6
 
 export function isStable(path: string): boolean {
   return STABLE.some((pattern) => pattern.test(path)) || CODE.test(path)
