@@ -69,6 +69,35 @@ The rule that follows: **a module a client script imports may hold constants,
 types and pure functions, but no module-level call into a dependency.** When a
 shared name is needed on both sides, split the file rather than the name.
 
+## Lighthouse audit
+
+`output: 'static'` and `trailingSlash: 'never'` are what make a local audit
+meaningful: `dist/client` served flat is byte-for-byte what the CDN serves. A
+page that opted out with `prerender = false` is not, and shows up as a `NOTE` in
+the bundle-budget report. One-shot, nothing added to the dependencies:
+
+```bash
+pnpm run build
+pnpm dlx serve dist/client -l 4321
+CHROME_PATH=<path to chromium> pnpm dlx lighthouse http://localhost:4321/ \
+  --chrome-flags="--headless=new --no-sandbox --user-data-dir=/tmp/lh-profile" --quiet
+```
+
+- **`--user-data-dir` is not optional under WSL.** Without it Chromium expands
+  `%LOCALAPPDATA%` to garbage and writes its profile into the repo root, as a
+  directory whose *name* contains backslashes — which then trips `biome ci`.
+- **The score is an upper bound, not a field number.** The local server sends no
+  compression, no CDN and none of the `vercel.json` headers, and with the
+  tracking env vars unset neither the CMP nor GTM loads. Read it as a regression
+  signal against the previous run.
+- The default preset emulates **mobile**, which is the viewport that decides most
+  LCP questions.
+- Identifying the LCP element needs the JSON report — the terminal prints scores
+  only. The audit id is **`lcp-discovery-insight`** (element snippet plus
+  `requestDiscoverable`/`eagerlyLoaded`/`priorityHinted`); it replaced
+  `largest-contentful-paint-element` in Lighthouse 13, and asking for the old id
+  with `--only-audits` returns a report **silently missing** it.
+
 ## Resource hints
 
 The template emits hints for one thing only: the consent/analytics origins, from
@@ -125,6 +154,15 @@ a project without tracking emits none at all. Rules for adding more:
 - Two observers: the primary uses `rootMargin '0px 0px -15% 0px'`; elements that
   can never cross that shrunk boundary (bottom ~15% of the page at max scroll)
   go to a no-margin fallback — without it they'd stay hidden forever.
+- **Cascade variant, without the wrapper component**: `data-reveal-stagger` on a
+  container plus `style="--i: {index}"` on each child transitions them in
+  sequence; `--reveal-stagger` overrides the 0.08s step. Same double gate and the
+  same observers — the container takes `data-reveal-ready`, the children inherit
+  the delay.
+- **[HARD] Inside `<ul>`/`<ol>`/`<dl>` the cascade variant is the only admissible
+  shape.** `<Reveal>` renders a `<div>`, and a `<div>` between a list and its
+  `<li>` breaks the list semantics: assistive technology stops announcing the
+  item count.
 - Extending motion: build on `createMotionBinding` + the guards; keep the CSS
   initial state gated the same way. No animation library in the base scaffold.
 
