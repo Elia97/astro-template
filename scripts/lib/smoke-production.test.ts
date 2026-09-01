@@ -3,8 +3,18 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { checkPages, checkSecurityHeaders, type Fetcher, PAGES, waitForAlias } from './smoke-production'
 
-const contentTypeFor = (url: string) =>
-  url.endsWith('.txt') ? 'text/plain; charset=utf-8' : 'text/html; charset=utf-8'
+// The content-type the edge really serves for each `type` PAGES declares.
+const SERVED_CONTENT_TYPE: Record<string, string> = {
+  'text/html': 'text/html; charset=utf-8',
+  'text/plain': 'text/plain; charset=utf-8',
+  xml: 'application/xml',
+  'application/json': 'application/json',
+}
+
+const contentTypeFor = (url: string) => {
+  const longestMatch = [...PAGES].sort((a, b) => b.path.length - a.path.length).find(({ path }) => url.endsWith(path))
+  return SERVED_CONTENT_TYPE[longestMatch?.type ?? 'text/html'] ?? 'text/html; charset=utf-8'
+}
 
 describe('waitForAlias', () => {
   it('stops at the first ok response, so a healthy alias costs one request', async () => {
@@ -38,10 +48,7 @@ describe('waitForAlias', () => {
 
 describe('checkPages', () => {
   it('passes every declared page when the status and content-type line up', async () => {
-    const get: Fetcher = (url) =>
-      Promise.resolve(
-        response({ headers: { 'content-type': url.endsWith('.xml') ? 'application/xml' : contentTypeFor(url) } }),
-      )
+    const get: Fetcher = (url) => Promise.resolve(response({ headers: { 'content-type': contentTypeFor(url) } }))
 
     expect(statuses(await checkPages(context(get)))).toEqual(PAGES.map(() => 'pass'))
   })

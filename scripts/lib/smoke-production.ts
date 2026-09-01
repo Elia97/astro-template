@@ -29,6 +29,7 @@ export const PAGES = [
   { path: '/contatti', type: 'text/html' },
   { path: '/robots.txt', type: 'text/plain' },
   { path: '/sitemap-index.xml', type: 'xml' },
+  { path: '/api/health', type: 'application/json' },
 ] as const
 
 // From vercel.json's global `/(.*)` rule. `null` = assert presence only; src/vercel-headers.test.ts pins the values.
