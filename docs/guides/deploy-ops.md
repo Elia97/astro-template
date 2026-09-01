@@ -400,12 +400,22 @@ rebuild can't ship something the release path would have caught.
   file — and it is sticky, so it needs a follow-up commit to remove it once the
   release is out.
 - Same reason: `Closes #N` goes in the PR description, not in the commit message.
-- **[HARD] Only `feat` and `fix` cut a tag**, and only a tag deploys. Listing a
-  type in `changelog-sections` governs how it is *displayed*, never whether it
-  releases — so a change merged as `chore`/`docs` reaches `main` and stops
-  there, silently. That is why `.github/dependabot.yml` emits `fix(deps)` and
-  why content edits are titled `fix(content): …`. The failure has no symptom:
-  CI is green, the PR is merged, and production keeps serving the old build.
+- **[HARD] `changelog-sections` is what decides which types release.** A type
+  listed there *without* `hidden: true` is releasable: it earns a changelog
+  section and cuts at least a patch. `feat` bumps the minor, the other visible
+  ones — `fix`, `perf`, `revert`, `refactor` — bump the patch. The hidden ones
+  (`docs`, `style`, `chore`, `test`, `build`, `ci`) reach `main` and stop there.
+- **Visible and releasable are the same property**, and release-please gives no
+  way to have one without the other: a type earns a changelog section *because*
+  it cuts a release. `docs` is hidden here for that reason — a documentation-only
+  PR would otherwise cut a patch and redeploy production with identical code.
+- The consequence bites in the other direction too. A change that has to reach
+  production must carry a releasable type: merged as `chore` — or as `docs` — it
+  stops on `main` with no symptom, CI green and PR merged while production still
+  serves the old build. It is why content edits are `fix(content)`. Dependabot
+  is deliberately on the other side of the line: its bumps are `chore(deps)`, so
+  an updated dependency ships with the next releasable commit — a CVE patch that
+  has to go out now needs one, or a manual run of `deploy.yml` on a tag.
 
 ## Go-live checklist
 
