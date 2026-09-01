@@ -6,6 +6,12 @@
   the documented placement — it emits meta tags). Consequences for scripts:
   inline scripts don't re-run on navigation (listen to `astro:after-swap`, as
   the theme script does); module scripts run once per module, not per page.
+- **[HARD] Anything emitting a custom element goes in the `<body>`, never the
+  `<head>`** — Vercel Analytics and Speed Insights are the usual case
+  (`<vercel-analytics>`, `<vercel-speed-insights>`). A custom element is invalid
+  in the head, so the parser closes the head at that point: the stylesheet
+  `<link>` lands in the body and gets recreated from scratch on every view
+  transition, which is a flash of unstyled content on each navigation.
 
 ## Bundle budget (`scripts/bundle-budget.mjs`)
 

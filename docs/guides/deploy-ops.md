@@ -165,8 +165,16 @@ The rule that decides whether a vendor touches the CSP at all:
 - **Server-only vendor → no CSP change.** Brevo is called from an Astro Action on
   the server; nothing about it reaches the browser, so `connect-src` stays out of
   it. Adding an origin "to be safe" widens the policy for nothing.
-- **Client-side vendor → one directive per behavior**, added explicitly. Never a
-  wildcard when the vendor documents concrete hosts.
+- **Client-side vendor → one directive per behavior**, added explicitly. Prefer a
+  concrete host — but **[HARD] the GA4 wildcards on `connect-src` are not
+  cleanup material**. GA4 sends its hits to a *regional* endpoint chosen by the
+  visitor's geolocation (`region1.analytics.google.com`, `region2…`), so pinning
+  one region works for whoever develops from there and silently blocks everyone
+  served by another. The names also collide: `region1.analytics.google.com` (the
+  current endpoint) is **not** `region1.google-analytics.com` (the legacy one) —
+  allowing only the second leaves GA4 mute with nothing failing server-side. A
+  wrong CSP breaks no build and no test: the refusals appear only in the
+  visitor's browser console.
 - **Consent doesn't enter the decision.** An origin contacted regardless of what
   the visitor chooses (an image CDN, say) belongs in the policy either way. The
   gate decides *when* a script runs, never whether its origin is allowed.
@@ -182,6 +190,13 @@ The rule that decides whether a vendor touches the CSP at all:
 - `'unsafe-eval'` is refused and nothing here needs it.
 - BotID needs **no** CSP entry: its challenge is proxied same-origin through the
   `vercel.json` rewrites, which is also what keeps ad-blockers out of the way.
+- **The Vercel Toolbar needs its own allowance, and the template does not grant
+  it.** `frame-ancestors 'none'` plus `X-Frame-Options: DENY` keep it off preview
+  deploys. A fork that wants it adds `https://vercel.live` (script/style/img,
+  `connect-src` plus `wss://ws-us3.pusher.com`, `assets.vercel.com` for fonts)
+  and relaxes `frame-ancestors` to `'self' https://vercel.live` — and drops
+  `X-Frame-Options`, since `frame-ancestors` supersedes it and is the only one of
+  the two that can express the allowance.
 
 ## Tracking & Consent Mode v2
 
