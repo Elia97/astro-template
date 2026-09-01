@@ -1,8 +1,7 @@
-import { isComment } from './check-comments.ts'
+import { isComment, styleOf } from './check-comments.ts'
 
-// Files that travel between projects: they are read by whoever forks the template, so they
-// stay English. The living per-project documents (ROADMAP, DECISIONS, PROJECT, plans) are
-// deliberately absent — those follow the project's own working language.
+// The files that travel between projects. The living per-project documents (ROADMAP,
+// DECISIONS, PROJECT, plans) are deliberately absent — CLAUDE.md § Language.
 const STABLE = [
   /^CLAUDE\.md$/,
   /^docs\/ARCHITECTURE\.md$/,
@@ -33,7 +32,7 @@ export function proseOf(path: string, source: string): string {
   if (!CODE.test(path)) return source
   return source
     .split('\n')
-    .filter((line) => isComment(line, false))
+    .filter((line) => isComment(line, styleOf(path)))
     .join('\n')
 }
 

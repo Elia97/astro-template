@@ -1,17 +1,37 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import process from 'node:process'
 
 import { isNoisy, report, SCANNED } from './lib/check-comments.ts'
 
-const git = (args) => execFileSync('git', args, { encoding: 'utf8' })
+const git = (args) => execFileSync('git', args, { encoding: 'utf8' }).split('\n')
 
-// Tracked plus untracked: this runs before the commit, and a file just written is the one
-// that most needs looking at.
-const paths = [
-  ...git(['ls-files']).split('\n'),
-  ...git(['ls-files', '--others', '--exclude-standard']).split('\n'),
-].filter((path) => path && SCANNED.test(path))
+const tryGit = (args) => {
+  try {
+    return git(args)
+  } catch {
+    return []
+  }
+}
+
+const untracked = () => git(['ls-files', '--others', '--exclude-standard'])
+
+// `--diff [base]` narrows the sweep to what this branch touched, for the per-PR pass where
+// inherited debt is noise. Without it the whole tree is read: yesterday's debt counts too.
+function diffPaths(requestedBase) {
+  const base = requestedBase ?? (tryGit(['rev-parse', '--verify', 'origin/main']).length ? 'origin/main' : 'main')
+  const [mergeBase] = tryGit(['merge-base', base, 'HEAD'])
+  if (!mergeBase) {
+    console.error(`\n✗ base "${base}" does not resolve — pass one explicitly: --diff <branch>\n`)
+    process.exit(1)
+  }
+  return [...git(['diff', '--name-only', '--diff-filter=ACMR', mergeBase]), ...untracked()]
+}
+
+const diffIndex = process.argv.indexOf('--diff')
+const scope = diffIndex === -1 ? [...git(['ls-files']), ...untracked()] : diffPaths(process.argv[diffIndex + 1])
+const paths = scope.filter((path) => path && SCANNED.test(path)).filter(existsSync)
 
 let totalLines = 0
 let totalComments = 0

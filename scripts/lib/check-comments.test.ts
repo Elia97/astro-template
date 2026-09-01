@@ -1,20 +1,41 @@
 import { describe, expect, it } from 'vitest'
 
-import { isComment, isNoisy, report } from './check-comments.ts'
+import { isComment, isNoisy, report, styleOf } from './check-comments.ts'
+
+describe('styleOf', () => {
+  it.each([
+    ['.github/workflows/ci.yml', 'hash'],
+    ['scripts/x.sh', 'hash'],
+    ['src/styles/globals.css', 'css'],
+    ['src/lib/site.ts', 'slash'],
+  ])('reads %s as %s', (file, expected) => {
+    expect(styleOf(file)).toBe(expected)
+  })
+})
 
 describe('isComment', () => {
   it.each(['// line', '/* block', '* continuation', '{/* astro */}'])('reads %s as a comment', (line) => {
-    expect(isComment(line, false)).toBe(true)
+    expect(isComment(line, 'slash')).toBe(true)
   })
 
   it('reads # as a comment only in hash-style files, and never a shebang', () => {
-    expect(isComment('# yaml', true)).toBe(true)
-    expect(isComment('# yaml', false)).toBe(false)
-    expect(isComment('#!/usr/bin/env node', true)).toBe(false)
+    expect(isComment('# yaml', 'hash')).toBe(true)
+    expect(isComment('# yaml', 'slash')).toBe(false)
+    expect(isComment('#!/usr/bin/env node', 'hash')).toBe(false)
+  })
+
+  // `*` opens the universal selector, so in CSS only a closing `*/` is comment tail.
+  it.each(['* {', '*:not([hidden])', '*, *::before'])('reads %s as CSS code', (line) => {
+    expect(isComment(line, 'css')).toBe(false)
+    expect(isComment(line, 'slash')).toBe(true)
+  })
+
+  it('still reads a closing block tail in CSS', () => {
+    expect(isComment('*/', 'css')).toBe(true)
   })
 
   it('reads code as code', () => {
-    expect(isComment('const a = 1', false)).toBe(false)
+    expect(isComment('const a = 1', 'slash')).toBe(false)
   })
 })
 
