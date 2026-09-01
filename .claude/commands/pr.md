@@ -50,7 +50,8 @@ Quality gate to plan for: **`pnpm run ci`** **→ `pnpm run check:comments`** **
    - `check:comments` always exits 0, but **what it lists has to be resolved before handing off**: it reads the whole tree (tracked plus untracked, no commit needed) and flags comment blocks over two lines, files where comments exceed 15% of their lines, and comments narrating the change instead of describing the code. Findings outside your diff are pre-existing debt: report them, fix them only if the issue is about them. The rule is in `CLAUDE.md`.
    - `audit:diff` is `fallow audit`: dead code, complexity, duplication and styling **scoped to the diff**, exiting non-zero on a fail verdict. It judges only what this branch introduced — inherited findings are reported and excluded from the verdict, so pre-existing debt never blocks an unrelated issue. It picks its own base (merge-base against the remote default); pin it with `FALLOW_AUDIT_BASE` if that resolves wrong.
    - It runs before `build` on purpose: it takes under a second and catches what the expensive step never looks at.
-6. Update impacted docs (never `docs/PROJECT.md`, and never `docs/ROADMAP.md` — that's `/milestone`'s territory only, updated once at seeding time; GitHub's own issue/milestone state is the source of truth for per-issue progress).
+6. **Review containment [HARD]**: any post-gate multi-agent review follows the "Multi-agent workflows" tiers in `CLAUDE.md` — small diff → none, the sequential gate above is enough; medium → at most one reviewer agent; large, or medium touching a risk area → a compact workflow within the caps there. Never auto-append a review workflow outside those tiers, whatever the session mode.
+7. Update impacted docs (never `docs/PROJECT.md`, and never `docs/ROADMAP.md` — that's `/milestone`'s territory only, updated once at seeding time; GitHub's own issue/milestone state is the source of truth for per-issue progress).
 
 ## Phase 5 — Handoff
 
