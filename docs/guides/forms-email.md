@@ -29,7 +29,13 @@ propagates to the client at typecheck time.
 - GDPR consent is `z.literal(true)`: an explicit checkbox, never pre-checked,
   with the privacy link inside the label
   (`contact-consent-field.astro`).
-- Field limits mirror the UI's `maxlength` — keep both in sync.
+- Field limits mirror the UI's `maxlength` — keep both in sync. `254` on the
+  email is the RFC 5321 address limit, not a round number.
+- `z` comes from `astro/zod`, not `astro:content`: only the former exports the
+  type namespace `z.infer` reads.
+- Optional text is `.default('')`, never `.optional()`: under
+  `exactOptionalPropertyTypes` an absent property and an optional one are not
+  interchangeable, and the email templates test the value for emptiness.
 - Every action schema spreads `honeypotShape` (see Abuse protection): the decoy
   is part of the contract, not something the handler reads off the raw body.
 
@@ -150,6 +156,9 @@ Policy worth keeping in a fork:
 - Sender/recipient come from env (`CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`,
   `CONTACT_TO_EMAIL` — schema in astro.config.mjs, list in `.env.example`).
   Verify the sender domain's DKIM/SPF/DMARC before go-live.
+- Failure strings carry the endpoint, the status and the **first 300 characters**
+  of the body: enough to name a rejected attribute, short enough not to dump a
+  vendor's HTML error page into the function logs.
 
 ## Email rendering
 
@@ -157,6 +166,9 @@ Policy worth keeping in a fork:
   stylesheets). Neutral gray palette — restyle per fork if needed.
 - **Every** user-provided value goes through `escapeHtml` before
   interpolation. `detailRow(label, value)` skips empty values.
+- `escapeHtml` replaces through a **function**, never a replacement string: in a
+  string, `$&` and `$1` are substitution patterns, so a user value carrying one
+  would be re-expanded after the escaping.
 - Copy is in the site's default language; the subject carries `SITE.name`.
 
 ## Form UI conventions
@@ -258,7 +270,10 @@ green while the guard order or the error policy is inverted — so it's covered 
 ### A whole new action-backed form
 
 1. **Schema** in its own `src/lib/<name>.ts` (zod, shared client/server),
-   spreading `honeypotShape`.
+   spreading `honeypotShape`. A hidden field the visitor never sees takes
+   `.catch(<fallback>)`, not `.default()`: an unexpected value coerces instead of
+   rejecting the submission, so a visitor on a stale cached bundle still gets
+   through.
 2. **Action** in `src/actions/index.ts`: an exported `handle<Name>` handler
    passed to `defineAction({ accept: 'json', input, handler })`; run the guards
    in the same order (honeypot → rate limit under its **own scope prefix** →
