@@ -23,13 +23,26 @@ describe('isStable', () => {
     },
   )
 
-  // The living documents follow the project's own language, so they are never judged.
-  it.each(['docs/ROADMAP.md', 'docs/DECISIONS.md', 'docs/PROJECT.md', '.claude/plans/pr-1-x.md', 'README.md'])(
-    'leaves %s alone',
+  it.each(['scripts/lhci-local.sh', 'scripts/check-comments.mjs', 'scripts/lib/bundle-budget.ts'])(
+    'covers %s, where the drift goes unnoticed',
     (path) => {
-      expect(isStable(path)).toBe(false)
+      expect(isStable(path)).toBe(true)
     },
   )
+
+  // The living documents follow the project's own language, so they are never judged —
+  // and so do the translation dictionaries, which are user-facing copy under src/.
+  it.each([
+    'docs/ROADMAP.md',
+    'docs/DECISIONS.md',
+    'docs/PROJECT.md',
+    '.claude/plans/pr-1-x.md',
+    'README.md',
+    'src/i18n/strings/it.ts',
+    'src/i18n/dictionaries/it.ts',
+  ])('leaves %s alone', (path) => {
+    expect(isStable(path)).toBe(false)
+  })
 })
 
 describe('classify', () => {

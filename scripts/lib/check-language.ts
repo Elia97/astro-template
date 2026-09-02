@@ -14,6 +14,10 @@ const STABLE = [
 
 const CODE = /^src\/.*\.(?:ts|tsx|astro)$/
 
+// Translation dictionaries are user-facing copy in the project's own language: they live
+// under CODE by extension, and are the one thing there that must not read as English.
+const LOCALIZED = /^src\/i18n\/(?:strings|dictionaries)\//
+
 // Function words that belong to one language only: "in", "come" and "solo" exist in both
 // and would blur the count.
 const ITALIAN =
@@ -26,6 +30,7 @@ const ENGLISH =
 const MIN_HITS = 6
 
 export function isStable(path: string): boolean {
+  if (LOCALIZED.test(path)) return false
   return STABLE.some((pattern) => pattern.test(path)) || CODE.test(path)
 }
 
