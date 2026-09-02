@@ -11,6 +11,7 @@ import {
   cssBudgetFailure,
   deferredClosure,
   expectedRoutes,
+  heaviestStylesheet,
   htmlEntries,
   missingRouteFailures,
   parseEdges,
@@ -33,9 +34,9 @@ function walk(dir, extension) {
 }
 
 function readStylesheets() {
-  const files = readdirSync(ASSETS).filter((f) => f.endsWith('.css'))
-  const totalGzip = files.reduce((total, name) => total + gzipSync(readFileSync(join(ASSETS, name))).length, 0)
-  return { files, totalGzip }
+  return readdirSync(ASSETS)
+    .filter((f) => f.endsWith('.css'))
+    .map((file) => ({ file, gzip: gzipSync(readFileSync(join(ASSETS, file))).length }))
 }
 
 function readChunks() {
@@ -91,11 +92,16 @@ for (const page of pages) {
 console.log('\nDEFERRED = reachable only through `await import()` (loaded after paint, behind a runtime guard).')
 
 const stylesheets = readStylesheets()
-const cssFailure = cssBudgetFailure(stylesheets.totalGzip, stylesheets.files)
+const cssFailure = cssBudgetFailure(stylesheets)
 if (cssFailure) failures.push(cssFailure)
-console.log(
-  `\nCSS (render-blocking, shared by every route)   ${gz(stylesheets.totalGzip).padStart(9)}   ${gz(CSS_BUDGET_GZIP).padStart(9)}${cssFailure ? '  ✗' : ''}`,
-)
+const worst = heaviestStylesheet(stylesheets)
+console.log(`\nCSS (render-blocking, heaviest sheet a route links)`)
+for (const sheet of [...stylesheets].sort((a, b) => b.gzip - a.gzip)) {
+  const mark = sheet === worst && cssFailure ? '  ✗' : ''
+  console.log(
+    `  ${sheet.file.padEnd(width - 2)}   ${gz(sheet.gzip).padStart(9)}   ${gz(CSS_BUDGET_GZIP).padStart(9)}${mark}`,
+  )
+}
 
 if (expected.ssr.length > 0) {
   console.log(
