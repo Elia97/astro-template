@@ -175,6 +175,30 @@ links go through `localizedHref()` so they localize with the site.
   this every navigation drops focus to `<body>` (WCAG 2.4.3). The hash exception
   and why it is not `createMotionBinding` are documented at the binder.
 
+## Smooth scrolling (when a fork adds it)
+
+The template does not ship a scroll library. Three projects have added the same one
+— `lenis`, on `^1.3` — each landing on the same wrapper over `createMotionBinding`
+and `prefersReducedMotion`, which are already here. What they had to find out:
+
+- **The cleanup is empty on purpose.** The instance has to survive a view
+  transition: destroying it on `astro:before-swap` leaves the next page scrolling
+  natively for the frames before setup runs, which reads as a stutter on every
+  navigation. What the setup does instead is call `resize()` when an instance is
+  already running — the document under it has changed.
+- **The `raf` loop stops itself** by returning without rescheduling when the
+  instance is gone. A loop that keeps calling `raf()` on a destroyed instance is
+  the usual leak here, and it costs a frame's work on every tick for the rest of
+  the session.
+- **[HARD] Reduced motion has to destroy, not skip.** Honouring the preference at
+  setup time is not enough: the media query can flip while the page is open, and
+  the listener must tear the instance down and rebuild it on the way back. A
+  smooth-scroll library that keeps running under `prefers-reduced-motion: reduce`
+  is an accessibility defect no gate here catches.
+- It takes over scrolling globally, so `scroll-behavior: smooth` in CSS and any
+  `scrollIntoView({ behavior: 'smooth' })` stop being the thing that moves the
+  page — route them through the instance instead of leaving both in play.
+
 ## Named view transitions (when a fork adds them)
 
 The template ships `<ClientRouter />` with its default cross-fade and **no named

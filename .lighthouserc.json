@@ -1,0 +1,20 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "pnpm dlx serve@14 dist/client --listen 4321 --no-clipboard",
+      "startServerReadyPattern": "Accepting connections",
+      "startServerReadyTimeout": 120000,
+      "url": ["http://localhost:4321/", "http://localhost:4321/contatti", "http://localhost:4321/privacy"],
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.85 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }],
+        "categories:best-practices": ["warn", { "minScore": 0.95 }],
+        "categories:seo": ["error", { "minScore": 0.95 }]
+      }
+    },
+    "upload": { "target": "temporary-public-storage" }
+  }
+}

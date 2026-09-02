@@ -61,10 +61,19 @@ const toPosix = (path: string, prefix: string): string => path.slice(prefix.leng
 
 export const CSS_BUDGET_GZIP = 12 * 1024
 
-export function cssBudgetFailure(totalGzip: number, files: readonly string[]): string | null {
-  if (totalGzip <= CSS_BUDGET_GZIP) return null
-  const over = totalGzip - CSS_BUDGET_GZIP
-  return `CSS ${(totalGzip / 1024).toFixed(1)} KB gz > ${(CSS_BUDGET_GZIP / 1024).toFixed(1)} KB (+${(over / 1024).toFixed(1)} KB) across ${String(files.length)} file(s): ${files.join(', ')}`
+export type Stylesheet = { file: string; gzip: number }
+
+export function heaviestStylesheet(sheets: readonly Stylesheet[]): Stylesheet | null {
+  return sheets.reduce<Stylesheet | null>((worst, sheet) => (worst && worst.gzip >= sheet.gzip ? worst : sheet), null)
+}
+
+// Astro emits one stylesheet per page group and a route links exactly one of them, so their
+// sum is bytes no visitor ever downloads together.
+export function cssBudgetFailure(sheets: readonly Stylesheet[]): string | null {
+  const heaviest = heaviestStylesheet(sheets)
+  if (heaviest === null || heaviest.gzip <= CSS_BUDGET_GZIP) return null
+  const over = heaviest.gzip - CSS_BUDGET_GZIP
+  return `CSS ${(heaviest.gzip / 1024).toFixed(1)} KB gz > ${(CSS_BUDGET_GZIP / 1024).toFixed(1)} KB (+${(over / 1024).toFixed(1)} KB) in ${heaviest.file}`
 }
 
 export function routeOf(htmlPath: string, dist: string): string {

@@ -5,6 +5,7 @@ import {
   BOTID_CHALLENGE,
   checkBotIdChallenge,
   checkCanonicalHost,
+  checkTrailingSlash,
   PAGES,
   runChecks,
   SECURITY_HEADERS,
@@ -67,6 +68,34 @@ describe('checkCanonicalHost', () => {
   })
 })
 
+describe('checkTrailingSlash', () => {
+  const probed = PAGES.find(({ path, type }) => type === 'text/html' && path !== '/')?.path ?? ''
+
+  it('passes on a 308 whose location drops the slash', async () => {
+    const get = vi.fn(always({ status: 308, headers: { location: `${SITE_URL}${probed}` } }))
+
+    expect(statuses(await checkTrailingSlash(context(get)))).toEqual(['pass'])
+    expect(get).toHaveBeenCalledWith(`${SITE_URL}${probed}/`)
+  })
+
+  it.each([
+    [{ status: 200, headers: { location: `${SITE_URL}${probed}` } }, /expected 308/],
+    [{ status: 308, headers: { location: `${SITE_URL}/altrove` } }, /does not point at/],
+    [{ status: 308, headers: {} }, /location ""/],
+  ])('fails on %o', async (init, detail) => {
+    const [result] = await checkTrailingSlash(context(always(init)))
+
+    expect(result?.status).toBe('fail')
+    expect(result?.detail).toMatch(detail)
+  })
+
+  it('reports a network error', async () => {
+    const [result] = await checkTrailingSlash(context(() => Promise.reject(new Error('ECONNRESET'))))
+
+    expect(result).toMatchObject({ status: 'fail', detail: 'ECONNRESET' })
+  })
+})
+
 describe('runChecks', () => {
   it('runs every check, in order', async () => {
     const headers = { ...secureHeaders(), 'content-type': 'text/html' }
@@ -79,6 +108,7 @@ describe('runChecks', () => {
       'no x-robots-tag on the production host',
       'BotID challenge proxied same-origin',
       'www → apex 308',
+      'trailing slash → 308',
     ])
   })
 })

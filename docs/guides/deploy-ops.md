@@ -244,6 +244,12 @@ Consequences worth stating outright:
 - GA4 is configured **inside the GTM container**, not in the app. New events are
   `dataLayer` pushes (`src/lib/analytics/data-layer.ts`) plus GTM-side config —
   adding a tag is not a code change.
+- The split has a failure mode with no symptom: the app pushes an event and the
+  container listens for nothing, so the tag never fires and the build stays green.
+  `pnpm run analytics:verify` reads the container's public `gtm.js` and reports any
+  event `src/lib/analytics/link-tracking.ts` pushes without a trigger behind it. It
+  exits 0 with a notice when `PUBLIC_GTM_ID` is unset, so it is safe in a pipeline
+  before the container exists.
 - Consent Mode is the **basic** shape, deliberately: advanced sends cookieless
   pings for modeling, which needs roughly 1k daily events on each side of the
   consent split to produce anything — traffic a site this size won't have.

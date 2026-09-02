@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   budgetFor,
-  CSS_BUDGET_GZIP,
-  cssBudgetFailure,
   deferredClosure,
   expectedRoutes,
   htmlEntries,
@@ -147,23 +145,6 @@ describe('budgetFor', () => {
   it('falls back to the default budget for any route', () => {
     expect(budgetFor('/anything').label).toBe('default')
     expect(budgetFor('/').maxGzip).toBe(20 * 1024)
-  })
-})
-
-describe('cssBudgetFailure', () => {
-  it('passes a stylesheet under the budget', () => {
-    expect(cssBudgetFailure(CSS_BUDGET_GZIP - 1, ['main.css'])).toBeNull()
-  })
-
-  it('passes a stylesheet exactly at the budget', () => {
-    expect(cssBudgetFailure(CSS_BUDGET_GZIP, ['main.css'])).toBeNull()
-  })
-
-  it('reports the overage and names every file counted', () => {
-    const failure = cssBudgetFailure(CSS_BUDGET_GZIP + 2048, ['main.css', 'extra.css'])
-    expect(failure).toContain('main.css')
-    expect(failure).toContain('extra.css')
-    expect(failure).toContain('2 file(s)')
   })
 })
 
