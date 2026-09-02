@@ -30,6 +30,13 @@ describe('isStable', () => {
     },
   )
 
+  // A shell script is read whole — its echoes are the substance — while a .ts or .mjs is read
+  // through its comments, the way src/ is: a message string is the project talking to itself.
+  it('reads a shell script whole and a script module through its comments', () => {
+    expect(proseOf('scripts/x.sh', '# commento\necho "ciao"')).toContain('echo')
+    expect(proseOf('scripts/x.mjs', '// a comment\nconst s = `messaggio in italiano`')).not.toContain('messaggio')
+  })
+
   // The living documents follow the project's own language, so they are never judged —
   // and so do the translation dictionaries, which are user-facing copy under src/.
   it.each([

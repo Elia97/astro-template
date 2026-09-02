@@ -9,10 +9,11 @@ const STABLE = [
   /^docs\/milestone-templates\//,
   /^docs\/proposal-templates\//,
   /^\.claude\/(?:commands|agents)\//,
-  /^scripts\/.*\.(?:sh|mjs|ts)$/,
+  /^scripts\/.*\.sh$/,
 ]
 
-const CODE = /^src\/.*\.(?:ts|tsx|astro)$/
+// scripts/ travels between projects too, and is judged on its comments like any code.
+const CODE = /^(?:src|scripts)\/.*\.(?:ts|tsx|mjs|astro)$/
 
 // Translation dictionaries are user-facing copy in the project's own language: they live
 // under CODE by extension, and are the one thing there that must not read as English.
