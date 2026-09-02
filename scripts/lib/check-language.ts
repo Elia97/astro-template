@@ -21,9 +21,8 @@ const ITALIAN =
 const ENGLISH =
   /\b(?:the|and|that|with|from|this|is|are|of|when|only|also|already|every|but|which|what|they|their|does|has|without|so|because)\b/gi
 
-// Under this many hits the sample says nothing. 6 rather than 12: a source file carries
-// few comment lines, and at 12 every one of them read as undecided — measured against the
-// template and atc, which are fully English, 6 still yields zero false positives.
+// Under this many hits the sample says nothing. 6 rather than 12: measured against the
+// template and atc, both fully English, 12 left every source file undecided and 6 none.
 const MIN_HITS = 6
 
 export function isStable(path: string): boolean {
