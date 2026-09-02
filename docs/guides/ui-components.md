@@ -21,7 +21,19 @@ Cross-ref: `rendering-performance.md` (motion/reveal lifecycle), `seo.md` (head 
 - **`z-*` comes from the ladder in `tokens.css`**, not from a number that
   happened to work: `--z-raised` < `--z-dropdown` < `--z-header` < `--z-overlay`
   < `--z-skip-link`. Place a new overlay by reading it, and reach it through the
-  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`.
+  named `z-*` utilities in `globals.css` — never an arbitrary `z-[…]`. The ladder only
+  orders siblings: **any `z-*` on an intermediate wrapper opens a stacking
+  context**, and a popover inside it can never rise above something outside it,
+  whatever number it carries. When an overlay lands under the header, look for a
+  `z-*` on an ancestor before raising the overlay's own.
+- **Timing and easing are tokens like the colours**, and `tokens.css` is the only
+  sheet allowed to spell one out: `--ease-emphasized` and `--duration-slower`
+  live there, the effect sheets consume them. `src/styles/motion.test.ts` holds
+  it — a `cubic-bezier(` or a literal duration in a `transition`/`animation`
+  fails there. A `var(--x, 0.08s)` fallback is exempt: that is one instance's
+  default, not a timing of the system. A fork adding more steps names them off
+  the same two axes; declaring them in `@theme` instead of `:root` also generates
+  the matching `ease-*` utility, which `:root` does not.
 - `src/styles/light.css` / `dark.css` — semantic role mapping (shadcn naming:
   `--background`, `--primary`, `--destructive`, …). **Never rename these keys**;
   components and utilities assume them. Dark overrides the same keys under `.dark`.
@@ -38,6 +50,15 @@ syntax `bg-(image:--gradient-name)` — the `image:` cast is required, a gradien
 
 Biome parses Tailwind directives via `css.parser.tailwindDirectives` in
 `biome.json` — don't remove it, `@theme`/`@apply` fail to parse without it.
+
+**[HARD] In an `.astro` file Biome only reaches the frontmatter.** The template
+part comes out byte for byte as written, with three consequences worth knowing
+before trusting a green `pnpm run ci`: Tailwind class order is sorted
+automatically only inside `cn`/`cva` and in `.tsx`, so in `.astro` markup the
+order is yours (and reordering it by hand elsewhere is pure diff noise); the
+accessibility rules never see that markup, so an `<img>` without `alt` passes the
+gate — `astro check` and a Lighthouse audit are what catch it; and the line-count
+rules don't count those files either.
 
 ## Dark mode
 
@@ -111,6 +132,9 @@ links go through `localizedHref()` so they localize with the site.
   glow around the field border — a legitimate use, not a leftover.
 - Logical properties for the inline axis (`start-4`, `ms-*`) — the template is
   i18n-ready and must survive an RTL locale.
+- `overflow-wrap: anywhere`, not `break-word`, when a long token must not blow up
+  a flex or grid track: only `anywhere` lowers the box's *minimum* content size,
+  which is what the track is measured against.
 - `min-h-svh` for full-viewport shells (stable on mobile; `dvh` janks on scroll,
   `100vh` overflows under the expanded URL bar).
 - Current utility names: `backdrop-blur-sm` (bare `backdrop-blur` is the
@@ -130,6 +154,21 @@ links go through `localizedHref()` so they localize with the site.
   Tab wraps at both ends) and `lib/overlay/scroll-lock.ts` (reference-counted
   `lockScroll`/`unlockScroll`; `resetScrollLock()` on `astro:after-swap` so locks
   never leak across view transitions).
+- **[HARD] Every programmatic `focus()` takes `{ preventScroll: true }`.** The
+  browser scrolls a focused element into view: opening a panel scrolls its own
+  container, and restoring focus on close jumps the page to wherever the previous
+  element sits — which, after any scrolling, is off screen. `route-focus.ts` and
+  `mobile-nav.ts` both do this.
+- **Bind an overlay's toggle to `click`, not `pointerup`.** On touch the
+  `pointerup` fires first and the `click` that follows lands on whatever is now
+  under the finger, reopening what was just closed.
+- **A full-screen `<dialog>` is its own backdrop as far as the event target
+  goes.** The dialog element fills the viewport, so a click outside the content
+  targets the *dialog*, never `::backdrop` — compare against the content's
+  bounding box instead of testing the target for the backdrop.
+- **A `<video>` with its source still attached keeps buffering after the overlay
+  closes.** Detach it (or pause and clear `src`) on close, or a closed lightbox
+  keeps pulling bytes.
 - **Focus after a client-side navigation** (`lib/a11y/route-focus.ts`, bound once
   in the layout). `<ClientRouter />` restores focus only inside
   `[data-astro-transition-persist]` subtrees and the template has none, so without

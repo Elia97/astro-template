@@ -47,18 +47,26 @@ function showFeedback(form: HTMLFormElement, kind: 'success' | 'error' | 'none',
   if (kind === 'error' && error && message) error.textContent = message
 }
 
+// [HARD] An action fails through two channels: the returned `{ error }` and a throw — a 413
+// over `actionBodySizeLimit`, or a network failure, arrives as the second. Uncaught, the
+// form stays pending with its button disabled and says nothing.
 async function submitActionForm<P>(form: HTMLFormElement, payload: P, submit: ActionSubmit<P>): Promise<void> {
   setPending(form, true)
-  const { error } = await submit(payload)
-  setPending(form, false)
+  try {
+    const { error } = await submit(payload)
 
-  if (!error) {
-    form.reset()
-    clearFieldErrors(form)
-    showFeedback(form, 'success')
-    return
+    if (!error) {
+      form.reset()
+      clearFieldErrors(form)
+      showFeedback(form, 'success')
+      return
+    }
+    reportError(form, error)
+  } catch (error) {
+    reportError(form, error)
+  } finally {
+    setPending(form, false)
   }
-  reportError(form, error)
 }
 
 export function createActionFormBinding<P>(config: {

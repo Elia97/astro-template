@@ -127,8 +127,8 @@
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transition:
-      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity var(--duration-slower) var(--ease-emphasized),
+      transform var(--duration-slower) var(--ease-emphasized);
     transition-delay: var(--reveal-delay, 0s);
   }
   /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
@@ -143,8 +143,8 @@
   /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */
   html.js [data-reveal-stagger] > * {
     transition:
-      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity var(--duration-slower) var(--ease-emphasized),
+      transform var(--duration-slower) var(--ease-emphasized);
     transition-delay: calc(var(--i, 0) * var(--reveal-stagger, 0.08s));
   }
   /* fallow-ignore-next-line css-selector-complexity -- see the gating note above */

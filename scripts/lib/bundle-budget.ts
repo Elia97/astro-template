@@ -83,9 +83,18 @@ function pageRouteOf(file: string, pagesDir: string): string {
 }
 
 function segmentPattern(segment: string): string {
-  if (segment.startsWith('[...')) return '.+'
   if (segment.startsWith('[')) return '[^/]+'
   return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const TRAILING_REST_SEGMENT = /\/\[\.\.\.[^/]*\]$/
+
+// A trailing rest segment also matches nothing: `paginate()` emits page one as the bare
+// path (`/news`, never `/news/1`), so requiring a segment fails a one-page archive.
+function routePattern(route: string): RegExp {
+  const body = (path: string) => path.split('/').map(segmentPattern).join('/')
+  if (!TRAILING_REST_SEGMENT.test(route)) return new RegExp(`^${body(route)}$`)
+  return new RegExp(`^${body(route.replace(TRAILING_REST_SEGMENT, ''))}(?:/.*)?$`)
 }
 
 /** Only `.astro` pages: an endpoint like `robots.txt.ts` prerenders too but emits no HTML. */
@@ -101,8 +110,7 @@ export function expectedRoutes(pages: readonly PageFile[], pagesDir: string): Ex
       expectations.exact.push({ route, file })
       continue
     }
-    const pattern = new RegExp(`^${route.split('/').map(segmentPattern).join('/')}$`)
-    expectations.patterns.push({ pattern, label: route, file })
+    expectations.patterns.push({ pattern: routePattern(route), label: route, file })
   }
   return expectations
 }

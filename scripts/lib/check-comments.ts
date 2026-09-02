@@ -17,6 +17,7 @@ const KEEP =
   /biome-ignore|@ts-|\/\/\/\s*<reference|@vitest-environment|fallow-ignore|v8 ignore|TODO|FIXME|\[HARD\]|@public|@internal|@deprecated|^#!/
 
 const HASH_STYLE = /\.(ya?ml|sh)$/
+const CSS_STYLE = /\.css$/
 // Out: files where the comment *is* the content — in `.env.example` and `.npmrc` every
 // line of prose documents the key below it.
 export const SCANNED = /\.(ts|tsx|astro|mjs|js|css|ya?ml|sh)$/
@@ -30,10 +31,19 @@ const PAST_TENSE = [
   /#\d{1,3}\b/,
 ]
 
-export function isComment(line: string, hashStyle: boolean): boolean {
+export type CommentStyle = 'hash' | 'css' | 'slash'
+
+export function styleOf(file: string): CommentStyle {
+  if (HASH_STYLE.test(file)) return 'hash'
+  return CSS_STYLE.test(file) ? 'css' : 'slash'
+}
+
+export function isComment(line: string, style: CommentStyle): boolean {
   const s = line.trim()
-  if (hashStyle) return s.startsWith('#') && !s.startsWith('#!')
-  return s.startsWith('//') || s.startsWith('/*') || s.startsWith('*') || s.startsWith('{/*')
+  if (style === 'hash') return s.startsWith('#') && !s.startsWith('#!')
+  // In CSS `*` opens the universal selector: `*:not(…)` and `* {` are code, not a block's tail.
+  if (s.startsWith('*')) return style !== 'css' || s.startsWith('*/')
+  return s.startsWith('//') || s.startsWith('/*') || s.startsWith('{/*')
 }
 
 // A marker exempts its own line, never the block: one `[HARD]` anywhere used to buy a
@@ -51,13 +61,13 @@ function pastTenseFinding(file: string, line: Line): string | null {
 }
 
 export function report(file: string, lines: Line[]): FileReport {
-  const hashStyle = HASH_STYLE.test(file)
+  const style = styleOf(file)
   const findings: string[] = []
   let comments = 0
   let block: Line[] = []
 
   for (const line of lines) {
-    if (!isComment(line.text, hashStyle)) {
+    if (!isComment(line.text, style)) {
       const finding = blockFinding(file, block)
       if (finding) findings.push(finding)
       block = []

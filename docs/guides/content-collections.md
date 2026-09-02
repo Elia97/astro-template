@@ -112,6 +112,35 @@ matching `generateId` regex.
   contract covers the sitemap — only prerendered routes are emitted, so an
   unbuilt draft URL can't leak in (no sitemap `filter` needed).
 
+## Paginated listings (when a fork adds one)
+
+An archive pages through `paginate()` from `getStaticPaths`, and a facet
+(category, tag, year) is **another set of generated routes** — never a
+client-side filter. Under `output: 'static'` nothing else survives pagination: a
+script filtering the current page silently drops the entries on page two, and
+with them everything past the first page leaves the index.
+
+- **Page one has no page segment.** `[...page].astro` emits `/news`, never
+  `/news/1`, and the canonical must follow (`currentPage === 1` → the bare path).
+  Anything reading routes as patterns has to allow the **empty** rest segment —
+  `scripts/lib/bundle-budget.ts` does, and a test pins it: without that a
+  one-page archive is reported as a route that emitted nothing.
+- **Don't annotate the return type.** Return `paginate(...)` as it comes:
+  `PaginateFunction` carries `page: Page<T>` plus your own props through to
+  `Astro.props`, and a `GetStaticPathsResult` annotation erases both — the route
+  then sees `unknown`.
+- **`page.url.prev`/`next` already carry the locale prefix**, being built from
+  the route the file sits in: pagination links need no `localizedHref()`.
+- **One shell, N routes.** Index and facet render the same page with a different
+  slice, so the markup lives in one component and each route file is a
+  `getStaticPaths` plus the mount. Copies of a listing page diverge.
+- **A facet generates only the values actually in use**, or the filter offers
+  links to empty pages; a value the UI has no label for is dropped, never printed
+  raw.
+- Client enhancement (an endless feed appending the next page) sits **on top** of
+  the generated routes and never replaces them: without the script the same
+  element stays a real link, which is what crawlers follow.
+
 ## Testable domain rules
 
 Any predicate with branching (draft visibility, environment-gated filters, …)

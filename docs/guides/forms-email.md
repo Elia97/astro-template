@@ -29,9 +29,22 @@ propagates to the client at typecheck time.
 - GDPR consent is `z.literal(true)`: an explicit checkbox, never pre-checked,
   with the privacy link inside the label
   (`contact-consent-field.astro`).
-- Field limits mirror the UI's `maxlength` — keep both in sync.
+- Field limits mirror the UI's `maxlength` — keep both in sync. `254` on the
+  email is the RFC 5321 address limit, not a round number.
+- `z` comes from `astro/zod`, not `astro:content`: only the former exports the
+  type namespace `z.infer` reads.
+- Optional text is `.default('')`, never `.optional()`: under
+  `exactOptionalPropertyTypes` an absent property and an optional one are not
+  interchangeable, and the email templates test the value for emptiness.
 - Every action schema spreads `honeypotShape` (see Abuse protection): the decoy
   is part of the contract, not something the handler reads off the raw body.
+- **[HARD] With `accept: 'form'` an empty input arrives as `null`, not `''`.**
+  Every field of a schema shared with the client then needs a `z.preprocess` that
+  normalizes it — and skipping it on the **honeypot** silently drops legitimate
+  submissions, because `.catch()` reads that `null` as a filled decoy.
+- **`security.actionBodySizeLimit` is 1 MB by default.** An action that accepts a
+  file has to raise it in `astro.config.mjs`, or Astro answers
+  `CONTENT_TOO_LARGE` (413) before the handler ever runs.
 
 **[HARD] Every message comes from the dictionary.** Zod's own errors are English
 ("Invalid email") and they reach the user verbatim — `applyFieldErrors()` prints
@@ -138,6 +151,11 @@ Policy worth keeping in a fork:
 
 - `BrevoResult = { ok: true } | { ok: false, error }` — failure is a **value**,
   not a throw; only the action decides what's fatal.
+- **A vendor's success is not always a 2xx you expect.** Brevo answers **204** for
+  an address already on the list: that is idempotence, not an error, and the
+  action returns `{ ok: true }` rather than duplicating a contact. Read the
+  vendor's status table before mapping its responses.
+- Brevo's account rate limit is ~30 req/s — never hit it in a burst from SSR.
 - Missing `BREVO_API_KEY`: **dev no-ops loudly** (console.warn, form
   "succeeds"), **production refuses** (an explicit error instead of a
   silently dropped lead). Keep this behavior for any replacement vendor.
@@ -150,6 +168,16 @@ Policy worth keeping in a fork:
 - Sender/recipient come from env (`CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`,
   `CONTACT_TO_EMAIL` — schema in astro.config.mjs, list in `.env.example`).
   Verify the sender domain's DKIM/SPF/DMARC before go-live.
+- **[HARD] The recipient of an internal notification is decided server-side —
+  env or content, never client input.** An action that mails whatever address the
+  payload carries is an **open relay** running on a verified sending domain: it
+  costs the domain its reputation, and nothing in the app looks broken while it
+  happens. The one address that may come from the payload is the sender's own, on
+  an autoreply addressed back to them (`src/actions/index.ts`) — and to nobody
+  else, `cc`/`bcc` included.
+- Failure strings carry the endpoint, the status and the **first 300 characters**
+  of the body: enough to name a rejected attribute, short enough not to dump a
+  vendor's HTML error page into the function logs.
 
 ## Email rendering
 
@@ -157,6 +185,9 @@ Policy worth keeping in a fork:
   stylesheets). Neutral gray palette — restyle per fork if needed.
 - **Every** user-provided value goes through `escapeHtml` before
   interpolation. `detailRow(label, value)` skips empty values.
+- `escapeHtml` replaces through a **function**, never a replacement string: in a
+  string, `$&` and `$1` are substitution patterns, so a user value carrying one
+  would be re-expanded after the escaping.
 - Copy is in the site's default language; the subject carries `SITE.name`.
 
 ## Form UI conventions
@@ -258,7 +289,10 @@ green while the guard order or the error policy is inverted — so it's covered 
 ### A whole new action-backed form
 
 1. **Schema** in its own `src/lib/<name>.ts` (zod, shared client/server),
-   spreading `honeypotShape`.
+   spreading `honeypotShape`. A hidden field the visitor never sees takes
+   `.catch(<fallback>)`, not `.default()`: an unexpected value coerces instead of
+   rejecting the submission, so a visitor on a stale cached bundle still gets
+   through.
 2. **Action** in `src/actions/index.ts`: an exported `handle<Name>` handler
    passed to `defineAction({ accept: 'json', input, handler })`; run the guards
    in the same order (honeypot → rate limit under its **own scope prefix** →

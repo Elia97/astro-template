@@ -33,7 +33,9 @@ function openMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
   setBackgroundInert(panel, true)
   lockScroll()
   isOpen = true
-  focusableElements(panel)[0]?.focus()
+  // preventScroll on both focus calls: without it the panel scrolls its own container open,
+  // and on close the focus target — off-screen after any scrolling — jumps the page to it.
+  focusableElements(panel)[0]?.focus({ preventScroll: true })
 }
 
 function closeMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
@@ -43,7 +45,7 @@ function closeMenu(panel: HTMLElement, toggle: HTMLButtonElement): void {
   setBackgroundInert(panel, false)
   if (isOpen) unlockScroll()
   isOpen = false
-  ;(lastFocused ?? toggle).focus()
+  ;(lastFocused ?? toggle).focus({ preventScroll: true })
 }
 
 function bindMobileNavHandlers(panel: HTMLElement, toggle: HTMLButtonElement): () => void {

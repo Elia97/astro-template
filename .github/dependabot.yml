@@ -6,11 +6,11 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
-    # [HARD] release-please bumps the version on `feat`/`fix` alone, so under
-    # `chore(deps)` a merged CVE patch never cuts a tag and never reaches production.
+    # [HARD] `chore` is hidden in `changelog-sections` and the deploy job runs only on a tag:
+    # a bump merged here reaches production with the next releasable commit, never on its own.
     commit-message:
-      prefix: 'fix(deps)'
-      prefix-development: 'fix(deps-dev)'
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
     cooldown:
       default-days: 7
       semver-major-days: 14
@@ -38,8 +38,6 @@ updates:
       interval: 'weekly'
     labels:
       - 'github-actions'
-    # `chore` on purpose, unlike the npm group above: an action version never
-    # enters the deployed artifact, so these have nothing to publish.
     commit-message:
       prefix: 'chore(deps)'
     groups:
