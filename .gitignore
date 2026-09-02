@@ -53,3 +53,7 @@ docs/*.pdf
 
 # office temp files — the client's own brief under docs/sources/ stays tracked: it is the source
 ~$*
+
+# Lighthouse CI local reports
+.lighthouseci/
+dist/lh-prod/

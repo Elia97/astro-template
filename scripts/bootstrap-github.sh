@@ -2,9 +2,10 @@
 # GitHub-side config no file in the tree can carry. Idempotent — re-run it whenever (HOW_TO_USE.md).
 set -euo pipefail
 
-echo "==> 1/4 Dependabot labels (without them every dependabot PR logs 'label could not be found')"
+echo "==> 1/4 Labels: dependabot's (without them every dependabot PR logs 'label could not be found') and lighthouse's (the Lighthouse CI workflow runs on a PR only when it carries it)"
 gh label create dependencies --color 0366D6 --description "Dependency updates" --force
 gh label create github-actions --color 000000 --description "GitHub Actions updates" --force
+gh label create lighthouse --color FBCA04 --description "Run Lighthouse CI on this PR" --force
 
 echo "==> 2/4 Merge policy: squash ONLY (1 commit/PR on main); title=PR, body empty"
 # [HARD] Squash body stays empty; breaking changes need `!` in the title — docs/guides/deploy-ops.md § Release flow.

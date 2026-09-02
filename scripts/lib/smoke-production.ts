@@ -126,11 +126,28 @@ export async function checkCanonicalHost({ get, baseUrl, siteUrl }: SmokeContext
   }
 }
 
+export async function checkTrailingSlash({ get, baseUrl }: SmokeContext): Promise<CheckResult[]> {
+  const page = PAGES.find(({ path, type }) => type === 'text/html' && path !== '/')
+  const check = 'trailing slash → 308'
+  /* v8 ignore next -- PAGES always carries an HTML page other than /, but find() types it optional */
+  if (page === undefined) return [skip(check, 'no HTML page other than / to probe')]
+  try {
+    const response = await get(`${baseUrl}${page.path}/`)
+    if (response.status !== 308) return [fail(check, `expected 308 on ${page.path}/, got ${response.status}`)]
+    const location = response.headers.get('location') ?? ''
+    if (!location.endsWith(page.path)) return [fail(check, `location "${location}" does not point at ${page.path}`)]
+    return [pass(check)]
+  } catch (error) {
+    return [fail(check, messageOf(error))]
+  }
+}
+
 export async function runChecks(context: SmokeContext): Promise<CheckResult[]> {
   return [
     ...(await checkPages(context)),
     ...(await checkSecurityHeaders(context)),
     ...(await checkBotIdChallenge(context)),
     ...(await checkCanonicalHost(context)),
+    ...(await checkTrailingSlash(context)),
   ]
 }

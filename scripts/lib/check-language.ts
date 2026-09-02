@@ -9,6 +9,7 @@ const STABLE = [
   /^docs\/milestone-templates\//,
   /^docs\/proposal-templates\//,
   /^\.claude\/(?:commands|agents)\//,
+  /^scripts\/.*\.(?:sh|mjs|ts)$/,
 ]
 
 const CODE = /^src\/.*\.(?:ts|tsx|astro)$/

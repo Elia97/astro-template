@@ -83,14 +83,20 @@ shared name is needed on both sides, split the file rather than the name.
 `output: 'static'` and `trailingSlash: 'never'` are what make a local audit
 meaningful: `dist/client` served flat is byte-for-byte what the CDN serves. A
 page that opted out with `prerender = false` is not, and shows up as a `NOTE` in
-the bundle-budget report. One-shot, nothing added to the dependencies:
+the bundle-budget report.
 
-```bash
-pnpm run build
-pnpm dlx serve dist/client -l 4321
-CHROME_PATH=<path to chromium> pnpm dlx lighthouse http://localhost:4321/ \
-  --chrome-flags="--headless=new --no-sandbox --user-data-dir=/tmp/lh-profile" --quiet
-```
+- `pnpm run lhci:local` does the whole run: builds with `VERCEL_ENV=production`,
+  refuses to go on unless `robots.txt` says `Allow: /`, serves `dist/lh-prod/client`
+  flat, finds a Linux Chrome and prints the median score per URL. Nothing is added
+  to the dependencies — `@lhci/cli` and `serve` go through `pnpm dlx`.
+- In CI, `.github/workflows/lighthouse.yml` asserts what `.lighthouserc.json` says:
+  weekly on the default branch, and on a PR only when it carries the `lighthouse`
+  label. `continue-on-error: true` on purpose — advisory, never a gate, because a
+  shared runner's numbers move on their own.
+- **[HARD] The CI report is uploaded to `temporary-public-storage`**, Google's
+  public bucket: anyone holding the URL reads it, and it embeds a screenshot of the
+  page. Harmless for a public marketing site, wrong for anything behind deployment
+  protection — set `upload.target` to `filesystem` there.
 
 - **`astro preview` does not work with the Vercel adapter** ("does not support
   the preview command"), which is why the build is served by a plain static

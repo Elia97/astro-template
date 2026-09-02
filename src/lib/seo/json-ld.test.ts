@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildBreadcrumbList, buildItemList } from '@/lib/seo/json-ld'
+import { COMPANY } from '@/lib/company'
+import { buildBreadcrumbList, buildItemList, buildOrganization, buildWebSite } from '@/lib/seo/json-ld'
+import { SITE } from '@/lib/site'
 
 const TRAIL = [
   { name: 'Home', url: '/' },
@@ -25,5 +27,24 @@ describe('buildItemList', () => {
     expect(schema.itemListElement).toEqual([
       { '@type': 'ListItem', position: 1, name: 'Voce', url: 'https://example.com/sezione/voce' },
     ])
+  })
+})
+
+describe('buildOrganization', () => {
+  it('carries the company identity and a PostalAddress', () => {
+    const schema = buildOrganization()
+
+    expect(schema).toMatchObject({
+      '@type': 'Organization',
+      name: COMPANY.legalName,
+      url: SITE.url,
+      address: { '@type': 'PostalAddress' },
+    })
+  })
+})
+
+describe('buildWebSite', () => {
+  it('names the site, not the company', () => {
+    expect(buildWebSite()).toMatchObject({ '@type': 'WebSite', name: SITE.name, url: SITE.url })
   })
 })

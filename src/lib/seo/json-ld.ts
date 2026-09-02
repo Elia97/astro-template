@@ -1,3 +1,4 @@
+import { COMPANY } from '@/lib/company'
 import { SITE } from '@/lib/site'
 
 function absoluteUrl(path: string): string {
@@ -7,6 +8,27 @@ function absoluteUrl(path: string): string {
 interface ListEntry {
   name: string
   url: string
+}
+
+export function buildOrganization() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: COMPANY.legalName,
+    url: SITE.url,
+    telephone: COMPANY.phone,
+    email: COMPANY.email,
+    address: { '@type': 'PostalAddress', ...COMPANY.address },
+  }
+}
+
+export function buildWebSite() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: SITE.url,
+  }
 }
 
 /** schema.org BreadcrumbList — pass the trail in order, home first. */
