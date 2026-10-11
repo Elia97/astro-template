@@ -295,7 +295,9 @@ i percorsi relativi e lascia come sono ancore, URL esterni, `mailto:` e `tel:`.
 Il selettore di lingua compare da solo nell'header e nella nav mobile quando una pagina esiste in
 almeno due lingue. Una pagina che non esiste in tutte dichiara le sue con la prop `locales` del
 layout, `<MainLayout locales={['it']}>`: alternate hreflang e selettore leggono la stessa lista, come
-spiega la politica degli URL in `docs/guides/seo.md`.
+spiega la politica degli URL in `docs/guides/seo.md`. Una pagina che esiste in una lingua ma non va
+indicizzata, come una legale non ancora tradotta, si elenca invece in `NOINDEX_PATHS`
+(`src/lib/seo/crawl-policy.ts`): che cosa ne segue lo dice `docs/guides/seo.md` § Sitemap e robots.
 
 ## Secret di release
 

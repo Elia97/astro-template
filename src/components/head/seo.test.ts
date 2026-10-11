@@ -1,7 +1,9 @@
+import { withOnlyListedPaths } from '@test/helpers/crawl-policy'
 import { describe, expect, it, vi } from 'vitest'
 
 import { resolveHeadSeoMeta } from '@/components/head/seo'
 
+import { NOINDEX_PATHS } from '@/lib/seo/crawl-policy'
 import { localeTag, SITE } from '@/lib/site'
 
 import { localeSwitchHref } from '@/i18n/path'
@@ -14,6 +16,7 @@ const params = {
   title: 'Page title',
   absoluteTitle: false,
   currentLocale: 'it',
+  pathname: '/',
   canonicalPath: '/',
   ogImage: undefined,
   locales: undefined,
@@ -100,6 +103,42 @@ describe('resolveHeadSeoMeta() con le lingue dichiarate dalla pagina', () => {
       const alternate = meta.localeAlternates.find((alt) => alt.tag === localeTag(code))
       expect(new URL(alternate?.href ?? '').pathname).toBe(localeSwitchHref(code, pathname, current))
     }
+  })
+})
+
+function fromPage(pathname: string, currentLocale: string) {
+  return resolveHeadSeoMeta({ ...params, currentLocale, pathname, canonicalPath: pathname })
+}
+
+describe('resolveHeadSeoMeta() con una traduzione in NOINDEX_PATHS', () => {
+  withOnlyListedPaths(NOINDEX_PATHS, '/en/privacy')
+
+  it('dà noindex alla pagina della lista e non alla sua traduzione', () => {
+    expect(fromPage('/en/privacy', 'en').noindex).toBe(true)
+    expect(fromPage('/privacy', 'it').noindex).toBe(false)
+  })
+
+  it('la toglie dagli hreflang della traduzione, non dai suoi og:locale:alternate', () => {
+    const meta = fromPage('/privacy', 'it')
+    expect(meta.hreflangAlternates).toEqual([{ tag: localeTag('it'), href: 'https://example.com/privacy' }])
+    expect(meta.defaultHref).toBe('https://example.com/privacy')
+    expect(meta.localeAlternates.map((alt) => alt.tag)).toEqual([localeTag('it'), localeTag('en')])
+  })
+
+  it('non le fa emettere né hreflang né x-default', () => {
+    const meta = fromPage('/en/privacy', 'en')
+    expect(meta.hreflangAlternates).toEqual([])
+    expect(meta).not.toHaveProperty('defaultHref')
+  })
+})
+
+describe('resolveHeadSeoMeta() con la pagina della lingua di default in NOINDEX_PATHS', () => {
+  withOnlyListedPaths(NOINDEX_PATHS, '/privacy')
+
+  it('la traduzione annuncia solo sé stessa, senza x-default', () => {
+    const meta = fromPage('/en/privacy', 'en')
+    expect(meta.hreflangAlternates).toEqual([{ tag: localeTag('en'), href: 'https://example.com/en/privacy' }])
+    expect(meta).not.toHaveProperty('defaultHref')
   })
 })
 

@@ -1,3 +1,4 @@
+import { withOnlyListedPaths } from '@test/helpers/crawl-policy'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -7,7 +8,6 @@ import {
   matchesSubtree,
   NOINDEX_PATHS,
   ROBOTS_DISALLOWED_PATHS,
-  SITEMAP_EXCLUDED_PATHS,
 } from '@/lib/seo/crawl-policy'
 
 describe('crawlPathname', () => {
@@ -34,16 +34,6 @@ describe('crawlPathname', () => {
 
   it('leaves a nested path intact', () => {
     expect(crawlPathname('https://example.com/blog/a-post/')).toBe('/blog/a-post')
-  })
-})
-
-describe('SITEMAP_EXCLUDED_PATHS', () => {
-  it('is the union of both lists', () => {
-    expect(SITEMAP_EXCLUDED_PATHS).toEqual([...ROBOTS_DISALLOWED_PATHS, ...NOINDEX_PATHS])
-  })
-
-  it('covers every robots-disallowed path', () => {
-    for (const path of ROBOTS_DISALLOWED_PATHS) expect(SITEMAP_EXCLUDED_PATHS).toContain(path)
   })
 })
 
@@ -76,16 +66,31 @@ describe('matchesSubtree', () => {
 
 describe('isExcludedFromSitemap', () => {
   it('excludes every listed path, in both URL forms', () => {
-    for (const path of SITEMAP_EXCLUDED_PATHS) {
+    for (const path of [...ROBOTS_DISALLOWED_PATHS, ...NOINDEX_PATHS]) {
       expect(isExcludedFromSitemap(`https://example.com${path}`), path).toBe(true)
       expect(isExcludedFromSitemap(`https://example.com${path}/`), path).toBe(true)
     }
   })
 
-  it('lets through anything not listed', () => {
-    for (const url of ['https://example.com/', 'https://example.com/contatti', 'https://example.com/privacy/']) {
-      expect(isExcludedFromSitemap(url), url).toBe(matchesSubtree(crawlPathname(url), SITEMAP_EXCLUDED_PATHS))
-    }
+  describe('con una voce di prova in ciascuna lista', () => {
+    withOnlyListedPaths(ROBOTS_DISALLOWED_PATHS, '/private')
+    withOnlyListedPaths(NOINDEX_PATHS, '/en/privacy')
+
+    it('esclude le voci di tutte e due le liste, nelle due forme di URL', () => {
+      for (const url of ['https://example.com/private', 'https://example.com/en/privacy/']) {
+        expect(isExcludedFromSitemap(url), url).toBe(true)
+      }
+    })
+
+    it('lascia passare la home e un fratello che ha solo il prefisso in comune', () => {
+      for (const url of [
+        'https://example.com/',
+        'https://example.com/private-notes',
+        'https://example.com/en/privacy-notes/',
+      ]) {
+        expect(isExcludedFromSitemap(url), url).toBe(false)
+      }
+    })
   })
 })
 

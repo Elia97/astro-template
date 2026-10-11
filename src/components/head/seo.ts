@@ -1,5 +1,6 @@
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
 
+import { isNoindexPath } from '@/lib/seo/crawl-policy'
 import { DEFAULT_LOCALE, localeTag, SITE } from '@/lib/site'
 
 import { pageLocales } from '@/i18n/locales'
@@ -22,9 +23,11 @@ export interface SocialImage {
 interface HeadSeoMeta {
   documentTitle: string
   canonical: string
+  noindex: boolean
   socialImage: SocialImage
   currentTag: string
   localeAlternates: LocaleAlternate[]
+  hreflangAlternates: LocaleAlternate[]
   defaultHref?: string
 }
 
@@ -32,6 +35,7 @@ interface HeadSeoParams {
   title: string
   absoluteTitle: boolean
   currentLocale: string | undefined
+  pathname: string
   canonicalPath: string
   ogImage: string | undefined
   locales: readonly string[] | undefined
@@ -59,22 +63,26 @@ export function resolveHeadSeoMeta({
   title,
   absoluteTitle,
   currentLocale,
+  pathname,
   canonicalPath,
   ogImage,
   locales,
 }: HeadSeoParams): HeadSeoMeta {
   const locale = currentLocale ?? DEFAULT_LOCALE
   const canonical = localeAgnosticPath(canonicalPath, locale)
-  const available = pageLocales(locales)
+  const localeAlternates = resolveLocaleAlternates(canonical, pageLocales(locales))
+  const noindex = isNoindexPath(pathname)
+  const hreflangAlternates = noindex ? [] : localeAlternates.filter((alt) => !isNoindexPath(alt.href))
+  const defaultAlternate = hreflangAlternates.find((alt) => alt.tag === localeTag(DEFAULT_LOCALE))
 
   return {
     documentTitle: absoluteTitle || title === SITE.name ? title : `${title} | ${SITE.name}`,
     canonical: getAbsoluteLocaleUrl(locale, translatePath(canonical, locale)),
+    noindex,
     socialImage: resolveSocialImage(ogImage, locale),
     currentTag: localeTag(locale),
-    localeAlternates: resolveLocaleAlternates(canonical, available),
-    ...(available.includes(DEFAULT_LOCALE)
-      ? { defaultHref: getAbsoluteLocaleUrl(DEFAULT_LOCALE, translatePath(canonical, DEFAULT_LOCALE)) }
-      : {}),
+    localeAlternates,
+    hreflangAlternates,
+    ...(defaultAlternate ? { defaultHref: defaultAlternate.href } : {}),
   }
 }

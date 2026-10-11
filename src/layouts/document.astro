@@ -16,24 +16,11 @@ export interface Props {
   canonicalPath?: string
   ogImage?: string
   jsonLd?: Record<string, unknown>[]
-  // Solo pagine prerenderizzate, al contrario di NOINDEX_PATHS in src/middleware.ts:
-  // va accompagnato dal `filter` della sitemap in astro.config.mjs.
-  noindex?: boolean
   locales?: readonly string[]
   class?: string
 }
 
-const {
-  title,
-  absoluteTitle,
-  description,
-  canonicalPath,
-  ogImage,
-  jsonLd,
-  noindex,
-  locales,
-  class: className,
-} = Astro.props
+const { title, absoluteTitle, description, canonicalPath, ogImage, jsonLd, locales, class: className } = Astro.props
 const lang = Astro.currentLocale ?? DEFAULT_LOCALE
 ---
 
@@ -46,7 +33,7 @@ const lang = Astro.currentLocale ?? DEFAULT_LOCALE
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <JsFlag />
     <ThemeScript />
-    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {noindex} {locales} />
+    <Head {title} {absoluteTitle} {description} {canonicalPath} {ogImage} {jsonLd} {locales} />
     <slot name="head" />
     {/* Solo sulle prerenderizzate: con ClientRouter le CSP in meta delle pagine visitate si
         sommano, e quella di una pagina a richiesta copre solo i suoi script (src/middleware.ts). */}

@@ -45,6 +45,13 @@ Convenzioni stabilite dalla head centralizzata (`src/components/head/head.astro`
   la risolve `pageLocales()` in `src/i18n/locales.ts`, e la leggono sia gli alternate di
   `resolveHeadSeoMeta()` sia il selettore di lingua: una lingua che la configurazione non instrada
   ferma il build, e `x-default` esce solo se la pagina esiste nella lingua di default.
+- **Un percorso di `NOINDEX_PATHS` resta fuori dal gruppo delle lingue.** Le traduzioni non lo
+  annunciano, `x-default` non ci punta, e la pagina stessa non emette hreflang: Google ignora un
+  hreflang a cui l'altra pagina non risponde, e chiede che ogni versione elenchi anche sé stessa.
+  Lo decide `resolveHeadSeoMeta()` leggendo `src/lib/seo/crawl-policy.ts` (§ Sitemap e robots).
+  Restano gli `og:locale:alternate`, perché `noindex` dice che cosa indicizzare e non che cosa
+  condividere, e il selettore di lingua, che è navigazione: un `hreflang` su un `<a>` Google non lo
+  legge come annotazione.
 - Gli alternate `xhtml:link` di una sitemap si accoppiano **per percorso identico dopo il prefisso
   di lingua**, quindi con slug localizzati non si accoppiano mai. Con il routing localizzato
   l'hreflang che conta è quello nella `<head>`: la sitemap non rimedia.
@@ -181,16 +188,23 @@ del browser — e viene reso una volta sola da `head.astro`.
   di disallow da `crawl-policy.ts`: il controllo dell'indicizzazione per singola risposta NON sta lì
   (i crawler mettono in cache robots.txt).
 - **`src/lib/seo/crawl-policy.ts` è la fonte unica di verità** e alimenta `robots.txt`, il `filter`
-  della sitemap e il middleware. Due liste: `ROBOTS_DISALLOWED_PATHS` (bloccate al crawler, mai
-  scaricate) e `NOINDEX_PATHS` (scansionabili, tenute fuori dall'indice — la pagina deve comunque
-  passare `noindex` al layout: **è il meta tag a portare il segnale**, ed è l'unico meccanismo che
-  funziona su una pagina prerenderizzata). Entrambe alimentano `SITEMAP_EXCLUDED_PATHS`, entrambe
-  arrivano vuote, e la corrispondenza è per sottoalbero e deve restare tale — `/area-riservata`
-  copre `/area-riservata/documenti`. Una corrispondenza esatta lascerebbe indicizzabile ogni figlio
-  senza che niente fallisca, ed è il motivo per cui `matchesSubtree` porta una nota `[HARD]`.
-- Anche `X-Robots-Tag` da `src/middleware.ts` legge `NOINDEX_PATHS`, ma arriva soltanto a una
-  **risposta SSR non HTML** (un feed generato, un endpoint JSON) dove nessun meta tag può esistere.
-  Su una pagina prerenderizzata non gira.
+  della sitemap, la head e il middleware. Due liste: `ROBOTS_DISALLOWED_PATHS` (bloccate al
+  crawler, mai scaricate) e `NOINDEX_PATHS` (scansionabili, tenute fuori dall'indice). Escono
+  entrambe dalla sitemap, arrivano vuote, e la corrispondenza è per sottoalbero e deve restare tale
+  — `/area-riservata` copre `/area-riservata/documenti`. Una corrispondenza esatta lascerebbe
+  indicizzabile ogni figlio senza che niente fallisca, ed è il motivo per cui `matchesSubtree` porta
+  una nota `[HARD]`.
+- **Per togliere una pagina dall'indice basta la sua voce in `NOINDEX_PATHS`**: la pagina non passa
+  niente al layout. La head le dà `<meta name="robots" content="noindex, nofollow">`, l'unico
+  segnale che arriva a una pagina prerenderizzata, e nessuna pagina la annuncia con un hreflang
+  (§ Politica degli URL). Conta l'URL richiesto, `Astro.originPathname`: una pagina resa con una
+  rewrite, o con il fallback di i18n, risponde del suo URL e non di quello di destinazione. Il
+  `filter` della sitemap gira prima che `@astrojs/sitemap` calcoli gli alternate `xhtml:link`, quindi
+  la pagina non compare nemmeno fra gli alternate delle altre voci.
+- Anche `src/middleware.ts` legge `NOINDEX_PATHS` e mette `X-Robots-Tag` su ogni risposta resa a
+  richiesta: su una pagina HTML si somma al meta, su una risposta non HTML (un feed generato, un
+  endpoint JSON), dove nessun meta può esistere, è l'unico segnale. Su una pagina prerenderizzata
+  non arriva, perché Astro scarta in build le sue intestazioni di risposta.
 - L'esclusione serve solo per le rotte che **vengono** costruite ma devono restare fuori
   dall'indice. Una rotta che in produzione `getStaticPaths` non enumera mai (per esempio una bozza
   tenuta fuori da un predicato di visibilità) non ha bisogno né dell'una né dell'altra: nella
