@@ -297,7 +297,7 @@ almeno due lingue. Una pagina che non esiste in tutte dichiara le sue con la pro
 layout, `<MainLayout locales={['it']}>`: alternate hreflang e selettore leggono la stessa lista, come
 spiega la politica degli URL in `docs/guides/seo.md`. Una pagina che esiste in una lingua ma non va
 indicizzata, come una legale non ancora tradotta, si elenca invece in `NOINDEX_PATHS`
-(`src/lib/seo/crawl-policy.ts`): che cosa ne segue lo dice `docs/guides/seo.md` § Sitemap e robots.
+(`src/lib/seo/crawl-paths.ts`): che cosa ne segue lo dice `docs/guides/seo.md` § Sitemap e robots.
 
 ## Secret di release
 

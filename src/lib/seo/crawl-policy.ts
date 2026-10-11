@@ -1,18 +1,11 @@
 // Letto da src/pages/robots.txt.ts, dal filtro sitemap in astro.config.mjs, da
 // src/components/head/seo.ts e da src/middleware.ts.
 
-// [HARD] Senza import: astro.config.mjs si carica prima che Vite risolva l'alias `@/`, quindi
-// da lì sono raggiungibili solo i moduli che non importano niente.
+// [HARD] astro.config.mjs carica questo modulo prima che Vite risolva l'alias `@/`: qui e nei
+// moduli che importa si importa solo per percorso relativo.
+import { NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS } from './crawl-paths'
 
-/** Una voce di sitemap per un URL bloccato da robots è un avviso in Search Console, quindi
- *  questi restano fuori anche dalla sitemap. */
-// biome-ignore format: una voce per riga, così i cherry-pick da vetrina non confliggono
-export const ROBOTS_DISALLOWED_PATHS: readonly string[] = [
-]
-
-// biome-ignore format: una voce per riga, così i cherry-pick da vetrina non confliggono
-export const NOINDEX_PATHS: readonly string[] = [
-]
+export { NOINDEX_PATHS, ROBOTS_DISALLOWED_PATHS }
 
 /** @astrojs/sitemap consegna le voci assolute e con lo slash finale nonostante
  *  `trailingSlash: 'never'`. */
@@ -28,7 +21,8 @@ export function matchesSubtree(pathname: string, roots: readonly string[]): bool
   return roots.some((root) => path === root || path.startsWith(`${root}/`))
 }
 
-/** @astrojs/sitemap scarta da sé le pagine di stato, quindi `/404` e `/500` non ci sono. */
+/** Un URL della sitemap bloccato da robots è un avviso in Search Console. @astrojs/sitemap scarta
+ *  da sé le pagine di stato, quindi `/404` e `/500` non ci sono. */
 export function isExcludedFromSitemap(url: string): boolean {
   return matchesSubtree(url, ROBOTS_DISALLOWED_PATHS) || isNoindexPath(url)
 }
