@@ -188,8 +188,9 @@ del browser — e viene reso una volta sola da `head.astro`.
   di disallow da `crawl-policy.ts`: il controllo dell'indicizzazione per singola risposta NON sta lì
   (i crawler mettono in cache robots.txt).
 - **`src/lib/seo/crawl-policy.ts` è la fonte unica di verità** e alimenta `robots.txt`, il `filter`
-  della sitemap, la head e il middleware. Due liste: `ROBOTS_DISALLOWED_PATHS` (bloccate al
-  crawler, mai scaricate) e `NOINDEX_PATHS` (scansionabili, tenute fuori dall'indice). Escono
+  della sitemap, la head e il middleware. Due liste, che stanno in `src/lib/seo/crawl-paths.ts`:
+  `ROBOTS_DISALLOWED_PATHS` (bloccate al crawler, mai scaricate) e `NOINDEX_PATHS` (scansionabili,
+  tenute fuori dall'indice). Escono
   entrambe dalla sitemap, arrivano vuote, e la corrispondenza è per sottoalbero e deve restare tale
   — `/area-riservata` copre `/area-riservata/documenti`. Una corrispondenza esatta lascerebbe
   indicizzabile ogni figlio senza che niente fallisca, ed è il motivo per cui `matchesSubtree` porta

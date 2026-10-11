@@ -9,7 +9,7 @@
 - **Gate di qualità**: cinque, e ognuno copre un momento che gli altri non coprono; niente arriva in produzione senza passarli tutti. Vedi `docs/guides/deploy-ops.md` § La catena dei gate.
 - **I gate `check:*`, i generatori di `pnpm gen`, `doctor` e le verifiche di build e di produzione — `perf:bundle`, `smoke:prod`, `analytics:verify`, `lhci` e `gen:icons` — vengono da `@elia97/officina`**, una devDependency con sorgenti e test in `Elia97/officina`: si correggono lì e arrivano qui aggiornando la dipendenza, mai con una copia in `scripts/`, che divergerebbe alla prima modifica. Dallo stesso pacchetto arrivano le due configurazioni che ogni progetto avrebbe identiche — `biome.json` e `lefthook.yml` non fanno che estenderne i preset — e i passi dei workflow, che sono composite action riferite a un tag di versione: girano dentro il job che le chiama, quindi il nome del check, l'`environment` e i segreti restano di questo repository. Quello che cambia da un progetto all'altro — URL del sito, colore delle icone, budget di bundle, intestazioni attese, controlli di smoke propri — si dichiara in `officina.config.ts` alla radice, e qui bastano `siteUrl`, `icons.background` e le `features` perché per il resto i default del pacchetto sono i valori di questo template. `doctor`, dentro `pnpm run ci`, misura quanto di tutto questo è davvero in piedi: agganci dei generatori, ancoraggi dell'iniezione, script, dipendenze e strumenti, residui di ciò che è uscito, preset, workflow con il riferimento fissato e Dependabot, e `officina.config.ts`. Cosa invece resta al pre-volo dei generatori sta in `docs/guides/content-collections.md` § Punti di iniezione dei generatori.
 - **Protezione dagli abusi**: tre livelli sull'azione pubblica, dal più economico — honeypot applicativo, rate limit in memoria e Vercel BotID Basic (in sola osservazione finché `BOTID_ENFORCE=true`). Vedi `docs/guides/forms-email.md` § Protezione dagli abusi.
-- **Politica di scansione**: `src/lib/seo/crawl-policy.ts` è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt`, dalla head (il meta `noindex` e gli hreflang) e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
+- **Politica di scansione**: `src/lib/seo/crawl-policy.ts`, con le sue due liste in `crawl-paths.ts`, è la fonte unica di verità su cosa resta fuori dalla ricerca, letta dal filtro della sitemap, da `robots.txt`, dalla head (il meta `noindex` e gli hreflang) e dal middleware. Vedi `docs/guides/seo.md` § Sitemap e robots.
 - **Consenso e analytics**: spenti se non configurati — senza **entrambi** un id di container GTM e un id di sito iubenda il layout non rende nessun CMP, nessun tag e nessun cookie. Accenderli non richiede nessuna modifica alla CSP: gli host di GTM, GA4 e iubenda stanno già in `src/lib/csp/directives.ts`. Un tag che il cliente aggiunge dopo, dal pannello GTM, può invece caricare host che lì non ci sono: la tabella tag → host sta nella guida. Vedi `docs/guides/deploy-ops.md` § Tracciamento e Consent Mode v2.
 - **Regione delle funzioni**: `fra1` (`vercel.json`). Lasciata vuota, Vercel usa `iad1` e ogni rotta SSR e ogni azione attraversano l'Atlantico due volte.
 
@@ -48,6 +48,7 @@ src/
     homepage/  # le sezioni della homepage                               example
   lib/         # logica senza markup — strati foglia (regola sotto)
     seo/       #   json-ld, crawl-policy, manifest                       machinery
+               #   crawl-paths: i percorsi fuori dalla ricerca           config
     forms/     #   honeypot, honeypot-schema, rate-limit, form-fields    machinery
     emails/    #   layout: cornice, escapeHtml, detailRow                chrome
     overlay/   #   trap-focus, scroll-lock                               machinery
@@ -79,6 +80,7 @@ test/          # infrastruttura di test, mai inclusa nel bundle          machine
   stubs/       # i moduli virtuali astro:*, risolti dagli alias di vitest
   helpers/     # fixture e mock condivisi (handler delle azioni)
   pages/       # i test delle rotte di src/pages/, dove Astro li costruirebbe come pagine
+  fixtures/    # pagine .astro di prova, che i test rendono con la Container API
   container.ts # helper della Container API per rendere i componenti .astro
 public/        # asset statici serviti così come sono (favicon, icone del manifest, og-default.png segnaposto)
 docs/          # i documenti tecnici del progetto: ROADMAP (milestone, sotto-task, giornate) e
@@ -179,9 +181,10 @@ vetrina, e arriva al template derivato con il cherry-pick.
 - **Liste di configurazione**: `features` in `officina.config.ts` e `coverage.include` in
   `vitest.config.ts` hanno una voce per riga. La seconda porta un `biome-ignore format`, perché Biome
   riporta su una riga un array che ci sta.
-- **Politica di scansione**: `ROBOTS_DISALLOWED_PATHS` e `NOINDEX_PATHS` in
-  `src/lib/seo/crawl-policy.ts` hanno una voce per riga, sotto un `biome-ignore format`. Un template
-  derivato vi aggiunge in coda i percorsi che restano fuori dalla ricerca, come l'accesso, il
+- **Politica di scansione**: `ROBOTS_DISALLOWED_PATHS` e `NOINDEX_PATHS` stanno da sole in
+  `src/lib/seo/crawl-paths.ts`, una voce per riga sotto un `biome-ignore format`, così un file che
+  cresce con le voci non porta sopra la soglia di `check:comments --strict` i commenti della
+  politica, che restano in `crawl-policy.ts`. Un template derivato vi aggiunge in coda i percorsi che restano fuori dalla ricerca, come l'accesso, il
   back-office o le pagine non ancora tradotte, e il resto li segue senza altre modifiche: da
   `ROBOTS_DISALLOWED_PATHS` la sitemap e `robots.txt`, da `NOINDEX_PATHS` la sitemap, il meta
   `noindex`, gli hreflang e `X-Robots-Tag` (`docs/guides/seo.md` § Sitemap e robots).
