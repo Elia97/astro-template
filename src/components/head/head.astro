@@ -13,25 +13,25 @@ interface Props {
   canonicalPath?: string | undefined
   ogImage?: string | undefined
   jsonLd?: Record<string, unknown>[] | undefined
-  noindex?: boolean | undefined
   locales?: readonly string[] | undefined
 }
 
-const {
-  title,
-  absoluteTitle = false,
-  description,
-  canonicalPath,
-  ogImage,
-  jsonLd,
-  noindex = false,
-  locales,
-} = Astro.props
+const { title, absoluteTitle = false, description, canonicalPath, ogImage, jsonLd, locales } = Astro.props
 
-const { documentTitle, canonical, socialImage, currentTag, localeAlternates, defaultHref } = resolveHeadSeoMeta({
+const {
+  documentTitle,
+  canonical,
+  noindex,
+  socialImage,
+  currentTag,
+  localeAlternates,
+  hreflangAlternates,
+  defaultHref,
+} = resolveHeadSeoMeta({
   title,
   absoluteTitle,
   currentLocale: Astro.currentLocale,
+  pathname: Astro.originPathname,
   canonicalPath: canonicalPath ?? Astro.url.pathname,
   ogImage,
   locales,
@@ -48,7 +48,7 @@ const { documentTitle, canonical, socialImage, currentTag, localeAlternates, def
     (src/middleware.ts), quindi questo è l'unico noindex per percorso che la raggiunge. */}
 {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 <link rel="canonical" href={canonical} />
-<HeadAlternates localeAlternates={localeAlternates} defaultHref={defaultHref} />
+<HeadAlternates localeAlternates={hreflangAlternates} defaultHref={defaultHref} />
 
 <HeadOg
   title={title}
